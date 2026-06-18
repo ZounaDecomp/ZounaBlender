@@ -13,7 +13,7 @@ from ...common.constants import (
     rat_values_to_collision_flag,
     export_collision_name,
 )
-from ..bff.io import SphereCol, BoxCol, CylindreCol, Box, Sphere, Cylindre, Segment
+from ...common.types import *
 
 COL_NAME_HASHES = {
     -2060499066: "DURL",

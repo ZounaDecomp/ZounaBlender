@@ -13,14 +13,12 @@ from ..bff.io import (
     AABBCol,
     PurplePoints,
     PurpleMorpher,
-    Box,
-    Sphere,
     TypeEnum,
 )
 from ..common.mesh import decode_vertex_buffer
 from ..common.resource import load_dependencies, save_dependencies
 from ...common.util import safe_int
-
+from ...common.types import *
 
 class MeshV1_06_63_02_PC:
     file_path: str

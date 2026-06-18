@@ -5,7 +5,7 @@ from gpu_extras.batch import batch_for_shader
 from bpy.utils import register_class, unregister_class
 from bpy.types import Object
 from mathutils import Vector, Matrix
-from math import radians
+from math import radians, sin, cos
 from typing import Dict
 
 from ...common.constants import (
@@ -132,17 +132,56 @@ class ZounaCollisionPrimitive(bpy.types.Gizmo):
         col = self.empty.zouna_property.col_primitive_type
 
         if col == ColPrimitiveType.SPHERE:
-            bmesh.ops.create_circle(bm, segments=32, radius=1)
-            bmesh.ops.create_circle(
-                bm, segments=32, radius=1, matrix=Matrix.Rotation(radians(90), 4, "X")
-            )
-            bmesh.ops.create_circle(
-                bm, segments=32, radius=1, matrix=Matrix.Rotation(radians(90), 4, "Y")
-            )
+            segments = 32
+            # total circles per direction (>= 2 recommended)
+            subdivisions = 4
+            radius = 1.0
 
+            if subdivisions < 2:
+                subdivisions = 2
+
+            # Vertical circles
+
+            for i in range(subdivisions):
+                angle = (i / subdivisions) * 180.0
+                bmesh.ops.create_circle(
+                    bm,
+                    segments=segments,
+                    radius=radius,
+                    matrix=(
+                        Matrix.Rotation(radians(angle), 4, "Z")
+                        @ Matrix.Rotation(radians(90), 4, "X")
+                    ),
+                )
+
+            # Horizontal circles
+
+            half = subdivisions // 2
+
+            # Always include equator
+            bmesh.ops.create_circle(bm, segments=segments, radius=radius)
+
+            for i in range(1, half + 1):
+                t = i / (half + 1)
+                angle = t * (3.141592653589793 / 2.0)
+
+                z = radius * sin(angle)
+                r = radius * cos(angle)
+
+                bmesh.ops.create_circle(
+                    bm,
+                    segments=segments,
+                    radius=r,
+                    matrix=Matrix.Translation((0, 0, z)),
+                )
+                bmesh.ops.create_circle(
+                    bm,
+                    segments=segments,
+                    radius=r,
+                    matrix=Matrix.Translation((0, 0, -z)),
+                )
         elif col == ColPrimitiveType.BOX:
             bmesh.ops.create_cube(bm, size=2)
-
         elif col == ColPrimitiveType.CYLINDER:
             bmesh.ops.create_cone(
                 bm,

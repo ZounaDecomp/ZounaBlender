@@ -26,53 +26,241 @@ LAST_VIEW_MATRIX = {}
 
 def update_envmap_uv(obj, region3d):
     """
-    Compute per-corner reflection-derived debug UVs using existing split (loop) normals.
+    Compute per-corner reflection-derived debug UVs using existing split (loop) normals,
+    but ONLY for loops whose polygon material has mat.zouna_material.envmap == True.
+    Non-envmap loops are left unchanged.
     """
-    mesh = obj.data
+    import numpy as np
 
+    mesh = obj.data
+    loops_len = len(mesh.loops)
+    polys_len = len(mesh.polygons)
+
+    # ---- Determine which material indices are envmap ----
+    # polygon.material_index refers to the object's material slots / mesh materials index
+    envmap_mat = np.zeros(len(obj.material_slots), dtype=bool)
+    for i, slot in enumerate(obj.material_slots):
+        mat = slot.material
+        if mat is None:
+            continue
+        zm = getattr(mat, "zouna_material", None)
+        if zm is None:
+            continue
+        if bool(getattr(zm, "envmap", False)):
+            envmap_mat[i] = True
+
+    # If no envmap materials at all, do nothing (and don't touch the attribute)
+    if not envmap_mat.any():
+        return
+
+    # ---- Build per-loop mask based on polygon material_index ----
+    poly_mat_idx = np.empty(polys_len, dtype=np.int32)
+    mesh.polygons.foreach_get("material_index", poly_mat_idx)
+
+    poly_is_env = envmap_mat[np.clip(poly_mat_idx, 0, len(envmap_mat) - 1)]
+
+    loop_mask = np.zeros(loops_len, dtype=bool)
+    for p_i, p in enumerate(mesh.polygons):
+        if poly_is_env[p_i]:
+            s = p.loop_start
+            loop_mask[s : s + p.loop_total] = True
+
+    # If something weird: polygons exist but none marked envmap after mapping
+    if not loop_mask.any():
+        return
+
+    # ---- Ensure envmap_uv attribute exists and is correct ----
     attr = mesh.attributes.get("envmap_uv")
-    if attr is None:
+    if (
+        attr is None
+        or attr.domain != "CORNER"
+        or attr.data_type != "FLOAT_VECTOR"
+        or len(attr.data) != loops_len
+    ):
+        if attr is not None:
+            mesh.attributes.remove(attr)
         attr = mesh.attributes.new(
             name="envmap_uv", type="FLOAT_VECTOR", domain="CORNER"
         )
-    else:
-        if (
-            attr.domain != "CORNER"
-            or attr.data_type != "FLOAT_VECTOR"
-            or len(attr.data) != len(mesh.loops)
-        ):
-            try:
-                mesh.attributes.remove(attr)
-            except Exception:
-                pass
-            attr = mesh.attributes.new(
-                name="envmap_uv", type="FLOAT_VECTOR", domain="CORNER"
-            )
 
-    attr_data = mesh.attributes["envmap_uv"].data
+    attr_data = attr.data
 
-    # Equivalent to shader's EYE_LOCAL: viewport camera position in object-local space
+    # ---- Bulk fetch needed loop data ----
+    v_idx = np.empty(loops_len, dtype=np.int32)
+    mesh.loops.foreach_get("vertex_index", v_idx)
+
+    loop_n = np.empty(loops_len * 3, dtype=np.float32)
+    mesh.loops.foreach_get("normal", loop_n)
+    loop_n = loop_n.reshape((loops_len, 3))
+
+    verts_len = len(mesh.vertices)
+    v_co_all = np.empty(verts_len * 3, dtype=np.float32)
+    mesh.vertices.foreach_get("co", v_co_all)
+    v_co_all = v_co_all.reshape((verts_len, 3))
+
+    # Viewport camera position -> object local
     cam_world = region3d.view_matrix.inverted().translation
     eye_local = obj.matrix_world.inverted() @ cam_world
+    eye = np.array([eye_local.x, eye_local.y, eye_local.z], dtype=np.float32)
 
-    for loop_index, loop in enumerate(mesh.loops):
-        v_idx = loop.vertex_index
-        pos = mesh.vertices[v_idx].co
+    # ---- Read existing attribute so we only patch masked loops ----
+    out = np.empty((loops_len, 3), dtype=np.float32)
+    attr_data.foreach_get("vector", out.ravel())
 
-        n = loop.normal
-        n = n.normalized()
+    idx = np.nonzero(loop_mask)[0]
 
-        eye_vec = eye_local - pos
-        eye_vec = eye_vec.normalized()
+    # Gather only envmap loops
+    n = loop_n[idx]
+    pos = v_co_all[v_idx[idx]]
 
-        reflect = 2.0 * n.dot(eye_vec) * n - eye_vec
+    # normalize normals
+    n_len = np.linalg.norm(n, axis=1)
+    n_len = np.where(n_len > 0.0, n_len, 1.0)
+    n = n / n_len[:, None]
 
-        u = reflect.x * 0.5 + 0.5
-        v = reflect.y * 0.5 + 0.5
+    # normalize eye vectors
+    eye_vec = eye[None, :] - pos
+    e_len = np.linalg.norm(eye_vec, axis=1)
+    e_len = np.where(e_len > 0.0, e_len, 1.0)
+    e = eye_vec / e_len[:, None]
 
-        attr_data[loop_index].vector = (u, v, v)
+    # reflect = 2*(n·e)*n - e
+    ndote = np.einsum("ij,ij->i", n, e)
+    reflect = (2.0 * ndote)[:, None] * n - e
 
+    u = reflect[:, 0] * 0.5 + 0.5
+    v = reflect[:, 1] * 0.5 + 0.5
+
+    out[idx, 0] = u
+    out[idx, 1] = v
+    out[idx, 2] = v
+
+    attr_data.foreach_set("vector", out.ravel())
     mesh.update()
+
+
+# def update_envmap_uv(obj, region3d):
+#     """
+#     Compute per-corner reflection-derived debug UVs using existing split (loop) normals.
+#     Optimized: bulk IO (foreach_get/set) + NumPy math.
+#     """
+#     import numpy as np
+
+#     mesh = obj.data
+#     loops_len = len(mesh.loops)
+
+#     attr = mesh.attributes.get("envmap_uv")
+#     if (
+#         attr is None
+#         or attr.domain != "CORNER"
+#         or attr.data_type != "FLOAT_VECTOR"
+#         or len(attr.data) != loops_len
+#     ):
+#         if attr is not None:
+#             mesh.attributes.remove(attr)
+#         attr = mesh.attributes.new(
+#             name="envmap_uv", type="FLOAT_VECTOR", domain="CORNER"
+#         )
+
+#     attr_data = attr.data
+
+#     # Viewport camera position -> object local
+#     cam_world = region3d.view_matrix.inverted().translation
+#     eye_local = obj.matrix_world.inverted() @ cam_world
+#     eye = np.array([eye_local.x, eye_local.y, eye_local.z], dtype=np.float32)
+
+#     # loop vertex indices
+#     v_idx = np.empty(loops_len, dtype=np.int32)
+#     mesh.loops.foreach_get("vertex_index", v_idx)
+
+#     # loop normals (split normals per corner)
+#     loop_n = np.empty(loops_len * 3, dtype=np.float32)
+#     mesh.loops.foreach_get("normal", loop_n)
+#     loop_n = loop_n.reshape((loops_len, 3))
+
+#     # vertex positions (bulk all verts, gather by v_idx)
+#     verts_len = len(mesh.vertices)
+#     v_co_all = np.empty(verts_len * 3, dtype=np.float32)
+#     mesh.vertices.foreach_get("co", v_co_all)
+#     v_co_all = v_co_all.reshape((verts_len, 3))
+#     pos = v_co_all[v_idx]
+
+#     # normalize normals
+#     n_len = np.linalg.norm(loop_n, axis=1)
+#     n_len = np.where(n_len > 0.0, n_len, 1.0)
+#     n = loop_n / n_len[:, None]
+
+#     # normalize eye vectors: eye_local - pos
+#     eye_vec = eye[None, :] - pos
+#     e_len = np.linalg.norm(eye_vec, axis=1)
+#     e_len = np.where(e_len > 0.0, e_len, 1.0)
+#     e = eye_vec / e_len[:, None]
+
+#     # reflect = 2*(n·e)*n - e
+#     ndote = np.einsum("ij,ij->i", n, e)
+#     reflect = (2.0 * ndote)[:, None] * n - e
+
+#     u = reflect[:, 0] * 0.5 + 0.5
+#     v = reflect[:, 1] * 0.5 + 0.5
+
+#     out = np.empty((loops_len, 3), dtype=np.float32)
+#     out[:, 0] = u
+#     out[:, 1] = v
+#     out[:, 2] = v
+
+#     attr_data.foreach_set("vector", out.ravel())
+#     mesh.update()
+
+
+# def update_envmap_uv(obj, region3d):
+#     """
+#     Compute per-corner reflection-derived debug UVs using existing split (loop) normals.
+#     """
+#     mesh = obj.data
+
+#     attr = mesh.attributes.get("envmap_uv")
+#     if attr is None:
+#         attr = mesh.attributes.new(
+#             name="envmap_uv", type="FLOAT_VECTOR", domain="CORNER"
+#         )
+#     else:
+#         if (
+#             attr.domain != "CORNER"
+#             or attr.data_type != "FLOAT_VECTOR"
+#             or len(attr.data) != len(mesh.loops)
+#         ):
+#             try:
+#                 mesh.attributes.remove(attr)
+#             except Exception:
+#                 pass
+#             attr = mesh.attributes.new(
+#                 name="envmap_uv", type="FLOAT_VECTOR", domain="CORNER"
+#             )
+
+#     attr_data = mesh.attributes["envmap_uv"].data
+
+#     # Equivalent to shader's EYE_LOCAL: viewport camera position in object-local space
+#     cam_world = region3d.view_matrix.inverted().translation
+#     eye_local = obj.matrix_world.inverted() @ cam_world
+
+#     for loop_index, loop in enumerate(mesh.loops):
+#         v_idx = loop.vertex_index
+#         pos = mesh.vertices[v_idx].co
+
+#         n = loop.normal
+#         n = n.normalized()
+
+#         eye_vec = eye_local - pos
+#         eye_vec = eye_vec.normalized()
+
+#         reflect = 2.0 * n.dot(eye_vec) * n - eye_vec
+
+#         u = reflect.x * 0.5 + 0.5
+#         v = reflect.y * 0.5 + 0.5
+
+#         attr_data[loop_index].vector = (u, v, v)
+
+#     mesh.update()
 
 
 handler_ref = None
@@ -106,7 +294,7 @@ def viewport_update():
                 if obj.type != "MESH" or obj.mode != "OBJECT":
                     continue
                 mat = obj.active_material
-                if mat and mat.is_zouna:
+                if mat and mat.is_zouna and mat.zouna_material.envmap:
                     update_envmap_uv(obj, region3d)
 
 

@@ -1,5 +1,5 @@
 from math import sqrt
-from ..bff.io import SphereCol, BoxCol, CylindreCol, Box, Sphere
+from ...common.types import *
 from ..common.mesh import (
     import_box_collision,
     import_cylinder_collision,
@@ -19,7 +19,7 @@ from ...common.constants import ColPrimitiveType
 import bpy
 from mathutils import Vector, Matrix
 from dataclasses import dataclass
-
+import traceback
 
 @dataclass
 class Vertex:
@@ -294,9 +294,15 @@ class Mesh(Object):
             face_materials.append(face.material_id)
 
         mesh = bpy.data.meshes.new(self.name)
-        for mat in self.materials:
+        for i, mat in enumerate(self.materials):
             if mat is not None:
                 mesh.materials.append(mat.to_blender())
+            else:
+                raise RuntimeError(
+                    "Material failed to load at index {} for mesh '{}'".format(
+                        i, self.name
+                    )
+                )
 
         mesh.from_pydata(verts, [], faces_idx)
 

@@ -221,6 +221,13 @@ class RatMaterialRenderFlags(IntFlag):
     DEFAULT = UNK_800000_USED
 
 
+class WalleMaterialRenderFlags(IntFlag):
+    NONE = 0x0
+    ALPHA_MASK = 0x1
+    UNK_20_USED = 0x20
+    UNK_800000_USED = 0x800000
+    DEFAULT = UNK_800000_USED
+
 class RatMaterialCollisionFlags(IntFlag):
     NONE = 0x0
     UNK_1_USED = 0x1

@@ -1660,7 +1660,7 @@ class CameraV1381_67_09PCBody:
         return result
 
 
-class Box:
+class ColBoxClass:
     def __init__(self, matrix, scale, vec):
         self.matrix = matrix
         self.scale = scale
@@ -1672,7 +1672,7 @@ class Box:
         matrix = from_list(lambda x: from_list(from_float, x), obj.get("matrix"))
         scale = from_float(obj.get("scale"))
         vec = from_list(from_float, obj.get("vec"))
-        return Box(matrix, scale, vec)
+        return ColBoxClass(matrix, scale, vec)
 
     def to_dict(self):
         result = {}
@@ -1682,7 +1682,7 @@ class Box:
         return result
 
 
-class Sphere:
+class BSphere:
     def __init__(self, center, radius):
         self.center = center
         self.radius = radius
@@ -1692,7 +1692,7 @@ class Sphere:
         assert isinstance(obj, dict)
         center = from_list(from_float, obj.get("center"))
         radius = from_float(obj.get("radius"))
-        return Sphere(center, radius)
+        return BSphere(center, radius)
 
     def to_dict(self):
         result = {}
@@ -1761,8 +1761,8 @@ class CameraV1381_67_09PCLinkHeader:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_box = Box.from_dict(obj.get("b_box"))
-        b_sphere = Sphere.from_dict(obj.get("b_sphere"))
+        b_box = ColBoxClass.from_dict(obj.get("b_box"))
+        b_sphere = BSphere.from_dict(obj.get("b_sphere"))
         data_name = from_union([from_int, from_str], obj.get("data_name"))
         fade_out_dist = from_float(obj.get("fade_out_dist"))
         flags = ResourceLinkHeaderFlags.from_dict(obj.get("flags"))
@@ -1774,8 +1774,8 @@ class CameraV1381_67_09PCLinkHeader:
 
     def to_dict(self):
         result = {}
-        result["b_box"] = to_class(Box, self.b_box)
-        result["b_sphere"] = to_class(Sphere, self.b_sphere)
+        result["b_box"] = to_class(ColBoxClass, self.b_box)
+        result["b_sphere"] = to_class(BSphere, self.b_sphere)
         result["data_name"] = from_union([from_int, from_str], self.data_name)
         result["fade_out_dist"] = to_float(self.fade_out_dist)
         result["flags"] = to_class(ResourceLinkHeaderFlags, self.flags)
@@ -2167,8 +2167,8 @@ class CameraZoneV106_63_02PCLinkHeader:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_box = Box.from_dict(obj.get("b_box"))
-        b_sphere = Sphere.from_dict(obj.get("b_sphere"))
+        b_box = ColBoxClass.from_dict(obj.get("b_box"))
+        b_sphere = BSphere.from_dict(obj.get("b_sphere"))
         data_name = from_union([from_int, from_str], obj.get("data_name"))
         fade_out_dist = from_float(obj.get("fade_out_dist"))
         flags = from_int(obj.get("flags"))
@@ -2183,8 +2183,8 @@ class CameraZoneV106_63_02PCLinkHeader:
 
     def to_dict(self):
         result = {}
-        result["b_box"] = to_class(Box, self.b_box)
-        result["b_sphere"] = to_class(Sphere, self.b_sphere)
+        result["b_box"] = to_class(ColBoxClass, self.b_box)
+        result["b_sphere"] = to_class(BSphere, self.b_sphere)
         result["data_name"] = from_union([from_int, from_str], self.data_name)
         result["fade_out_dist"] = to_float(self.fade_out_dist)
         result["flags"] = from_int(self.flags)
@@ -4001,7 +4001,7 @@ class CollisionBoxElement:
         return result
 
 
-class Segment:
+class Seg:
     def __init__(self, direction, length, origin, pad):
         self.direction = direction
         self.length = length
@@ -4015,7 +4015,7 @@ class Segment:
         length = from_float(obj.get("length"))
         origin = from_list(from_float, obj.get("origin"))
         pad = from_float(obj.get("pad"))
-        return Segment(direction, length, origin, pad)
+        return Seg(direction, length, origin, pad)
 
     def to_dict(self):
         result = {}
@@ -4035,13 +4035,13 @@ class Cylindre:
     def from_dict(obj):
         assert isinstance(obj, dict)
         radius = from_float(obj.get("radius"))
-        seg = Segment.from_dict(obj.get("seg"))
+        seg = Seg.from_dict(obj.get("seg"))
         return Cylindre(radius, seg)
 
     def to_dict(self):
         result = {}
         result["radius"] = to_float(self.radius)
-        result["seg"] = to_class(Segment, self.seg)
+        result["seg"] = to_class(Seg, self.seg)
         return result
 
 
@@ -4094,14 +4094,14 @@ class SpheresColElement:
         assert isinstance(obj, dict)
         flags = from_int(obj.get("flags"))
         name = from_union([from_int, from_str], obj.get("name"))
-        sphere = Sphere.from_dict(obj.get("sphere"))
+        sphere = BSphere.from_dict(obj.get("sphere"))
         return SpheresColElement(flags, name, sphere)
 
     def to_dict(self):
         result = {}
         result["flags"] = from_int(self.flags)
         result["name"] = from_union([from_int, from_str], self.name)
-        result["sphere"] = to_class(Sphere, self.sphere)
+        result["sphere"] = to_class(BSphere, self.sphere)
         return result
 
 
@@ -5379,21 +5379,7 @@ class MaterialV106_63_02_PC:
 
 
 class MaterialV1291_03_06PCBody:
-    def __init__(
-        self,
-        cdcdcdcd,
-        diffuse,
-        diffuse_rotation,
-        diffuse_scale,
-        diffuse_translation,
-        emission,
-        flags,
-        texture_flag,
-        textures,
-        unknown1_s,
-        unknown2_s,
-        uv_transform_matrix,
-    ):
+    def __init__(self, cdcdcdcd, diffuse, diffuse_rotation, diffuse_scale, diffuse_translation, emission, flags, params, specular, specular_pow, texture_flag, textures, uv_transform_matrix):
         self.cdcdcdcd = cdcdcdcd
         self.diffuse = diffuse
         self.diffuse_rotation = diffuse_rotation
@@ -5401,10 +5387,11 @@ class MaterialV1291_03_06PCBody:
         self.diffuse_translation = diffuse_translation
         self.emission = emission
         self.flags = flags
+        self.params = params
+        self.specular = specular
+        self.specular_pow = specular_pow
         self.texture_flag = texture_flag
         self.textures = textures
-        self.unknown1_s = unknown1_s
-        self.unknown2_s = unknown2_s
         self.uv_transform_matrix = uv_transform_matrix
 
     @staticmethod
@@ -5417,29 +5404,13 @@ class MaterialV1291_03_06PCBody:
         diffuse_translation = from_list(from_float, obj.get("diffuse_translation"))
         emission = from_list(from_float, obj.get("emission"))
         flags = from_list(from_int, obj.get("flags"))
+        params = from_list(from_int, obj.get("params"))
+        specular = from_list(from_float, obj.get("specular"))
+        specular_pow = from_float(obj.get("specular_pow"))
         texture_flag = from_int(obj.get("texture_flag"))
-        textures = from_list(
-            lambda x: from_union([from_int, from_str], x), obj.get("textures")
-        )
-        unknown1_s = from_list(from_float, obj.get("unknown1s"))
-        unknown2_s = from_list(from_int, obj.get("unknown2s"))
-        uv_transform_matrix = from_list(
-            lambda x: from_list(from_float, x), obj.get("uv_transform_matrix")
-        )
-        return MaterialV1291_03_06PCBody(
-            cdcdcdcd,
-            diffuse,
-            diffuse_rotation,
-            diffuse_scale,
-            diffuse_translation,
-            emission,
-            flags,
-            texture_flag,
-            textures,
-            unknown1_s,
-            unknown2_s,
-            uv_transform_matrix,
-        )
+        textures = from_list(lambda x: from_union([from_int, from_str], x), obj.get("textures"))
+        uv_transform_matrix = from_list(lambda x: from_list(from_float, x), obj.get("uv_transform_matrix"))
+        return MaterialV1291_03_06PCBody(cdcdcdcd, diffuse, diffuse_rotation, diffuse_scale, diffuse_translation, emission, flags, params, specular, specular_pow, texture_flag, textures, uv_transform_matrix)
 
     def to_dict(self):
         result = {}
@@ -5450,15 +5421,12 @@ class MaterialV1291_03_06PCBody:
         result["diffuse_translation"] = from_list(to_float, self.diffuse_translation)
         result["emission"] = from_list(to_float, self.emission)
         result["flags"] = from_list(from_int, self.flags)
+        result["params"] = from_list(to_float, self.params)
+        result["specular"] = from_list(to_float, self.specular)
+        result["specular_pow"] = to_float(self.specular_pow)
         result["texture_flag"] = from_int(self.texture_flag)
-        result["textures"] = from_list(
-            lambda x: from_union([from_int, from_str], x), self.textures
-        )
-        result["unknown1s"] = from_list(to_float, self.unknown1_s)
-        result["unknown2s"] = from_list(from_int, self.unknown2_s)
-        result["uv_transform_matrix"] = from_list(
-            lambda x: from_list(to_float, x), self.uv_transform_matrix
-        )
+        result["textures"] = from_list(lambda x: from_union([from_int, from_str], x), self.textures)
+        result["uv_transform_matrix"] = from_list(lambda x: from_list(to_float, x), self.uv_transform_matrix)
         return result
 
 
@@ -6447,7 +6415,7 @@ class AABBCol:
         return result
 
 
-class BoxCol:
+class AmbitiousSchema:
     def __init__(self, col_box, flag, name):
         self.col_box = col_box
         self.flag = flag
@@ -6456,20 +6424,20 @@ class BoxCol:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        col_box = Box.from_dict(obj.get("col_box"))
+        col_box = ColBoxClass.from_dict(obj.get("col_box"))
         flag = from_int(obj.get("flag"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return BoxCol(col_box, flag, name)
+        return AmbitiousSchema(col_box, flag, name)
 
     def to_dict(self):
         result = {}
-        result["col_box"] = to_class(Box, self.col_box)
+        result["col_box"] = to_class(ColBoxClass, self.col_box)
         result["flag"] = from_int(self.flag)
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class CylindreCol:
+class CunningSchema:
     def __init__(self, col_cylindre, flag, name):
         self.col_cylindre = col_cylindre
         self.flag = flag
@@ -6481,7 +6449,7 @@ class CylindreCol:
         col_cylindre = Cylindre.from_dict(obj.get("col_cylindre"))
         flag = from_int(obj.get("flag"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return CylindreCol(col_cylindre, flag, name)
+        return CunningSchema(col_cylindre, flag, name)
 
     def to_dict(self):
         result = {}
@@ -7064,7 +7032,7 @@ class PurplePoints:
         return result
 
 
-class SphereCol:
+class Schema2:
     def __init__(self, col_sph, flag, name):
         self.col_sph = col_sph
         self.flag = flag
@@ -7073,14 +7041,14 @@ class SphereCol:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        col_sph = Sphere.from_dict(obj.get("col_sph"))
+        col_sph = BSphere.from_dict(obj.get("col_sph"))
         flag = from_int(obj.get("flag"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SphereCol(col_sph, flag, name)
+        return Schema2(col_sph, flag, name)
 
     def to_dict(self):
         result = {}
-        result["col_sph"] = to_class(Sphere, self.col_sph)
+        result["col_sph"] = to_class(BSphere, self.col_sph)
         result["flag"] = from_int(self.flag)
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -7199,8 +7167,8 @@ class MeshV106_63_02PCBody:
         aabb_vertices = from_list(
             lambda x: from_list(from_int, x), obj.get("aabb_vertices")
         )
-        box_cols = from_list(BoxCol.from_dict, obj.get("box_cols"))
-        cylindre_cols = from_list(CylindreCol.from_dict, obj.get("cylindre_cols"))
+        box_cols = from_list(AmbitiousSchema.from_dict, obj.get("box_cols"))
+        cylindre_cols = from_list(CunningSchema.from_dict, obj.get("cylindre_cols"))
         drawing_cutoff_distance = from_float(obj.get("drawing_cutoff_distance"))
         drawing_start_distance = from_float(obj.get("drawing_start_distance"))
         material_names = from_list(
@@ -7212,7 +7180,7 @@ class MeshV106_63_02PCBody:
         points = PurplePoints.from_dict(obj.get("points"))
         related_to_counts = from_list(from_int, obj.get("related_to_counts"))
         shadow_related = from_int(obj.get("shadow_related"))
-        sphere_cols = from_list(SphereCol.from_dict, obj.get("sphere_cols"))
+        sphere_cols = from_list(Schema2.from_dict, obj.get("sphere_cols"))
         strips = from_list(StripElement.from_dict, obj.get("strips"))
         unk6 = from_union(
             [from_none, lambda x: from_list(from_int, x)], obj.get("unk6")
@@ -7252,9 +7220,11 @@ class MeshV106_63_02PCBody:
         result["aabb_vertices"] = from_list(
             lambda x: from_list(from_int, x), self.aabb_vertices
         )
-        result["box_cols"] = from_list(lambda x: to_class(BoxCol, x), self.box_cols)
+        result["box_cols"] = from_list(
+            lambda x: to_class(AmbitiousSchema, x), self.box_cols
+        )
         result["cylindre_cols"] = from_list(
-            lambda x: to_class(CylindreCol, x), self.cylindre_cols
+            lambda x: to_class(CunningSchema, x), self.cylindre_cols
         )
         result["drawing_cutoff_distance"] = to_float(self.drawing_cutoff_distance)
         result["drawing_start_distance"] = to_float(self.drawing_start_distance)
@@ -7268,7 +7238,7 @@ class MeshV106_63_02PCBody:
         result["related_to_counts"] = from_list(from_int, self.related_to_counts)
         result["shadow_related"] = from_int(self.shadow_related)
         result["sphere_cols"] = from_list(
-            lambda x: to_class(SphereCol, x), self.sphere_cols
+            lambda x: to_class(Schema2, x), self.sphere_cols
         )
         result["strips"] = from_list(lambda x: to_class(StripElement, x), self.strips)
         if self.unk6 is not None:
@@ -7345,29 +7315,7 @@ class CollisionAABBTriElement:
         return result
 
 
-class Schema5:
-    def __init__(self, cylindre, flag, name):
-        self.cylindre = cylindre
-        self.flag = flag
-        self.name = name
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        cylindre = Cylindre.from_dict(obj.get("cylindre"))
-        flag = from_int(obj.get("flag"))
-        name = from_union([from_int, from_str], obj.get("name"))
-        return Schema5(cylindre, flag, name)
-
-    def to_dict(self):
-        result = {}
-        result["cylindre"] = to_class(Cylindre, self.cylindre)
-        result["flag"] = from_int(self.flag)
-        result["name"] = from_union([from_int, from_str], self.name)
-        return result
-
-
-class Schema6:
+class Schema7:
     def __init__(self, flags, tris):
         self.flags = flags
         self.tris = tris
@@ -7377,7 +7325,7 @@ class Schema6:
         assert isinstance(obj, dict)
         flags = from_int(obj.get("flags"))
         tris = from_list(lambda x: from_list(from_int, x), obj.get("tris"))
-        return Schema6(flags, tris)
+        return Schema7(flags, tris)
 
     def to_dict(self):
         result = {}
@@ -7427,7 +7375,7 @@ class MorpherDescElement:
         return result
 
 
-class Schema7:
+class Schema8:
     def __init__(self, data):
         self.data = data
 
@@ -7435,7 +7383,7 @@ class Schema7:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema7(data)
+        return Schema8(data)
 
     def to_dict(self):
         result = {}
@@ -7454,7 +7402,7 @@ class FluffyMorpher:
         morpher_descs = from_list(
             MorpherDescElement.from_dict, obj.get("morpher_descs")
         )
-        morpher_relateds = from_list(Schema7.from_dict, obj.get("morpher_relateds"))
+        morpher_relateds = from_list(Schema8.from_dict, obj.get("morpher_relateds"))
         return FluffyMorpher(morpher_descs, morpher_relateds)
 
     def to_dict(self):
@@ -7463,7 +7411,7 @@ class FluffyMorpher:
             lambda x: to_class(MorpherDescElement, x), self.morpher_descs
         )
         result["morpher_relateds"] = from_list(
-            lambda x: to_class(Schema7, x), self.morpher_relateds
+            lambda x: to_class(Schema8, x), self.morpher_relateds
         )
         return result
 
@@ -7487,7 +7435,7 @@ class UnknownElement:
         return result
 
 
-class Schema8:
+class Schema9:
     def __init__(self, flags, vertices):
         self.flags = flags
         self.vertices = vertices
@@ -7497,7 +7445,7 @@ class Schema8:
         assert isinstance(obj, dict)
         flags = from_int(obj.get("flags"))
         vertices = Vertices.from_dict(obj.get("vertices"))
-        return Schema8(flags, vertices)
+        return Schema9(flags, vertices)
 
     def to_dict(self):
         result = {}
@@ -7543,8 +7491,7 @@ class VertexGroupFlags:
         result["padding1"] = from_int(self.padding1)
         return result
 
-
-class Schema9:
+class Schema10:
     def __init__(
         self,
         face_count,
@@ -7585,7 +7532,7 @@ class Schema9:
         vertex_offset_in_groups = from_int(obj.get("vertex_offset_in_groups"))
         zero = from_int(obj.get("zero"))
         zeroes = from_list(from_int, obj.get("zeroes"))
-        return Schema9(
+        return Schema10(
             face_count,
             flags,
             index_buffer_index_begin,
@@ -7626,11 +7573,11 @@ class FluffyMeshBuffers:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        index_buffers = from_list(Schema6.from_dict, obj.get("index_buffers"))
+        index_buffers = from_list(Schema7.from_dict, obj.get("index_buffers"))
         morpher = FluffyMorpher.from_dict(obj.get("morpher"))
         unknowns = from_list(UnknownElement.from_dict, obj.get("unknowns"))
-        vertex_buffers = from_list(Schema8.from_dict, obj.get("vertex_buffers"))
-        vertex_groups = from_list(Schema9.from_dict, obj.get("vertex_groups"))
+        vertex_buffers = from_list(Schema9.from_dict, obj.get("vertex_buffers"))
+        vertex_groups = from_list(Schema10.from_dict, obj.get("vertex_groups"))
         return FluffyMeshBuffers(
             index_buffers, morpher, unknowns, vertex_buffers, vertex_groups
         )
@@ -7638,34 +7585,18 @@ class FluffyMeshBuffers:
     def to_dict(self):
         result = {}
         result["index_buffers"] = from_list(
-            lambda x: to_class(Schema6, x), self.index_buffers
+            lambda x: to_class(Schema7, x), self.index_buffers
         )
         result["morpher"] = to_class(FluffyMorpher, self.morpher)
         result["unknowns"] = from_list(
             lambda x: to_class(UnknownElement, x), self.unknowns
         )
         result["vertex_buffers"] = from_list(
-            lambda x: to_class(Schema8, x), self.vertex_buffers
+            lambda x: to_class(Schema9, x), self.vertex_buffers
         )
         result["vertex_groups"] = from_list(
-            lambda x: to_class(Schema9, x), self.vertex_groups
+            lambda x: to_class(Schema10, x), self.vertex_groups
         )
-        return result
-
-
-class Schema10:
-    def __init__(self, data):
-        self.data = data
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        data = from_list(from_int, obj.get("data"))
-        return Schema10(data)
-
-    def to_dict(self):
-        result = {}
-        result["data"] = from_list(from_int, self.data)
         return result
 
 
@@ -7678,6 +7609,22 @@ class Schema11:
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
         return Schema11(data)
+
+    def to_dict(self):
+        result = {}
+        result["data"] = from_list(from_int, self.data)
+        return result
+
+
+class Schema12:
+    def __init__(self, data):
+        self.data = data
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        data = from_list(from_int, obj.get("data"))
+        return Schema12(data)
 
     def to_dict(self):
         result = {}
@@ -7710,8 +7657,8 @@ class FluffyPoints:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        points_related0 = from_list(Schema10.from_dict, obj.get("points_related0"))
-        points_related1 = from_list(Schema11.from_dict, obj.get("points_related1"))
+        points_related0 = from_list(Schema11.from_dict, obj.get("points_related0"))
+        points_related1 = from_list(Schema12.from_dict, obj.get("points_related1"))
         points_related2 = from_list(
             PointsRelated2Element.from_dict, obj.get("points_related2")
         )
@@ -7720,10 +7667,10 @@ class FluffyPoints:
     def to_dict(self):
         result = {}
         result["points_related0"] = from_list(
-            lambda x: to_class(Schema10, x), self.points_related0
+            lambda x: to_class(Schema11, x), self.points_related0
         )
         result["points_related1"] = from_list(
-            lambda x: to_class(Schema11, x), self.points_related1
+            lambda x: to_class(Schema12, x), self.points_related1
         )
         result["points_related2"] = from_list(
             lambda x: to_class(PointsRelated2Element, x), self.points_related2
@@ -7731,7 +7678,7 @@ class FluffyPoints:
         return result
 
 
-class Schema12:
+class Schema14:
     def __init__(self, unknown8, unknown8_count):
         self.unknown8 = unknown8
         self.unknown8_count = unknown8_count
@@ -7741,7 +7688,7 @@ class Schema12:
         assert isinstance(obj, dict)
         unknown8 = from_list(from_int, obj.get("unknown8"))
         unknown8_count = from_int(obj.get("unknown8_count"))
-        return Schema12(unknown8, unknown8_count)
+        return Schema14(unknown8, unknown8_count)
 
     def to_dict(self):
         result = {}
@@ -7766,7 +7713,7 @@ class Unknown6Element:
         return result
 
 
-class Schema13:
+class Schema15:
     def __init__(self, data):
         self.data = data
 
@@ -7774,7 +7721,7 @@ class Schema13:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema13(data)
+        return Schema15(data)
 
     def to_dict(self):
         result = {}
@@ -7830,14 +7777,14 @@ class MeshV1291_03_06PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        box_cols = from_list(CollisionBoxElement.from_dict, obj.get("box_cols"))
+        box_cols = from_list(AmbitiousSchema.from_dict, obj.get("box_cols"))
         collision_aabb_tris = from_list(
             CollisionAABBTriElement.from_dict, obj.get("collision_aabb_tris")
         )
         collision_aabbs = from_list(
             CollisionAABBElement.from_dict, obj.get("collision_aabbs")
         )
-        cylindre_cols = from_list(Schema5.from_dict, obj.get("cylindre_cols"))
+        cylindre_cols = from_list(CunningSchema.from_dict, obj.get("cylindre_cols"))
         drawing_cutoff_distance = from_float(obj.get("drawing_cutoff_distance"))
         drawing_start_distance = from_float(obj.get("drawing_start_distance"))
         material_names = from_list(
@@ -7848,15 +7795,15 @@ class MeshV1291_03_06PCBody:
         points = FluffyPoints.from_dict(obj.get("points"))
         related_to_counts = from_list(from_int, obj.get("related_to_counts"))
         shadow_related = from_int(obj.get("shadow_related"))
-        sphere_cols = from_list(SpheresColElement.from_dict, obj.get("sphere_cols"))
+        sphere_cols = from_list(Schema2.from_dict, obj.get("sphere_cols"))
         strips = from_list(StripElement.from_dict, obj.get("strips"))
         texcoords = from_list(lambda x: from_list(from_float, x), obj.get("texcoords"))
         unknown4_s = from_union(
             [from_none, lambda x: from_list(from_int, x)], obj.get("unknown4s")
         )
-        unknown5_s = from_list(Schema12.from_dict, obj.get("unknown5s"))
+        unknown5_s = from_list(Schema14.from_dict, obj.get("unknown5s"))
         unknown6_s = from_list(Unknown6Element.from_dict, obj.get("unknown6s"))
-        unknown8_s = from_list(Schema13.from_dict, obj.get("unknown8s"))
+        unknown8_s = from_list(Schema15.from_dict, obj.get("unknown8s"))
         vertices = from_list(lambda x: from_list(from_int, x), obj.get("vertices"))
         return MeshV1291_03_06PCBody(
             box_cols,
@@ -7883,9 +7830,7 @@ class MeshV1291_03_06PCBody:
 
     def to_dict(self):
         result = {}
-        result["box_cols"] = from_list(
-            lambda x: to_class(CollisionBoxElement, x), self.box_cols
-        )
+        result["box_cols"] = from_list(lambda x: to_class(AmbitiousSchema, x), self.box_cols)
         result["collision_aabb_tris"] = from_list(
             lambda x: to_class(CollisionAABBTriElement, x), self.collision_aabb_tris
         )
@@ -7893,7 +7838,7 @@ class MeshV1291_03_06PCBody:
             lambda x: to_class(CollisionAABBElement, x), self.collision_aabbs
         )
         result["cylindre_cols"] = from_list(
-            lambda x: to_class(Schema5, x), self.cylindre_cols
+            lambda x: to_class(CunningSchema, x), self.cylindre_cols
         )
         result["drawing_cutoff_distance"] = to_float(self.drawing_cutoff_distance)
         result["drawing_start_distance"] = to_float(self.drawing_start_distance)
@@ -7906,7 +7851,7 @@ class MeshV1291_03_06PCBody:
         result["related_to_counts"] = from_list(from_int, self.related_to_counts)
         result["shadow_related"] = from_int(self.shadow_related)
         result["sphere_cols"] = from_list(
-            lambda x: to_class(SpheresColElement, x), self.sphere_cols
+            lambda x: to_class(Schema2, x), self.sphere_cols
         )
         result["strips"] = from_list(lambda x: to_class(StripElement, x), self.strips)
         result["texcoords"] = from_list(
@@ -7917,13 +7862,13 @@ class MeshV1291_03_06PCBody:
                 [from_none, lambda x: from_list(from_int, x)], self.unknown4_s
             )
         result["unknown5s"] = from_list(
-            lambda x: to_class(Schema12, x), self.unknown5_s
+            lambda x: to_class(Schema14, x), self.unknown5_s
         )
         result["unknown6s"] = from_list(
             lambda x: to_class(Unknown6Element, x), self.unknown6_s
         )
         result["unknown8s"] = from_list(
-            lambda x: to_class(Schema13, x), self.unknown8_s
+            lambda x: to_class(Schema15, x), self.unknown8_s
         )
         result["vertices"] = from_list(lambda x: from_list(from_int, x), self.vertices)
         return result
@@ -8001,7 +7946,7 @@ class IndexBufferFlags:
         return result
 
 
-class Schema14:
+class Schema16:
     def __init__(self, flags, tris):
         self.flags = flags
         self.tris = tris
@@ -8011,7 +7956,7 @@ class Schema14:
         assert isinstance(obj, dict)
         flags = IndexBufferFlags.from_dict(obj.get("flags"))
         tris = from_list(lambda x: from_list(from_int, x), obj.get("tris"))
-        return Schema14(flags, tris)
+        return Schema16(flags, tris)
 
     def to_dict(self):
         result = {}
@@ -8213,7 +8158,7 @@ class QuadElement:
         return result
 
 
-class Schema15:
+class Schema17:
     def __init__(self, flags, vertices):
         self.flags = flags
         self.vertices = vertices
@@ -8223,7 +8168,7 @@ class Schema15:
         assert isinstance(obj, dict)
         flags = IndexBufferFlags.from_dict(obj.get("flags"))
         vertices = Vertices.from_dict(obj.get("vertices"))
-        return Schema15(flags, vertices)
+        return Schema17(flags, vertices)
 
     def to_dict(self):
         result = {}
@@ -8303,7 +8248,7 @@ class Unused1Element:
         return result
 
 
-class Schema16:
+class Schema18:
     def __init__(
         self,
         face_count,
@@ -8354,7 +8299,7 @@ class Schema16:
         vertex_count = from_int(obj.get("vertex_count"))
         vertex_layout = from_int(obj.get("vertex_layout"))
         zero = from_int(obj.get("zero"))
-        return Schema16(
+        return Schema18(
             face_count,
             flags,
             index_buffer_index,
@@ -8405,11 +8350,11 @@ class TentacledMeshBuffers:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        index_buffers = from_list(Schema14.from_dict, obj.get("index_buffers"))
+        index_buffers = from_list(Schema16.from_dict, obj.get("index_buffers"))
         morpher = TentacledMorpher.from_dict(obj.get("morpher"))
         quads = from_list(QuadElement.from_dict, obj.get("quads"))
-        vertex_buffers = from_list(Schema15.from_dict, obj.get("vertex_buffers"))
-        vertex_groups = from_list(Schema16.from_dict, obj.get("vertex_groups"))
+        vertex_buffers = from_list(Schema17.from_dict, obj.get("vertex_buffers"))
+        vertex_groups = from_list(Schema18.from_dict, obj.get("vertex_groups"))
         return TentacledMeshBuffers(
             index_buffers, morpher, quads, vertex_buffers, vertex_groups
         )
@@ -8417,15 +8362,15 @@ class TentacledMeshBuffers:
     def to_dict(self):
         result = {}
         result["index_buffers"] = from_list(
-            lambda x: to_class(Schema14, x), self.index_buffers
+            lambda x: to_class(Schema16, x), self.index_buffers
         )
         result["morpher"] = to_class(TentacledMorpher, self.morpher)
         result["quads"] = from_list(lambda x: to_class(QuadElement, x), self.quads)
         result["vertex_buffers"] = from_list(
-            lambda x: to_class(Schema15, x), self.vertex_buffers
+            lambda x: to_class(Schema17, x), self.vertex_buffers
         )
         result["vertex_groups"] = from_list(
-            lambda x: to_class(Schema16, x), self.vertex_groups
+            lambda x: to_class(Schema18, x), self.vertex_groups
         )
         return result
 
@@ -8455,7 +8400,7 @@ class BodyUnused0:
         return result
 
 
-class Schema18:
+class Schema20:
     def __init__(self, unused0, unused1):
         self.unused0 = unused0
         self.unused1 = unused1
@@ -8465,7 +8410,7 @@ class Schema18:
         assert isinstance(obj, dict)
         unused0 = from_int(obj.get("unused0"))
         unused1 = from_int(obj.get("unused1"))
-        return Schema18(unused0, unused1)
+        return Schema20(unused0, unused1)
 
     def to_dict(self):
         result = {}
@@ -8474,19 +8419,19 @@ class Schema18:
         return result
 
 
-class Schema17:
+class Schema19:
     def __init__(self, unused0_s):
         self.unused0_s = unused0_s
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        unused0_s = from_list(Schema18.from_dict, obj.get("unused0s"))
-        return Schema17(unused0_s)
+        unused0_s = from_list(Schema20.from_dict, obj.get("unused0s"))
+        return Schema19(unused0_s)
 
     def to_dict(self):
         result = {}
-        result["unused0s"] = from_list(lambda x: to_class(Schema18, x), self.unused0_s)
+        result["unused0s"] = from_list(lambda x: to_class(Schema20, x), self.unused0_s)
         return result
 
 
@@ -8558,7 +8503,7 @@ class MeshV1381_67_09PCBody:
         strips = from_list(StripElement.from_dict, obj.get("strips"))
         texcoords = from_list(lambda x: from_list(from_float, x), obj.get("texcoords"))
         unused0_s = from_list(BodyUnused0.from_dict, obj.get("unused0s"))
-        unused4_s = from_list(Schema17.from_dict, obj.get("unused4s"))
+        unused4_s = from_list(Schema19.from_dict, obj.get("unused4s"))
         unused8_s = from_list(Unused8Element.from_dict, obj.get("unused8s"))
         return MeshV1381_67_09PCBody(
             collision_aabbs,
@@ -8601,7 +8546,7 @@ class MeshV1381_67_09PCBody:
         result["unused0s"] = from_list(
             lambda x: to_class(BodyUnused0, x), self.unused0_s
         )
-        result["unused4s"] = from_list(lambda x: to_class(Schema17, x), self.unused4_s)
+        result["unused4s"] = from_list(lambda x: to_class(Schema19, x), self.unused4_s)
         result["unused8s"] = from_list(
             lambda x: to_class(Unused8Element, x), self.unused8_s
         )
@@ -9176,7 +9121,7 @@ class NodeV106_63_02PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_sphere = Sphere.from_dict(obj.get("b_sphere"))
+        b_sphere = BSphere.from_dict(obj.get("b_sphere"))
         bitmap_name = from_union([from_int, from_str], obj.get("bitmap_name"))
         collide_seads_id1 = from_int(obj.get("collide_seads_id1"))
         collide_seads_id2 = from_int(obj.get("collide_seads_id2"))
@@ -9255,7 +9200,7 @@ class NodeV106_63_02PCBody:
 
     def to_dict(self):
         result = {}
-        result["b_sphere"] = to_class(Sphere, self.b_sphere)
+        result["b_sphere"] = to_class(BSphere, self.b_sphere)
         result["bitmap_name"] = from_union([from_int, from_str], self.bitmap_name)
         result["collide_seads_id1"] = from_int(self.collide_seads_id1)
         result["collide_seads_id2"] = from_int(self.collide_seads_id2)
@@ -9431,7 +9376,7 @@ class NodeV1291_03_06PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_sphere = Sphere.from_dict(obj.get("b_sphere"))
+        b_sphere = BSphere.from_dict(obj.get("b_sphere"))
         bitmap_name = from_union([from_int, from_str], obj.get("bitmap_name"))
         collide_seads_id1 = from_union(
             [from_int, from_str], obj.get("collide_seads_id1")
@@ -9522,7 +9467,7 @@ class NodeV1291_03_06PCBody:
 
     def to_dict(self):
         result = {}
-        result["b_sphere"] = to_class(Sphere, self.b_sphere)
+        result["b_sphere"] = to_class(BSphere, self.b_sphere)
         result["bitmap_name"] = from_union([from_int, from_str], self.bitmap_name)
         result["collide_seads_id1"] = from_union(
             [from_int, from_str], self.collide_seads_id1
@@ -9701,7 +9646,7 @@ class NodeV1381_67_09PCBody:
         rotation2 = from_list(from_float, obj.get("rotation2"))
         scale = from_float(obj.get("scale"))
         scale2 = from_float(obj.get("scale2"))
-        sphere = Sphere.from_dict(obj.get("sphere"))
+        sphere = BSphere.from_dict(obj.get("sphere"))
         translation = from_list(from_float, obj.get("translation"))
         unknown10 = from_float(obj.get("unknown10"))
         unused_name2 = from_union([from_int, from_str], obj.get("unused_name2"))
@@ -9768,7 +9713,7 @@ class NodeV1381_67_09PCBody:
         result["rotation2"] = from_list(to_float, self.rotation2)
         result["scale"] = to_float(self.scale)
         result["scale2"] = to_float(self.scale2)
-        result["sphere"] = to_class(Sphere, self.sphere)
+        result["sphere"] = to_class(BSphere, self.sphere)
         result["translation"] = from_list(to_float, self.translation)
         result["unknown10"] = to_float(self.unknown10)
         result["unused_name2"] = from_union([from_int, from_str], self.unused_name2)
@@ -10608,7 +10553,7 @@ class RotShapeV106_63_02PCBody:
         return result
 
 
-class Schema20:
+class Schema22:
     def __init__(self, data):
         self.data = data
 
@@ -10616,7 +10561,7 @@ class Schema20:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema20(data)
+        return Schema22(data)
 
     def to_dict(self):
         result = {}
@@ -10624,7 +10569,7 @@ class Schema20:
         return result
 
 
-class Schema19:
+class Schema21:
     def __init__(self, morph_target_desc_relateds, name):
         self.morph_target_desc_relateds = morph_target_desc_relateds
         self.name = name
@@ -10633,21 +10578,21 @@ class Schema19:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morph_target_desc_relateds = from_list(
-            Schema20.from_dict, obj.get("morph_target_desc_relateds")
+            Schema22.from_dict, obj.get("morph_target_desc_relateds")
         )
         name = from_int(obj.get("name"))
-        return Schema19(morph_target_desc_relateds, name)
+        return Schema21(morph_target_desc_relateds, name)
 
     def to_dict(self):
         result = {}
         result["morph_target_desc_relateds"] = from_list(
-            lambda x: to_class(Schema20, x), self.morph_target_desc_relateds
+            lambda x: to_class(Schema22, x), self.morph_target_desc_relateds
         )
         result["name"] = from_int(self.name)
         return result
 
 
-class Schema21:
+class Schema23:
     def __init__(self, data):
         self.data = data
 
@@ -10655,7 +10600,7 @@ class Schema21:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema21(data)
+        return Schema23(data)
 
     def to_dict(self):
         result = {}
@@ -10672,18 +10617,18 @@ class LinkHeaderMorpher:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morph_target_descs = from_list(
-            Schema19.from_dict, obj.get("morph_target_descs")
+            Schema21.from_dict, obj.get("morph_target_descs")
         )
-        morpher_relateds = from_list(Schema21.from_dict, obj.get("morpher_relateds"))
+        morpher_relateds = from_list(Schema23.from_dict, obj.get("morpher_relateds"))
         return LinkHeaderMorpher(morph_target_descs, morpher_relateds)
 
     def to_dict(self):
         result = {}
         result["morph_target_descs"] = from_list(
-            lambda x: to_class(Schema19, x), self.morph_target_descs
+            lambda x: to_class(Schema21, x), self.morph_target_descs
         )
         result["morpher_relateds"] = from_list(
-            lambda x: to_class(Schema21, x), self.morpher_relateds
+            lambda x: to_class(Schema23, x), self.morpher_relateds
         )
         return result
 
@@ -10772,7 +10717,7 @@ class RotShapeV106_63_02_PC:
         return result
 
 
-class Schema22:
+class Schema24:
     def __init__(self, data):
         self.data = data
 
@@ -10780,7 +10725,7 @@ class Schema22:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema22(data)
+        return Schema24(data)
 
     def to_dict(self):
         result = {}
@@ -10788,7 +10733,7 @@ class Schema22:
         return result
 
 
-class Schema23:
+class Schema25:
     def __init__(self, data):
         self.data = data
 
@@ -10796,7 +10741,7 @@ class Schema23:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema23(data)
+        return Schema25(data)
 
     def to_dict(self):
         result = {}
@@ -10813,18 +10758,18 @@ class TentacledPoints:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        points_related0_s = from_list(Schema22.from_dict, obj.get("points_related0s"))
-        points_related1_s = from_list(Schema23.from_dict, obj.get("points_related1s"))
+        points_related0_s = from_list(Schema24.from_dict, obj.get("points_related0s"))
+        points_related1_s = from_list(Schema25.from_dict, obj.get("points_related1s"))
         vertices = from_list(lambda x: from_list(from_float, x), obj.get("vertices"))
         return TentacledPoints(points_related0_s, points_related1_s, vertices)
 
     def to_dict(self):
         result = {}
         result["points_related0s"] = from_list(
-            lambda x: to_class(Schema22, x), self.points_related0_s
+            lambda x: to_class(Schema24, x), self.points_related0_s
         )
         result["points_related1s"] = from_list(
-            lambda x: to_class(Schema23, x), self.points_related1_s
+            lambda x: to_class(Schema25, x), self.points_related1_s
         )
         result["vertices"] = from_list(lambda x: from_list(to_float, x), self.vertices)
         return result
@@ -11244,7 +11189,7 @@ class Unknown1Element:
         return result
 
 
-class Schema25:
+class Schema27:
     def __init__(self, tangent_in, tangent_out, time, value):
         self.tangent_in = tangent_in
         self.tangent_out = tangent_out
@@ -11258,7 +11203,7 @@ class Schema25:
         tangent_out = from_float(obj.get("tangent_out"))
         time = from_float(obj.get("time"))
         value = from_float(obj.get("value"))
-        return Schema25(tangent_in, tangent_out, time, value)
+        return Schema27(tangent_in, tangent_out, time, value)
 
     def to_dict(self):
         result = {}
@@ -11278,7 +11223,7 @@ class Unknown2:
     def from_dict(obj):
         assert isinstance(obj, dict)
         interpolation_type = InterpolationType(obj.get("interpolation_type"))
-        keyframes = from_list(Schema25.from_dict, obj.get("keyframes"))
+        keyframes = from_list(Schema27.from_dict, obj.get("keyframes"))
         return Unknown2(interpolation_type, keyframes)
 
     def to_dict(self):
@@ -11286,11 +11231,11 @@ class Unknown2:
         result["interpolation_type"] = to_enum(
             InterpolationType, self.interpolation_type
         )
-        result["keyframes"] = from_list(lambda x: to_class(Schema25, x), self.keyframes)
+        result["keyframes"] = from_list(lambda x: to_class(Schema27, x), self.keyframes)
         return result
 
 
-class Schema24:
+class Schema26:
     def __init__(
         self,
         animation_camera_flag,
@@ -11318,7 +11263,7 @@ class Schema24:
         unknown_node_name = from_union(
             [from_int, from_str], obj.get("unknown_node_name")
         )
-        return Schema24(
+        return Schema26(
             animation_camera_flag,
             unknown0,
             unknown1,
@@ -11340,7 +11285,7 @@ class Schema24:
         return result
 
 
-class Schema26:
+class Schema28:
     def __init__(
         self,
         unknown3,
@@ -11375,7 +11320,7 @@ class Schema26:
         unknown_name_name2 = from_union(
             [from_int, from_str], obj.get("unknown_name_name2")
         )
-        return Schema26(
+        return Schema28(
             unknown3,
             unknown4,
             unknown_name0,
@@ -11494,9 +11439,9 @@ class RTCV1381_67_09PCBody:
         )
         duration = from_float(obj.get("duration"))
         unknown1_s = from_list(Unknown1Element.from_dict, obj.get("unknown1s"))
-        unknown2_s = from_list(Schema24.from_dict, obj.get("unknown2s"))
+        unknown2_s = from_list(Schema26.from_dict, obj.get("unknown2s"))
         unknown30 = KeyframerMessage.from_dict(obj.get("unknown30"))
-        unknown8_s = from_list(Schema26.from_dict, obj.get("unknown8s"))
+        unknown8_s = from_list(Schema28.from_dict, obj.get("unknown8s"))
         unknown9_s = from_list(Unknown9Element.from_dict, obj.get("unknown9s"))
         unknown_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("unknown_names")
@@ -11530,11 +11475,11 @@ class RTCV1381_67_09PCBody:
             lambda x: to_class(Unknown1Element, x), self.unknown1_s
         )
         result["unknown2s"] = from_list(
-            lambda x: to_class(Schema24, x), self.unknown2_s
+            lambda x: to_class(Schema26, x), self.unknown2_s
         )
         result["unknown30"] = to_class(KeyframerMessage, self.unknown30)
         result["unknown8s"] = from_list(
-            lambda x: to_class(Schema26, x), self.unknown8_s
+            lambda x: to_class(Schema28, x), self.unknown8_s
         )
         result["unknown9s"] = from_list(
             lambda x: to_class(Unknown9Element, x), self.unknown9_s
@@ -11602,7 +11547,7 @@ class RTC:
         return result
 
 
-class Schema27:
+class Schema29:
     def __init__(self, bone_node_names):
         self.bone_node_names = bone_node_names
 
@@ -11612,7 +11557,7 @@ class Schema27:
         bone_node_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("bone_node_names")
         )
-        return Schema27(bone_node_names)
+        return Schema29(bone_node_names)
 
     def to_dict(self):
         result = {}
@@ -11622,7 +11567,7 @@ class Schema27:
         return result
 
 
-class Schema28:
+class Schema30:
     def __init__(
         self,
         bone_name,
@@ -11714,7 +11659,7 @@ class Schema28:
         unknown_ptrs1 = from_list(from_int, obj.get("unknown_ptrs1"))
         unknown_ptrs2 = from_list(from_int, obj.get("unknown_ptrs2"))
         user_define_name = from_union([from_int, from_str], obj.get("user_define_name"))
-        return Schema28(
+        return Schema30(
             bone_name,
             child_bone_id,
             flags,
@@ -11794,7 +11739,7 @@ class Schema28:
         return result
 
 
-class Schema29:
+class Schema31:
     def __init__(self, bone_node_name, box_col):
         self.bone_node_name = bone_node_name
         self.box_col = box_col
@@ -11804,7 +11749,7 @@ class Schema29:
         assert isinstance(obj, dict)
         bone_node_name = from_union([from_int, from_str], obj.get("bone_node_name"))
         box_col = CollisionBoxElement.from_dict(obj.get("box_col"))
-        return Schema29(bone_node_name, box_col)
+        return Schema31(bone_node_name, box_col)
 
     def to_dict(self):
         result = {}
@@ -11821,18 +11766,18 @@ class IndecentObjectDatas:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_sphere_local = Sphere.from_dict(obj.get("b_sphere_local"))
+        b_sphere_local = BSphere.from_dict(obj.get("b_sphere_local"))
         flag = from_int(obj.get("flag"))
         return IndecentObjectDatas(b_sphere_local, flag)
 
     def to_dict(self):
         result = {}
-        result["b_sphere_local"] = to_class(Sphere, self.b_sphere_local)
+        result["b_sphere_local"] = to_class(BSphere, self.b_sphere_local)
         result["flag"] = from_int(self.flag)
         return result
 
 
-class Schema30:
+class Schema32:
     def __init__(self, bone_node_name, sphere_col):
         self.bone_node_name = bone_node_name
         self.sphere_col = sphere_col
@@ -11842,7 +11787,7 @@ class Schema30:
         assert isinstance(obj, dict)
         bone_node_name = from_union([from_int, from_str], obj.get("bone_node_name"))
         sphere_col = SpheresColElement.from_dict(obj.get("sphere_col"))
-        return Schema30(bone_node_name, sphere_col)
+        return Schema32(bone_node_name, sphere_col)
 
     def to_dict(self):
         result = {}
@@ -11879,9 +11824,9 @@ class SkelV106_63_02PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        bone_node_groups = from_list(Schema27.from_dict, obj.get("bone_node_groups"))
-        bone_nodes = from_list(Schema28.from_dict, obj.get("bone_nodes"))
-        box_col_bones = from_list(Schema29.from_dict, obj.get("box_col_bones"))
+        bone_node_groups = from_list(Schema29.from_dict, obj.get("bone_node_groups"))
+        bone_nodes = from_list(Schema30.from_dict, obj.get("bone_nodes"))
+        box_col_bones = from_list(Schema31.from_dict, obj.get("box_col_bones"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
         )
@@ -11890,8 +11835,8 @@ class SkelV106_63_02PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("mesh_data_names")
         )
         object_datas = IndecentObjectDatas.from_dict(obj.get("object_datas"))
-        sphere_col_bones1 = from_list(Schema30.from_dict, obj.get("sphere_col_bones1"))
-        sphere_col_bones2 = from_list(Schema30.from_dict, obj.get("sphere_col_bones2"))
+        sphere_col_bones1 = from_list(Schema32.from_dict, obj.get("sphere_col_bones1"))
+        sphere_col_bones2 = from_list(Schema32.from_dict, obj.get("sphere_col_bones2"))
         unknown_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("unknown_names")
         )
@@ -11911,13 +11856,13 @@ class SkelV106_63_02PCBody:
     def to_dict(self):
         result = {}
         result["bone_node_groups"] = from_list(
-            lambda x: to_class(Schema27, x), self.bone_node_groups
+            lambda x: to_class(Schema29, x), self.bone_node_groups
         )
         result["bone_nodes"] = from_list(
-            lambda x: to_class(Schema28, x), self.bone_nodes
+            lambda x: to_class(Schema30, x), self.bone_nodes
         )
         result["box_col_bones"] = from_list(
-            lambda x: to_class(Schema29, x), self.box_col_bones
+            lambda x: to_class(Schema31, x), self.box_col_bones
         )
         result["material_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.material_names
@@ -11928,10 +11873,10 @@ class SkelV106_63_02PCBody:
         )
         result["object_datas"] = to_class(IndecentObjectDatas, self.object_datas)
         result["sphere_col_bones1"] = from_list(
-            lambda x: to_class(Schema30, x), self.sphere_col_bones1
+            lambda x: to_class(Schema32, x), self.sphere_col_bones1
         )
         result["sphere_col_bones2"] = from_list(
-            lambda x: to_class(Schema30, x), self.sphere_col_bones2
+            lambda x: to_class(Schema32, x), self.sphere_col_bones2
         )
         result["unknown_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.unknown_names
@@ -11972,7 +11917,7 @@ class SkelV106_63_02_PC:
         return result
 
 
-class Schema31:
+class Schema33:
     def __init__(self, bone_node_names):
         self.bone_node_names = bone_node_names
 
@@ -11982,7 +11927,7 @@ class Schema31:
         bone_node_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("bone_node_names")
         )
-        return Schema31(bone_node_names)
+        return Schema33(bone_node_names)
 
     def to_dict(self):
         result = {}
@@ -11992,7 +11937,7 @@ class Schema31:
         return result
 
 
-class Schema32:
+class Schema34:
     def __init__(
         self,
         bone_name,
@@ -12084,7 +12029,7 @@ class Schema32:
         unknown_ptrs1 = from_list(from_int, obj.get("unknown_ptrs1"))
         unknown_ptrs2 = from_list(from_int, obj.get("unknown_ptrs2"))
         user_define_name = from_union([from_int, from_str], obj.get("user_define_name"))
-        return Schema32(
+        return Schema34(
             bone_name,
             child_bone_id,
             flags,
@@ -12164,7 +12109,7 @@ class Schema32:
         return result
 
 
-class Schema33:
+class Schema35:
     def __init__(self, bone_node_name, box_col):
         self.bone_node_name = bone_node_name
         self.box_col = box_col
@@ -12174,7 +12119,7 @@ class Schema33:
         assert isinstance(obj, dict)
         bone_node_name = from_union([from_int, from_str], obj.get("bone_node_name"))
         box_col = CollisionBoxElement.from_dict(obj.get("box_col"))
-        return Schema33(bone_node_name, box_col)
+        return Schema35(bone_node_name, box_col)
 
     def to_dict(self):
         result = {}
@@ -12191,18 +12136,18 @@ class HilariousObjectDatas:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_sphere_local = Sphere.from_dict(obj.get("b_sphere_local"))
+        b_sphere_local = BSphere.from_dict(obj.get("b_sphere_local"))
         flag = from_int(obj.get("flag"))
         return HilariousObjectDatas(b_sphere_local, flag)
 
     def to_dict(self):
         result = {}
-        result["b_sphere_local"] = to_class(Sphere, self.b_sphere_local)
+        result["b_sphere_local"] = to_class(BSphere, self.b_sphere_local)
         result["flag"] = from_int(self.flag)
         return result
 
 
-class Schema34:
+class Schema36:
     def __init__(self, bone_node_name, sphere_col):
         self.bone_node_name = bone_node_name
         self.sphere_col = sphere_col
@@ -12212,7 +12157,7 @@ class Schema34:
         assert isinstance(obj, dict)
         bone_node_name = from_union([from_int, from_str], obj.get("bone_node_name"))
         sphere_col = SpheresColElement.from_dict(obj.get("sphere_col"))
-        return Schema34(bone_node_name, sphere_col)
+        return Schema36(bone_node_name, sphere_col)
 
     def to_dict(self):
         result = {}
@@ -12247,9 +12192,9 @@ class SkelV1291_03_06PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        bone_node_groups = from_list(Schema31.from_dict, obj.get("bone_node_groups"))
-        bone_nodes = from_list(Schema32.from_dict, obj.get("bone_nodes"))
-        box_col_bones = from_list(Schema33.from_dict, obj.get("box_col_bones"))
+        bone_node_groups = from_list(Schema33.from_dict, obj.get("bone_node_groups"))
+        bone_nodes = from_list(Schema34.from_dict, obj.get("bone_nodes"))
+        box_col_bones = from_list(Schema35.from_dict, obj.get("box_col_bones"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
         )
@@ -12257,8 +12202,8 @@ class SkelV1291_03_06PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("mesh_data_names")
         )
         object_datas = HilariousObjectDatas.from_dict(obj.get("object_datas"))
-        sphere_col_bones1 = from_list(Schema34.from_dict, obj.get("sphere_col_bones1"))
-        sphere_col_bones2 = from_list(Schema34.from_dict, obj.get("sphere_col_bones2"))
+        sphere_col_bones1 = from_list(Schema36.from_dict, obj.get("sphere_col_bones1"))
+        sphere_col_bones2 = from_list(Schema36.from_dict, obj.get("sphere_col_bones2"))
         unknown_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("unknown_names")
         )
@@ -12277,13 +12222,13 @@ class SkelV1291_03_06PCBody:
     def to_dict(self):
         result = {}
         result["bone_node_groups"] = from_list(
-            lambda x: to_class(Schema31, x), self.bone_node_groups
+            lambda x: to_class(Schema33, x), self.bone_node_groups
         )
         result["bone_nodes"] = from_list(
-            lambda x: to_class(Schema32, x), self.bone_nodes
+            lambda x: to_class(Schema34, x), self.bone_nodes
         )
         result["box_col_bones"] = from_list(
-            lambda x: to_class(Schema33, x), self.box_col_bones
+            lambda x: to_class(Schema35, x), self.box_col_bones
         )
         result["material_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.material_names
@@ -12293,10 +12238,10 @@ class SkelV1291_03_06PCBody:
         )
         result["object_datas"] = to_class(HilariousObjectDatas, self.object_datas)
         result["sphere_col_bones1"] = from_list(
-            lambda x: to_class(Schema34, x), self.sphere_col_bones1
+            lambda x: to_class(Schema36, x), self.sphere_col_bones1
         )
         result["sphere_col_bones2"] = from_list(
-            lambda x: to_class(Schema34, x), self.sphere_col_bones2
+            lambda x: to_class(Schema36, x), self.sphere_col_bones2
         )
         result["unknown_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.unknown_names
@@ -12337,7 +12282,7 @@ class SkelV1291_03_06_PC:
         return result
 
 
-class Schema35:
+class Schema37:
     def __init__(
         self,
         bone_flags,
@@ -12429,7 +12374,7 @@ class Schema35:
             lambda x: from_list(from_float, x), obj.get("transformation")
         )
         user_define_name = from_union([from_int, from_str], obj.get("user_define_name"))
-        return Schema35(
+        return Schema37(
             bone_flags,
             bone_name,
             child_bone_begin,
@@ -12499,7 +12444,7 @@ class Schema35:
         return result
 
 
-class Schema36:
+class Schema38:
     def __init__(self, mat, names):
         self.mat = mat
         self.names = names
@@ -12511,7 +12456,7 @@ class Schema36:
         names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("names")
         )
-        return Schema36(mat, names)
+        return Schema38(mat, names)
 
     def to_dict(self):
         result = {}
@@ -12533,7 +12478,7 @@ class SphereColBones0Element:
         names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("names")
         )
-        sphere = Sphere.from_dict(obj.get("sphere"))
+        sphere = BSphere.from_dict(obj.get("sphere"))
         return SphereColBones0Element(names, sphere)
 
     def to_dict(self):
@@ -12541,7 +12486,7 @@ class SphereColBones0Element:
         result["names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.names
         )
-        result["sphere"] = to_class(Sphere, self.sphere)
+        result["sphere"] = to_class(BSphere, self.sphere)
         return result
 
 
@@ -12577,9 +12522,9 @@ class SkelV1381_67_09PCBody:
             lambda x: from_list(lambda x: from_union([from_int, from_str], x), x),
             obj.get("animation_node_names_arrays"),
         )
-        bones = from_list(Schema35.from_dict, obj.get("bones"))
-        bounding_sphere_center = Sphere.from_dict(obj.get("bounding_sphere_center"))
-        box_col_bones = from_list(Schema36.from_dict, obj.get("box_col_bones"))
+        bones = from_list(Schema37.from_dict, obj.get("bones"))
+        bounding_sphere_center = BSphere.from_dict(obj.get("bounding_sphere_center"))
+        box_col_bones = from_list(Schema38.from_dict, obj.get("box_col_bones"))
         flags = ResourceDatasFlags.from_dict(obj.get("flags"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
@@ -12615,10 +12560,12 @@ class SkelV1381_67_09PCBody:
             lambda x: from_list(lambda x: from_union([from_int, from_str], x), x),
             self.animation_node_names_arrays,
         )
-        result["bones"] = from_list(lambda x: to_class(Schema35, x), self.bones)
-        result["bounding_sphere_center"] = to_class(Sphere, self.bounding_sphere_center)
+        result["bones"] = from_list(lambda x: to_class(Schema37, x), self.bones)
+        result["bounding_sphere_center"] = to_class(
+            BSphere, self.bounding_sphere_center
+        )
         result["box_col_bones"] = from_list(
-            lambda x: to_class(Schema36, x), self.box_col_bones
+            lambda x: to_class(Schema38, x), self.box_col_bones
         )
         result["flags"] = to_class(ResourceDatasFlags, self.flags)
         result["material_names"] = from_list(
@@ -12777,7 +12724,7 @@ class ResourceBlendElement:
         return result
 
 
-class Schema37:
+class Schema39:
     def __init__(self, bone_name, resource_blends):
         self.bone_name = bone_name
         self.resource_blends = resource_blends
@@ -12789,7 +12736,7 @@ class Schema37:
         resource_blends = from_list(
             ResourceBlendElement.from_dict, obj.get("resource_blends")
         )
-        return Schema37(bone_name, resource_blends)
+        return Schema39(bone_name, resource_blends)
 
     def to_dict(self):
         result = {}
@@ -12879,7 +12826,7 @@ class SkinSubSectionElement:
         return result
 
 
-class Schema38:
+class Schema40:
     def __init__(self, skin_sub_sections):
         self.skin_sub_sections = skin_sub_sections
 
@@ -12889,7 +12836,7 @@ class Schema38:
         skin_sub_sections = from_list(
             SkinSubSectionElement.from_dict, obj.get("skin_sub_sections")
         )
-        return Schema38(skin_sub_sections)
+        return Schema40(skin_sub_sections)
 
     def to_dict(self):
         result = {}
@@ -12958,13 +12905,13 @@ class SkinV1291_03_06PCBody:
         anim_class_ids = from_union(
             [from_none, AnimClassIDS.from_dict], obj.get("anim_class_ids")
         )
-        bones = from_list(Schema37.from_dict, obj.get("bones"))
+        bones = from_list(Schema39.from_dict, obj.get("bones"))
         is_class_id = from_int(obj.get("is_class_id"))
         matrix_cache_check = from_int(obj.get("matrix_cache_check"))
         mesh_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("mesh_names")
         )
-        skin_sections = from_list(Schema38.from_dict, obj.get("skin_sections"))
+        skin_sections = from_list(Schema40.from_dict, obj.get("skin_sections"))
         sound_class_ids = from_union(
             [from_none, SoundClassIDS.from_dict], obj.get("sound_class_ids")
         )
@@ -12986,14 +12933,14 @@ class SkinV1291_03_06PCBody:
             result["anim_class_ids"] = from_union(
                 [from_none, lambda x: to_class(AnimClassIDS, x)], self.anim_class_ids
             )
-        result["bones"] = from_list(lambda x: to_class(Schema37, x), self.bones)
+        result["bones"] = from_list(lambda x: to_class(Schema39, x), self.bones)
         result["is_class_id"] = from_int(self.is_class_id)
         result["matrix_cache_check"] = from_int(self.matrix_cache_check)
         result["mesh_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.mesh_names
         )
         result["skin_sections"] = from_list(
-            lambda x: to_class(Schema38, x), self.skin_sections
+            lambda x: to_class(Schema40, x), self.skin_sections
         )
         if self.sound_class_ids is not None:
             result["sound_class_ids"] = from_union(
@@ -13066,7 +13013,7 @@ class SkinSubsectionElement:
         return result
 
 
-class Schema39:
+class Schema41:
     def __init__(self, skin_subsections):
         self.skin_subsections = skin_subsections
 
@@ -13076,7 +13023,7 @@ class Schema39:
         skin_subsections = from_list(
             SkinSubsectionElement.from_dict, obj.get("skin_subsections")
         )
-        return Schema39(skin_subsections)
+        return Schema41(skin_subsections)
 
     def to_dict(self):
         result = {}
@@ -13104,7 +13051,7 @@ class SkinV1381_67_09PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("mesh_names")
         )
         one_and_a_half = from_float(obj.get("one_and_a_half"))
-        skin_sections = from_list(Schema39.from_dict, obj.get("skin_sections"))
+        skin_sections = from_list(Schema41.from_dict, obj.get("skin_sections"))
         zeros = from_list(from_int, obj.get("zeros"))
         return SkinV1381_67_09PCBody(
             bone_name_count, mesh_names, one_and_a_half, skin_sections, zeros
@@ -13118,7 +13065,7 @@ class SkinV1381_67_09PCBody:
         )
         result["one_and_a_half"] = to_float(self.one_and_a_half)
         result["skin_sections"] = from_list(
-            lambda x: to_class(Schema39, x), self.skin_sections
+            lambda x: to_class(Schema41, x), self.skin_sections
         )
         result["zeros"] = from_list(from_int, self.zeros)
         return result
@@ -13483,7 +13430,7 @@ class SplineV106_63_02_PC:
         return result
 
 
-class Schema41:
+class Schema43:
     def __init__(self, length, p):
         self.length = length
         self.p = p
@@ -13493,7 +13440,7 @@ class Schema41:
         assert isinstance(obj, dict)
         length = from_float(obj.get("length"))
         p = from_list(lambda x: from_list(from_float, x), obj.get("p"))
-        return Schema41(length, p)
+        return Schema43(length, p)
 
     def to_dict(self):
         result = {}
@@ -13502,7 +13449,7 @@ class Schema41:
         return result
 
 
-class Schema40:
+class Schema42:
     def __init__(self, flags, length, p, spline_segment_subdivisions, t):
         self.flags = flags
         self.length = length
@@ -13517,10 +13464,10 @@ class Schema40:
         length = from_float(obj.get("length"))
         p = from_list(from_int, obj.get("p"))
         spline_segment_subdivisions = from_list(
-            Schema41.from_dict, obj.get("spline_segment_subdivisions")
+            Schema43.from_dict, obj.get("spline_segment_subdivisions")
         )
         t = from_list(from_int, obj.get("t"))
-        return Schema40(flags, length, p, spline_segment_subdivisions, t)
+        return Schema42(flags, length, p, spline_segment_subdivisions, t)
 
     def to_dict(self):
         result = {}
@@ -13528,7 +13475,7 @@ class Schema40:
         result["length"] = to_float(self.length)
         result["p"] = from_list(from_int, self.p)
         result["spline_segment_subdivisions"] = from_list(
-            lambda x: to_class(Schema41, x), self.spline_segment_subdivisions
+            lambda x: to_class(Schema43, x), self.spline_segment_subdivisions
         )
         result["t"] = from_list(from_int, self.t)
         return result
@@ -13546,7 +13493,7 @@ class SplineV1381_67_09PCBody:
         assert isinstance(obj, dict)
         length = from_float(obj.get("length"))
         points = from_list(lambda x: from_list(from_float, x), obj.get("points"))
-        spline_segments = from_list(Schema40.from_dict, obj.get("spline_segments"))
+        spline_segments = from_list(Schema42.from_dict, obj.get("spline_segments"))
         vec = from_list(from_float, obj.get("vec"))
         return SplineV1381_67_09PCBody(length, points, spline_segments, vec)
 
@@ -13555,7 +13502,7 @@ class SplineV1381_67_09PCBody:
         result["length"] = to_float(self.length)
         result["points"] = from_list(lambda x: from_list(to_float, x), self.points)
         result["spline_segments"] = from_list(
-            lambda x: to_class(Schema40, x), self.spline_segments
+            lambda x: to_class(Schema42, x), self.spline_segments
         )
         result["vec"] = from_list(to_float, self.vec)
         return result
@@ -13625,7 +13572,7 @@ class Spline:
         return result
 
 
-class Schema43:
+class Schema45:
     def __init__(self, length, p):
         self.length = length
         self.p = p
@@ -13635,7 +13582,7 @@ class Schema43:
         assert isinstance(obj, dict)
         length = from_float(obj.get("length"))
         p = from_list(lambda x: from_list(from_float, x), obj.get("p"))
-        return Schema43(length, p)
+        return Schema45(length, p)
 
     def to_dict(self):
         result = {}
@@ -13644,7 +13591,7 @@ class Schema43:
         return result
 
 
-class Schema42:
+class Schema44:
     def __init__(self, flags, length, p, spline_segment_subdivisions, t):
         self.flags = flags
         self.length = length
@@ -13659,10 +13606,10 @@ class Schema42:
         length = from_float(obj.get("length"))
         p = from_list(from_int, obj.get("p"))
         spline_segment_subdivisions = from_list(
-            Schema43.from_dict, obj.get("spline_segment_subdivisions")
+            Schema45.from_dict, obj.get("spline_segment_subdivisions")
         )
         t = from_list(from_int, obj.get("t"))
-        return Schema42(flags, length, p, spline_segment_subdivisions, t)
+        return Schema44(flags, length, p, spline_segment_subdivisions, t)
 
     def to_dict(self):
         result = {}
@@ -13670,7 +13617,7 @@ class Schema42:
         result["length"] = to_float(self.length)
         result["p"] = from_list(from_int, self.p)
         result["spline_segment_subdivisions"] = from_list(
-            lambda x: to_class(Schema43, x), self.spline_segment_subdivisions
+            lambda x: to_class(Schema45, x), self.spline_segment_subdivisions
         )
         result["t"] = from_list(from_int, self.t)
         return result
@@ -13707,7 +13654,7 @@ class SplineGraphV1381_67_09PCBody:
         spline_segment_datas = from_list(
             lambda x: from_list(from_int, x), obj.get("spline_segment_datas")
         )
-        spline_segments = from_list(Schema42.from_dict, obj.get("spline_segments"))
+        spline_segments = from_list(Schema44.from_dict, obj.get("spline_segments"))
         vec = from_list(from_float, obj.get("vec"))
         return SplineGraphV1381_67_09PCBody(
             length,
@@ -13731,7 +13678,7 @@ class SplineGraphV1381_67_09PCBody:
             lambda x: from_list(from_int, x), self.spline_segment_datas
         )
         result["spline_segments"] = from_list(
-            lambda x: to_class(Schema42, x), self.spline_segments
+            lambda x: to_class(Schema44, x), self.spline_segments
         )
         result["vec"] = from_list(to_float, self.vec)
         return result
@@ -13790,7 +13737,7 @@ class SplineGraph:
         return result
 
 
-class Schema44:
+class Schema46:
     def __init__(self, edge_id, flag, sphere, unk_float, unk_uints):
         self.edge_id = edge_id
         self.flag = flag
@@ -13803,22 +13750,22 @@ class Schema44:
         assert isinstance(obj, dict)
         edge_id = from_int(obj.get("edge_id"))
         flag = from_int(obj.get("flag"))
-        sphere = Sphere.from_dict(obj.get("sphere"))
+        sphere = BSphere.from_dict(obj.get("sphere"))
         unk_float = from_float(obj.get("unk_float"))
         unk_uints = from_list(from_int, obj.get("unk_uints"))
-        return Schema44(edge_id, flag, sphere, unk_float, unk_uints)
+        return Schema46(edge_id, flag, sphere, unk_float, unk_uints)
 
     def to_dict(self):
         result = {}
         result["edge_id"] = from_int(self.edge_id)
         result["flag"] = from_int(self.flag)
-        result["sphere"] = to_class(Sphere, self.sphere)
+        result["sphere"] = to_class(BSphere, self.sphere)
         result["unk_float"] = to_float(self.unk_float)
         result["unk_uints"] = from_list(from_int, self.unk_uints)
         return result
 
 
-class Schema45:
+class Schema47:
     def __init__(self, cache_index_maybe, edge_id, flag, sphere, unk_placeholder_ptr3):
         self.cache_index_maybe = cache_index_maybe
         self.edge_id = edge_id
@@ -13832,21 +13779,21 @@ class Schema45:
         cache_index_maybe = from_int(obj.get("cache_index_maybe"))
         edge_id = from_int(obj.get("edge_id"))
         flag = from_int(obj.get("flag"))
-        sphere = Sphere.from_dict(obj.get("sphere"))
+        sphere = BSphere.from_dict(obj.get("sphere"))
         unk_placeholder_ptr3 = from_int(obj.get("unk_placeholder_ptr3"))
-        return Schema45(cache_index_maybe, edge_id, flag, sphere, unk_placeholder_ptr3)
+        return Schema47(cache_index_maybe, edge_id, flag, sphere, unk_placeholder_ptr3)
 
     def to_dict(self):
         result = {}
         result["cache_index_maybe"] = from_int(self.cache_index_maybe)
         result["edge_id"] = from_int(self.edge_id)
         result["flag"] = from_int(self.flag)
-        result["sphere"] = to_class(Sphere, self.sphere)
+        result["sphere"] = to_class(BSphere, self.sphere)
         result["unk_placeholder_ptr3"] = from_int(self.unk_placeholder_ptr3)
         return result
 
 
-class Schema46:
+class Schema48:
     def __init__(self, p, t):
         self.p = p
         self.t = t
@@ -13856,7 +13803,7 @@ class Schema46:
         assert isinstance(obj, dict)
         p = from_list(from_int, obj.get("p"))
         t = from_list(from_int, obj.get("t"))
-        return Schema46(p, t)
+        return Schema48(p, t)
 
     def to_dict(self):
         result = {}
@@ -13865,7 +13812,7 @@ class Schema46:
         return result
 
 
-class Schema47:
+class Schema49:
     def __init__(self, cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere):
         self.cdcdcdcd = cdcdcdcd
         self.edge_col_id = edge_col_id
@@ -13880,8 +13827,8 @@ class Schema47:
         edge_col_id = from_int(obj.get("edge_col_id"))
         flag = from_int(obj.get("flag"))
         next_patch_col_id = from_int(obj.get("next_patch_col_id"))
-        sphere = Sphere.from_dict(obj.get("sphere"))
-        return Schema47(cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere)
+        sphere = BSphere.from_dict(obj.get("sphere"))
+        return Schema49(cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere)
 
     def to_dict(self):
         result = {}
@@ -13889,7 +13836,7 @@ class Schema47:
         result["edge_col_id"] = from_int(self.edge_col_id)
         result["flag"] = from_int(self.flag)
         result["next_patch_col_id"] = from_int(self.next_patch_col_id)
-        result["sphere"] = to_class(Sphere, self.sphere)
+        result["sphere"] = to_class(BSphere, self.sphere)
         return result
 
 
@@ -13909,7 +13856,7 @@ class PurpleCullCone:
         return result
 
 
-class Schema48:
+class Schema50:
     def __init__(
         self,
         b_box,
@@ -13945,7 +13892,7 @@ class Schema48:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_box = Box.from_dict(obj.get("b_box"))
+        b_box = ColBoxClass.from_dict(obj.get("b_box"))
         col_cache_index = from_int(obj.get("col_cache_index"))
         color_indices = from_list(from_int, obj.get("color_indices"))
         cull_cone = PurpleCullCone.from_dict(obj.get("cull_cone"))
@@ -13960,10 +13907,10 @@ class Schema48:
         should_draw_related_start_index = from_int(
             obj.get("should_draw_related_start_index")
         )
-        sphere = Sphere.from_dict(obj.get("sphere"))
+        sphere = BSphere.from_dict(obj.get("sphere"))
         unknown = from_int(obj.get("unknown"))
         unknown_indices = from_list(from_int, obj.get("unknown_indices"))
-        return Schema48(
+        return Schema50(
             b_box,
             col_cache_index,
             color_indices,
@@ -13982,7 +13929,7 @@ class Schema48:
 
     def to_dict(self):
         result = {}
-        result["b_box"] = to_class(Box, self.b_box)
+        result["b_box"] = to_class(ColBoxClass, self.b_box)
         result["col_cache_index"] = from_int(self.col_cache_index)
         result["color_indices"] = from_list(from_int, self.color_indices)
         result["cull_cone"] = to_class(PurpleCullCone, self.cull_cone)
@@ -13997,13 +13944,13 @@ class Schema48:
         result["should_draw_related_start_index"] = from_int(
             self.should_draw_related_start_index
         )
-        result["sphere"] = to_class(Sphere, self.sphere)
+        result["sphere"] = to_class(BSphere, self.sphere)
         result["unknown"] = from_int(self.unknown)
         result["unknown_indices"] = from_list(from_int, self.unknown_indices)
         return result
 
 
-class Schema50:
+class Schema52:
     def __init__(self, data):
         self.data = data
 
@@ -14011,7 +13958,7 @@ class Schema50:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema50(data)
+        return Schema52(data)
 
     def to_dict(self):
         result = {}
@@ -14019,7 +13966,7 @@ class Schema50:
         return result
 
 
-class Schema49:
+class Schema51:
     def __init__(self, morph_target_desc_relateds, name):
         self.morph_target_desc_relateds = morph_target_desc_relateds
         self.name = name
@@ -14028,21 +13975,21 @@ class Schema49:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morph_target_desc_relateds = from_list(
-            Schema50.from_dict, obj.get("morph_target_desc_relateds")
+            Schema52.from_dict, obj.get("morph_target_desc_relateds")
         )
         name = from_int(obj.get("name"))
-        return Schema49(morph_target_desc_relateds, name)
+        return Schema51(morph_target_desc_relateds, name)
 
     def to_dict(self):
         result = {}
         result["morph_target_desc_relateds"] = from_list(
-            lambda x: to_class(Schema50, x), self.morph_target_desc_relateds
+            lambda x: to_class(Schema52, x), self.morph_target_desc_relateds
         )
         result["name"] = from_int(self.name)
         return result
 
 
-class Schema51:
+class Schema53:
     def __init__(self, data):
         self.data = data
 
@@ -14050,7 +13997,7 @@ class Schema51:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema51(data)
+        return Schema53(data)
 
     def to_dict(self):
         result = {}
@@ -14067,18 +14014,18 @@ class StickyMorpher:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morph_target_descs = from_list(
-            Schema49.from_dict, obj.get("morph_target_descs")
+            Schema51.from_dict, obj.get("morph_target_descs")
         )
-        morpher_relateds = from_list(Schema51.from_dict, obj.get("morpher_relateds"))
+        morpher_relateds = from_list(Schema53.from_dict, obj.get("morpher_relateds"))
         return StickyMorpher(morph_target_descs, morpher_relateds)
 
     def to_dict(self):
         result = {}
         result["morph_target_descs"] = from_list(
-            lambda x: to_class(Schema49, x), self.morph_target_descs
+            lambda x: to_class(Schema51, x), self.morph_target_descs
         )
         result["morpher_relateds"] = from_list(
-            lambda x: to_class(Schema51, x), self.morpher_relateds
+            lambda x: to_class(Schema53, x), self.morpher_relateds
         )
         return result
 
@@ -14145,7 +14092,7 @@ class StickyPoints:
         return result
 
 
-class Schema53:
+class Schema55:
     def __init__(self, element_count, element_entry):
         self.element_count = element_count
         self.element_entry = element_entry
@@ -14155,7 +14102,7 @@ class Schema53:
         assert isinstance(obj, dict)
         element_count = from_int(obj.get("element_count"))
         element_entry = from_int(obj.get("element_entry"))
-        return Schema53(element_count, element_entry)
+        return Schema55(element_count, element_entry)
 
     def to_dict(self):
         result = {}
@@ -14164,7 +14111,7 @@ class Schema53:
         return result
 
 
-class Schema52:
+class Schema54:
     def __init__(
         self,
         axes_1,
@@ -14224,7 +14171,7 @@ class Schema52:
         hit_patch_count = from_int(obj.get("hit_patch_count"))
         i_size = from_list(from_float, obj.get("i_size"))
         patch_indices = from_list(from_int, obj.get("patch_indices"))
-        sead_voxels = from_list(Schema53.from_dict, obj.get("sead_voxels"))
+        sead_voxels = from_list(Schema55.from_dict, obj.get("sead_voxels"))
         size = from_list(from_float, obj.get("size"))
         step = from_list(from_float, obj.get("step"))
         unk_ptr1 = from_int(obj.get("unk_ptr1"))
@@ -14238,7 +14185,7 @@ class Schema52:
         unk_vec4_3 = from_list(from_float, obj.get("unk_vec4_3"))
         unk_vec4_4 = from_list(from_float, obj.get("unk_vec4_4"))
         unk_vec4_7 = from_list(from_float, obj.get("unk_vec4_7"))
-        return Schema52(
+        return Schema54(
             axes_1,
             axes_2,
             axes_3,
@@ -14274,7 +14221,7 @@ class Schema52:
         result["i_size"] = from_list(to_float, self.i_size)
         result["patch_indices"] = from_list(from_int, self.patch_indices)
         result["sead_voxels"] = from_list(
-            lambda x: to_class(Schema53, x), self.sead_voxels
+            lambda x: to_class(Schema55, x), self.sead_voxels
         )
         result["size"] = from_list(to_float, self.size)
         result["step"] = from_list(to_float, self.step)
@@ -14299,19 +14246,19 @@ class PurpleSeadIndex:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        inner = from_union([Schema52.from_dict, from_none], obj.get("inner"))
+        inner = from_union([Schema54.from_dict, from_none], obj.get("inner"))
         return PurpleSeadIndex(inner)
 
     def to_dict(self):
         result = {}
         if self.inner is not None:
             result["inner"] = from_union(
-                [lambda x: to_class(Schema52, x), from_none], self.inner
+                [lambda x: to_class(Schema54, x), from_none], self.inner
             )
         return result
 
 
-class Schema54:
+class Schema56:
     def __init__(self, value):
         self.value = value
 
@@ -14319,7 +14266,7 @@ class Schema54:
     def from_dict(obj):
         assert isinstance(obj, dict)
         value = from_int(obj.get("value"))
-        return Schema54(value)
+        return Schema56(value)
 
     def to_dict(self):
         result = {}
@@ -14358,23 +14305,23 @@ class SurfaceV106_63_02PCBody:
     def from_dict(obj):
         assert isinstance(obj, dict)
         cling_line_relateds = from_list(
-            Schema44.from_dict, obj.get("cling_line_relateds")
+            Schema46.from_dict, obj.get("cling_line_relateds")
         )
         colors = from_list(lambda x: from_list(from_float, x), obj.get("colors"))
         displacement_relateds = from_list(
             lambda x: from_list(from_float, x), obj.get("displacement_relateds")
         )
-        edge_cols = from_list(Schema45.from_dict, obj.get("edge_cols"))
-        edges = from_list(Schema46.from_dict, obj.get("edges"))
+        edge_cols = from_list(Schema47.from_dict, obj.get("edge_cols"))
+        edges = from_list(Schema48.from_dict, obj.get("edges"))
         normals = from_list(lambda x: from_list(from_float, x), obj.get("normals"))
-        patch_cols = from_list(Schema47.from_dict, obj.get("patch_cols"))
-        patches = from_list(Schema48.from_dict, obj.get("patches"))
+        patch_cols = from_list(Schema49.from_dict, obj.get("patch_cols"))
+        patches = from_list(Schema50.from_dict, obj.get("patches"))
         points = StickyPoints.from_dict(obj.get("points"))
         sead_index = from_union(
             [PurpleSeadIndex.from_dict, from_none], obj.get("sead_index")
         )
         should_draw_relateds = from_list(
-            Schema54.from_dict, obj.get("should_draw_relateds")
+            Schema56.from_dict, obj.get("should_draw_relateds")
         )
         return SurfaceV106_63_02PCBody(
             cling_line_relateds,
@@ -14393,26 +14340,26 @@ class SurfaceV106_63_02PCBody:
     def to_dict(self):
         result = {}
         result["cling_line_relateds"] = from_list(
-            lambda x: to_class(Schema44, x), self.cling_line_relateds
+            lambda x: to_class(Schema46, x), self.cling_line_relateds
         )
         result["colors"] = from_list(lambda x: from_list(to_float, x), self.colors)
         result["displacement_relateds"] = from_list(
             lambda x: from_list(to_float, x), self.displacement_relateds
         )
-        result["edge_cols"] = from_list(lambda x: to_class(Schema45, x), self.edge_cols)
-        result["edges"] = from_list(lambda x: to_class(Schema46, x), self.edges)
+        result["edge_cols"] = from_list(lambda x: to_class(Schema47, x), self.edge_cols)
+        result["edges"] = from_list(lambda x: to_class(Schema48, x), self.edges)
         result["normals"] = from_list(lambda x: from_list(to_float, x), self.normals)
         result["patch_cols"] = from_list(
-            lambda x: to_class(Schema47, x), self.patch_cols
+            lambda x: to_class(Schema49, x), self.patch_cols
         )
-        result["patches"] = from_list(lambda x: to_class(Schema48, x), self.patches)
+        result["patches"] = from_list(lambda x: to_class(Schema50, x), self.patches)
         result["points"] = to_class(StickyPoints, self.points)
         if self.sead_index is not None:
             result["sead_index"] = from_union(
                 [lambda x: to_class(PurpleSeadIndex, x), from_none], self.sead_index
             )
         result["should_draw_relateds"] = from_list(
-            lambda x: to_class(Schema54, x), self.should_draw_relateds
+            lambda x: to_class(Schema56, x), self.should_draw_relateds
         )
         return result
 
@@ -14450,7 +14397,7 @@ class SurfaceV106_63_02_PC:
         return result
 
 
-class Schema55:
+class Schema57:
     def __init__(self, edge_id, flag, sphere, unknown0, unknown1, unknown2):
         self.edge_id = edge_id
         self.flag = flag
@@ -14464,24 +14411,24 @@ class Schema55:
         assert isinstance(obj, dict)
         edge_id = from_int(obj.get("edge_id"))
         flag = from_int(obj.get("flag"))
-        sphere = Sphere.from_dict(obj.get("sphere"))
+        sphere = BSphere.from_dict(obj.get("sphere"))
         unknown0 = from_int(obj.get("unknown0"))
         unknown1 = from_int(obj.get("unknown1"))
         unknown2 = from_float(obj.get("unknown2"))
-        return Schema55(edge_id, flag, sphere, unknown0, unknown1, unknown2)
+        return Schema57(edge_id, flag, sphere, unknown0, unknown1, unknown2)
 
     def to_dict(self):
         result = {}
         result["edge_id"] = from_int(self.edge_id)
         result["flag"] = from_int(self.flag)
-        result["sphere"] = to_class(Sphere, self.sphere)
+        result["sphere"] = to_class(BSphere, self.sphere)
         result["unknown0"] = from_int(self.unknown0)
         result["unknown1"] = from_int(self.unknown1)
         result["unknown2"] = to_float(self.unknown2)
         return result
 
 
-class Schema56:
+class Schema58:
     def __init__(self, edge_id, flag, sphere, unknown0, unknown1):
         self.edge_id = edge_id
         self.flag = flag
@@ -14494,22 +14441,22 @@ class Schema56:
         assert isinstance(obj, dict)
         edge_id = from_int(obj.get("edge_id"))
         flag = from_int(obj.get("flag"))
-        sphere = Sphere.from_dict(obj.get("sphere"))
+        sphere = BSphere.from_dict(obj.get("sphere"))
         unknown0 = from_int(obj.get("unknown0"))
         unknown1 = from_int(obj.get("unknown1"))
-        return Schema56(edge_id, flag, sphere, unknown0, unknown1)
+        return Schema58(edge_id, flag, sphere, unknown0, unknown1)
 
     def to_dict(self):
         result = {}
         result["edge_id"] = from_int(self.edge_id)
         result["flag"] = from_int(self.flag)
-        result["sphere"] = to_class(Sphere, self.sphere)
+        result["sphere"] = to_class(BSphere, self.sphere)
         result["unknown0"] = from_int(self.unknown0)
         result["unknown1"] = from_int(self.unknown1)
         return result
 
 
-class Schema57:
+class Schema59:
     def __init__(self, p, t):
         self.p = p
         self.t = t
@@ -14519,7 +14466,7 @@ class Schema57:
         assert isinstance(obj, dict)
         p = from_list(from_int, obj.get("p"))
         t = from_list(from_int, obj.get("t"))
-        return Schema57(p, t)
+        return Schema59(p, t)
 
     def to_dict(self):
         result = {}
@@ -14528,7 +14475,7 @@ class Schema57:
         return result
 
 
-class Schema58:
+class Schema60:
     def __init__(self, cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere):
         self.cdcdcdcd = cdcdcdcd
         self.edge_col_id = edge_col_id
@@ -14543,8 +14490,8 @@ class Schema58:
         edge_col_id = from_int(obj.get("edge_col_id"))
         flag = from_int(obj.get("flag"))
         next_patch_col_id = from_int(obj.get("next_patch_col_id"))
-        sphere = Sphere.from_dict(obj.get("sphere"))
-        return Schema58(cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere)
+        sphere = BSphere.from_dict(obj.get("sphere"))
+        return Schema60(cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere)
 
     def to_dict(self):
         result = {}
@@ -14552,7 +14499,7 @@ class Schema58:
         result["edge_col_id"] = from_int(self.edge_col_id)
         result["flag"] = from_int(self.flag)
         result["next_patch_col_id"] = from_int(self.next_patch_col_id)
-        result["sphere"] = to_class(Sphere, self.sphere)
+        result["sphere"] = to_class(BSphere, self.sphere)
         return result
 
 
@@ -14592,7 +14539,7 @@ class FluffyCullCone:
         return result
 
 
-class Schema59:
+class Schema61:
     def __init__(
         self,
         b_box,
@@ -14643,10 +14590,10 @@ class Schema59:
         should_draw_related_start_index = from_int(
             obj.get("should_draw_related_start_index")
         )
-        sphere = Sphere.from_dict(obj.get("sphere"))
+        sphere = BSphere.from_dict(obj.get("sphere"))
         unknown = from_int(obj.get("unknown"))
         unknown_indices = from_list(from_int, obj.get("unknown_indices"))
-        return Schema59(
+        return Schema61(
             b_box,
             col_cache_index,
             color_indices,
@@ -14680,13 +14627,13 @@ class Schema59:
         result["should_draw_related_start_index"] = from_int(
             self.should_draw_related_start_index
         )
-        result["sphere"] = to_class(Sphere, self.sphere)
+        result["sphere"] = to_class(BSphere, self.sphere)
         result["unknown"] = from_int(self.unknown)
         result["unknown_indices"] = from_list(from_int, self.unknown_indices)
         return result
 
 
-class Schema60:
+class Schema62:
     def __init__(self, data):
         self.data = data
 
@@ -14694,7 +14641,7 @@ class Schema60:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema60(data)
+        return Schema62(data)
 
     def to_dict(self):
         result = {}
@@ -14709,18 +14656,18 @@ class IndigoMorpher:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        morpher_relateds = from_list(Schema60.from_dict, obj.get("morpher_relateds"))
+        morpher_relateds = from_list(Schema62.from_dict, obj.get("morpher_relateds"))
         return IndigoMorpher(morpher_relateds)
 
     def to_dict(self):
         result = {}
         result["morpher_relateds"] = from_list(
-            lambda x: to_class(Schema60, x), self.morpher_relateds
+            lambda x: to_class(Schema62, x), self.morpher_relateds
         )
         return result
 
 
-class Schema61:
+class Schema63:
     def __init__(self, vector):
         self.vector = vector
 
@@ -14728,7 +14675,7 @@ class Schema61:
     def from_dict(obj):
         assert isinstance(obj, dict)
         vector = from_list(from_float, obj.get("vector"))
-        return Schema61(vector)
+        return Schema63(vector)
 
     def to_dict(self):
         result = {}
@@ -14736,7 +14683,7 @@ class Schema61:
         return result
 
 
-class Schema62:
+class Schema64:
     def __init__(self, vector):
         self.vector = vector
 
@@ -14744,7 +14691,7 @@ class Schema62:
     def from_dict(obj):
         assert isinstance(obj, dict)
         vector = from_list(from_float, obj.get("vector"))
-        return Schema62(vector)
+        return Schema64(vector)
 
     def to_dict(self):
         result = {}
@@ -14762,23 +14709,23 @@ class IndigoPoints:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morpher = IndigoMorpher.from_dict(obj.get("morpher"))
-        points_related0_s = from_list(Schema61.from_dict, obj.get("points_related0s"))
-        points_related1_s = from_list(Schema62.from_dict, obj.get("points_related1s"))
+        points_related0_s = from_list(Schema63.from_dict, obj.get("points_related0s"))
+        points_related1_s = from_list(Schema64.from_dict, obj.get("points_related1s"))
         return IndigoPoints(morpher, points_related0_s, points_related1_s)
 
     def to_dict(self):
         result = {}
         result["morpher"] = to_class(IndigoMorpher, self.morpher)
         result["points_related0s"] = from_list(
-            lambda x: to_class(Schema61, x), self.points_related0_s
+            lambda x: to_class(Schema63, x), self.points_related0_s
         )
         result["points_related1s"] = from_list(
-            lambda x: to_class(Schema62, x), self.points_related1_s
+            lambda x: to_class(Schema64, x), self.points_related1_s
         )
         return result
 
 
-class Schema64:
+class Schema66:
     def __init__(self, element_count, element_entry):
         self.element_count = element_count
         self.element_entry = element_entry
@@ -14788,7 +14735,7 @@ class Schema64:
         assert isinstance(obj, dict)
         element_count = from_int(obj.get("element_count"))
         element_entry = from_int(obj.get("element_entry"))
-        return Schema64(element_count, element_entry)
+        return Schema66(element_count, element_entry)
 
     def to_dict(self):
         result = {}
@@ -14797,7 +14744,7 @@ class Schema64:
         return result
 
 
-class Schema63:
+class Schema65:
     def __init__(
         self,
         axes0,
@@ -14853,7 +14800,7 @@ class Schema63:
         hit_patch_count = from_int(obj.get("hit_patch_count"))
         i_size = from_list(from_float, obj.get("i_size"))
         patch_indices = from_list(from_int, obj.get("patch_indices"))
-        sead_voxels = from_list(Schema64.from_dict, obj.get("sead_voxels"))
+        sead_voxels = from_list(Schema66.from_dict, obj.get("sead_voxels"))
         size = from_list(from_float, obj.get("size"))
         step = from_list(from_float, obj.get("step"))
         unknown_ptr0 = from_int(obj.get("unknown_ptr0"))
@@ -14867,7 +14814,7 @@ class Schema63:
         unknown_vec1 = from_list(from_float, obj.get("unknown_vec1"))
         unknown_vec2 = from_list(from_float, obj.get("unknown_vec2"))
         used_in_voxel_trace = from_int(obj.get("used_in_voxel_trace"))
-        return Schema63(
+        return Schema65(
             axes0,
             axes1,
             axes2,
@@ -14901,7 +14848,7 @@ class Schema63:
         result["i_size"] = from_list(to_float, self.i_size)
         result["patch_indices"] = from_list(from_int, self.patch_indices)
         result["sead_voxels"] = from_list(
-            lambda x: to_class(Schema64, x), self.sead_voxels
+            lambda x: to_class(Schema66, x), self.sead_voxels
         )
         result["size"] = from_list(to_float, self.size)
         result["step"] = from_list(to_float, self.step)
@@ -14926,19 +14873,19 @@ class FluffySeadIndex:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        inner = from_union([Schema63.from_dict, from_none], obj.get("inner"))
+        inner = from_union([Schema65.from_dict, from_none], obj.get("inner"))
         return FluffySeadIndex(inner)
 
     def to_dict(self):
         result = {}
         if self.inner is not None:
             result["inner"] = from_union(
-                [lambda x: to_class(Schema63, x), from_none], self.inner
+                [lambda x: to_class(Schema65, x), from_none], self.inner
             )
         return result
 
 
-class Schema65:
+class Schema67:
     def __init__(self, value):
         self.value = value
 
@@ -14946,7 +14893,7 @@ class Schema65:
     def from_dict(obj):
         assert isinstance(obj, dict)
         value = from_int(obj.get("value"))
-        return Schema65(value)
+        return Schema67(value)
 
     def to_dict(self):
         result = {}
@@ -14985,23 +14932,23 @@ class SurfaceV1291_03_06PCBody:
     def from_dict(obj):
         assert isinstance(obj, dict)
         cling_line_relateds = from_list(
-            Schema55.from_dict, obj.get("cling_line_relateds")
+            Schema57.from_dict, obj.get("cling_line_relateds")
         )
         colors = from_list(lambda x: from_list(from_float, x), obj.get("colors"))
         displacement_relateds = from_list(
             lambda x: from_list(from_float, x), obj.get("displacement_relateds")
         )
-        edge_cols = from_list(Schema56.from_dict, obj.get("edge_cols"))
-        edges = from_list(Schema57.from_dict, obj.get("edges"))
+        edge_cols = from_list(Schema58.from_dict, obj.get("edge_cols"))
+        edges = from_list(Schema59.from_dict, obj.get("edges"))
         normals = from_list(lambda x: from_list(from_float, x), obj.get("normals"))
-        patch_cols = from_list(Schema58.from_dict, obj.get("patch_cols"))
-        patches = from_list(Schema59.from_dict, obj.get("patches"))
+        patch_cols = from_list(Schema60.from_dict, obj.get("patch_cols"))
+        patches = from_list(Schema61.from_dict, obj.get("patches"))
         points = IndigoPoints.from_dict(obj.get("points"))
         sead_index = from_union(
             [FluffySeadIndex.from_dict, from_none], obj.get("sead_index")
         )
         should_draw_relateds = from_list(
-            Schema65.from_dict, obj.get("should_draw_relateds")
+            Schema67.from_dict, obj.get("should_draw_relateds")
         )
         return SurfaceV1291_03_06PCBody(
             cling_line_relateds,
@@ -15020,26 +14967,26 @@ class SurfaceV1291_03_06PCBody:
     def to_dict(self):
         result = {}
         result["cling_line_relateds"] = from_list(
-            lambda x: to_class(Schema55, x), self.cling_line_relateds
+            lambda x: to_class(Schema57, x), self.cling_line_relateds
         )
         result["colors"] = from_list(lambda x: from_list(to_float, x), self.colors)
         result["displacement_relateds"] = from_list(
             lambda x: from_list(to_float, x), self.displacement_relateds
         )
-        result["edge_cols"] = from_list(lambda x: to_class(Schema56, x), self.edge_cols)
-        result["edges"] = from_list(lambda x: to_class(Schema57, x), self.edges)
+        result["edge_cols"] = from_list(lambda x: to_class(Schema58, x), self.edge_cols)
+        result["edges"] = from_list(lambda x: to_class(Schema59, x), self.edges)
         result["normals"] = from_list(lambda x: from_list(to_float, x), self.normals)
         result["patch_cols"] = from_list(
-            lambda x: to_class(Schema58, x), self.patch_cols
+            lambda x: to_class(Schema60, x), self.patch_cols
         )
-        result["patches"] = from_list(lambda x: to_class(Schema59, x), self.patches)
+        result["patches"] = from_list(lambda x: to_class(Schema61, x), self.patches)
         result["points"] = to_class(IndigoPoints, self.points)
         if self.sead_index is not None:
             result["sead_index"] = from_union(
                 [lambda x: to_class(FluffySeadIndex, x), from_none], self.sead_index
             )
         result["should_draw_relateds"] = from_list(
-            lambda x: to_class(Schema65, x), self.should_draw_relateds
+            lambda x: to_class(Schema67, x), self.should_draw_relateds
         )
         return result
 
@@ -15077,7 +15024,7 @@ class SurfaceV1291_03_06_PC:
         return result
 
 
-class Schema66:
+class Schema68:
     def __init__(self, p, t):
         self.p = p
         self.t = t
@@ -15087,7 +15034,7 @@ class Schema66:
         assert isinstance(obj, dict)
         p = from_list(from_int, obj.get("p"))
         t = from_list(from_int, obj.get("t"))
-        return Schema66(p, t)
+        return Schema68(p, t)
 
     def to_dict(self):
         result = {}
@@ -15096,7 +15043,7 @@ class Schema66:
         return result
 
 
-class Schema67:
+class Schema69:
     def __init__(
         self,
         data,
@@ -15136,7 +15083,7 @@ class Schema67:
         surface_indices_index = from_int(obj.get("surface_indices_index"))
         unknown3_s = from_list(from_int, obj.get("unknown3s"))
         vec4_fs_indices = from_list(from_int, obj.get("vec4fs_indices"))
-        return Schema67(
+        return Schema69(
             data,
             edge_indices,
             flag,
@@ -15166,7 +15113,7 @@ class Schema67:
         return result
 
 
-class Schema69:
+class Schema71:
     def __init__(self, patches_indices_range):
         self.patches_indices_range = patches_indices_range
 
@@ -15174,7 +15121,7 @@ class Schema69:
     def from_dict(obj):
         assert isinstance(obj, dict)
         patches_indices_range = Range.from_dict(obj.get("patches_indices_range"))
-        return Schema69(patches_indices_range)
+        return Schema71(patches_indices_range)
 
     def to_dict(self):
         result = {}
@@ -15212,7 +15159,7 @@ class Unknown15:
         return result
 
 
-class Schema68:
+class Schema70:
     def __init__(self, patch_count, patches_indices, sead_voxels, unknown15):
         self.patch_count = patch_count
         self.patches_indices = patches_indices
@@ -15224,16 +15171,16 @@ class Schema68:
         assert isinstance(obj, dict)
         patch_count = from_int(obj.get("patch_count"))
         patches_indices = from_list(from_int, obj.get("patches_indices"))
-        sead_voxels = from_list(Schema69.from_dict, obj.get("sead_voxels"))
+        sead_voxels = from_list(Schema71.from_dict, obj.get("sead_voxels"))
         unknown15 = Unknown15.from_dict(obj.get("unknown15"))
-        return Schema68(patch_count, patches_indices, sead_voxels, unknown15)
+        return Schema70(patch_count, patches_indices, sead_voxels, unknown15)
 
     def to_dict(self):
         result = {}
         result["patch_count"] = from_int(self.patch_count)
         result["patches_indices"] = from_list(from_int, self.patches_indices)
         result["sead_voxels"] = from_list(
-            lambda x: to_class(Schema69, x), self.sead_voxels
+            lambda x: to_class(Schema71, x), self.sead_voxels
         )
         result["unknown15"] = to_class(Unknown15, self.unknown15)
         return result
@@ -15246,19 +15193,19 @@ class TentacledSeadIndex:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        inner = from_union([Schema68.from_dict, from_none], obj.get("inner"))
+        inner = from_union([Schema70.from_dict, from_none], obj.get("inner"))
         return TentacledSeadIndex(inner)
 
     def to_dict(self):
         result = {}
         if self.inner is not None:
             result["inner"] = from_union(
-                [lambda x: to_class(Schema68, x), from_none], self.inner
+                [lambda x: to_class(Schema70, x), from_none], self.inner
             )
         return result
 
 
-class Schema70:
+class Schema72:
     def __init__(self, value):
         self.value = value
 
@@ -15266,7 +15213,7 @@ class Schema70:
     def from_dict(obj):
         assert isinstance(obj, dict)
         value = from_int(obj.get("value"))
-        return Schema70(value)
+        return Schema72(value)
 
     def to_dict(self):
         result = {}
@@ -15354,15 +15301,15 @@ class SurfaceV1381_67_09PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        edges = from_list(Schema66.from_dict, obj.get("edges"))
+        edges = from_list(Schema68.from_dict, obj.get("edges"))
         normals = from_list(lambda x: from_list(from_float, x), obj.get("normals"))
-        patches = from_list(Schema67.from_dict, obj.get("patches"))
+        patches = from_list(Schema69.from_dict, obj.get("patches"))
         points = from_list(lambda x: from_list(from_float, x), obj.get("points"))
         sead_index = from_union(
             [TentacledSeadIndex.from_dict, from_none], obj.get("sead_index")
         )
         should_draw_relateds = from_list(
-            Schema70.from_dict, obj.get("should_draw_relateds")
+            Schema72.from_dict, obj.get("should_draw_relateds")
         )
         unused12_s = from_list(Unused12Element.from_dict, obj.get("unused12s"))
         unused2_s = from_list(Unused2Element.from_dict, obj.get("unused2s"))
@@ -15387,16 +15334,16 @@ class SurfaceV1381_67_09PCBody:
 
     def to_dict(self):
         result = {}
-        result["edges"] = from_list(lambda x: to_class(Schema66, x), self.edges)
+        result["edges"] = from_list(lambda x: to_class(Schema68, x), self.edges)
         result["normals"] = from_list(lambda x: from_list(to_float, x), self.normals)
-        result["patches"] = from_list(lambda x: to_class(Schema67, x), self.patches)
+        result["patches"] = from_list(lambda x: to_class(Schema69, x), self.patches)
         result["points"] = from_list(lambda x: from_list(to_float, x), self.points)
         if self.sead_index is not None:
             result["sead_index"] = from_union(
                 [lambda x: to_class(TentacledSeadIndex, x), from_none], self.sead_index
             )
         result["should_draw_relateds"] = from_list(
-            lambda x: to_class(Schema70, x), self.should_draw_relateds
+            lambda x: to_class(Schema72, x), self.should_draw_relateds
         )
         result["unused12s"] = from_list(
             lambda x: to_class(Unused12Element, x), self.unused12_s
@@ -15713,7 +15660,7 @@ class Warp:
         return result
 
 
-class Schema71:
+class Schema73:
     def __init__(
         self,
         grid_id,
@@ -15736,7 +15683,7 @@ class Schema71:
         next_resource_of_entry = from_int(obj.get("next_resource_of_entry"))
         node_name = from_union([from_int, from_str], obj.get("node_name"))
         prev_resource_of_entry = from_int(obj.get("prev_resource_of_entry"))
-        return Schema71(
+        return Schema73(
             grid_id,
             next_entry_of_resource,
             next_resource_of_entry,
@@ -15776,7 +15723,7 @@ class PurpleSeadHandle0:
         inv_diag = from_list(from_float, obj.get("inv_diag"))
         p_max = from_list(from_float, obj.get("p_max"))
         p_min = from_list(from_float, obj.get("p_min"))
-        sead_entries = from_list(Schema71.from_dict, obj.get("sead_entries"))
+        sead_entries = from_list(Schema73.from_dict, obj.get("sead_entries"))
         size = from_list(lambda x: x, obj.get("size"))
         return PurpleSeadHandle0(
             first_free, free_count, grid, inv_diag, p_max, p_min, sead_entries, size
@@ -15791,7 +15738,7 @@ class PurpleSeadHandle0:
         result["p_max"] = from_list(to_float, self.p_max)
         result["p_min"] = from_list(to_float, self.p_min)
         result["sead_entries"] = from_list(
-            lambda x: to_class(Schema71, x), self.sead_entries
+            lambda x: to_class(Schema73, x), self.sead_entries
         )
         result["size"] = from_list(lambda x: x, self.size)
         return result
@@ -15837,7 +15784,7 @@ class PurpleSubWorldRange:
         return result
 
 
-class Schema72:
+class Schema74:
     def __init__(
         self, data, sub_world_range, unknown0_s, unknown1_s, unknown2_s, unknown3_s
     ):
@@ -15857,7 +15804,7 @@ class Schema72:
         unknown1_s = from_list(from_int, obj.get("unknown1s"))
         unknown2_s = from_list(from_int, obj.get("unknown2s"))
         unknown3_s = from_list(from_int, obj.get("unknown3s"))
-        return Schema72(
+        return Schema74(
             data, sub_world_range, unknown0_s, unknown1_s, unknown2_s, unknown3_s
         )
 
@@ -15932,7 +15879,7 @@ class WorldV106_63_02PCBody:
         root_node_name = from_union([from_int, from_str], obj.get("root_node_name"))
         sead_handle0 = PurpleSeadHandle0.from_dict(obj.get("sead_handle0"))
         sead_handle1 = PurpleSeadHandle0.from_dict(obj.get("sead_handle1"))
-        sub_world_datas = from_list(Schema72.from_dict, obj.get("sub_world_datas"))
+        sub_world_datas = from_list(Schema74.from_dict, obj.get("sub_world_datas"))
         warp_name = from_union([from_int, from_str], obj.get("warp_name"))
         return WorldV106_63_02PCBody(
             anim_frame_names,
@@ -15978,7 +15925,7 @@ class WorldV106_63_02PCBody:
         result["sead_handle0"] = to_class(PurpleSeadHandle0, self.sead_handle0)
         result["sead_handle1"] = to_class(PurpleSeadHandle0, self.sead_handle1)
         result["sub_world_datas"] = from_list(
-            lambda x: to_class(Schema72, x), self.sub_world_datas
+            lambda x: to_class(Schema74, x), self.sub_world_datas
         )
         result["warp_name"] = from_union([from_int, from_str], self.warp_name)
         return result
@@ -16017,7 +15964,7 @@ class WorldV106_63_02_PC:
         return result
 
 
-class Schema73:
+class Schema75:
     def __init__(
         self,
         grid_id,
@@ -16040,7 +15987,7 @@ class Schema73:
         next_resource_of_entry = from_int(obj.get("next_resource_of_entry"))
         node_name = from_union([from_int, from_str], obj.get("node_name"))
         prev_resource_of_entry = from_int(obj.get("prev_resource_of_entry"))
-        return Schema73(
+        return Schema75(
             grid_id,
             next_entry_of_resource,
             next_resource_of_entry,
@@ -16080,7 +16027,7 @@ class FluffySeadHandle0:
         inv_diag = from_list(from_float, obj.get("inv_diag"))
         p_max = from_list(from_float, obj.get("p_max"))
         p_min = from_list(from_float, obj.get("p_min"))
-        sead_entries = from_list(Schema73.from_dict, obj.get("sead_entries"))
+        sead_entries = from_list(Schema75.from_dict, obj.get("sead_entries"))
         size = from_list(lambda x: x, obj.get("size"))
         return FluffySeadHandle0(
             first_free, free_count, grid, inv_diag, p_max, p_min, sead_entries, size
@@ -16095,7 +16042,7 @@ class FluffySeadHandle0:
         result["p_max"] = from_list(to_float, self.p_max)
         result["p_min"] = from_list(to_float, self.p_min)
         result["sead_entries"] = from_list(
-            lambda x: to_class(Schema73, x), self.sead_entries
+            lambda x: to_class(Schema75, x), self.sead_entries
         )
         result["size"] = from_list(lambda x: x, self.size)
         return result
@@ -16141,7 +16088,7 @@ class FluffySubWorldRange:
         return result
 
 
-class Schema74:
+class Schema76:
     def __init__(
         self, data, sub_world_range, unknown0_s, unknown1_s, unknown2_s, unknown3_s
     ):
@@ -16161,7 +16108,7 @@ class Schema74:
         unknown1_s = from_list(from_int, obj.get("unknown1s"))
         unknown2_s = from_list(from_int, obj.get("unknown2s"))
         unknown3_s = from_list(from_int, obj.get("unknown3s"))
-        return Schema74(
+        return Schema76(
             data, sub_world_range, unknown0_s, unknown1_s, unknown2_s, unknown3_s
         )
 
@@ -16231,7 +16178,7 @@ class WorldV1291_03_06PCBody:
         root_node_name = from_union([from_int, from_str], obj.get("root_node_name"))
         sead_handle0 = FluffySeadHandle0.from_dict(obj.get("sead_handle0"))
         sead_handle1 = FluffySeadHandle0.from_dict(obj.get("sead_handle1"))
-        sub_world_datas = from_list(Schema74.from_dict, obj.get("sub_world_datas"))
+        sub_world_datas = from_list(Schema76.from_dict, obj.get("sub_world_datas"))
         unk0_name = from_union([from_int, from_str], obj.get("unk0_name"))
         unk1_name = from_union([from_int, from_str], obj.get("unk1_name"))
         unk2_names = from_list(
@@ -16277,7 +16224,7 @@ class WorldV1291_03_06PCBody:
         result["sead_handle0"] = to_class(FluffySeadHandle0, self.sead_handle0)
         result["sead_handle1"] = to_class(FluffySeadHandle0, self.sead_handle1)
         result["sub_world_datas"] = from_list(
-            lambda x: to_class(Schema74, x), self.sub_world_datas
+            lambda x: to_class(Schema76, x), self.sub_world_datas
         )
         result["unk0_name"] = from_union([from_int, from_str], self.unk0_name)
         result["unk1_name"] = from_union([from_int, from_str], self.unk1_name)
@@ -16321,7 +16268,7 @@ class WorldV1291_03_06_PC:
         return result
 
 
-class Schema75:
+class Schema77:
     def __init__(self, index, placeholder0, placeholder1, placeholder2, unknown4, zero):
         self.index = index
         self.placeholder0 = placeholder0
@@ -16339,7 +16286,7 @@ class Schema75:
         placeholder2 = from_int(obj.get("placeholder2"))
         unknown4 = from_int(obj.get("unknown4"))
         zero = from_int(obj.get("zero"))
-        return Schema75(index, placeholder0, placeholder1, placeholder2, unknown4, zero)
+        return Schema77(index, placeholder0, placeholder1, placeholder2, unknown4, zero)
 
     def to_dict(self):
         result = {}
@@ -16417,9 +16364,9 @@ class WorldV1381_67_09PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("spline_graph_names")
         )
         unknown0 = from_list(lambda x: from_list(from_float, x), obj.get("unknown0"))
-        unknown2_s = from_list(Schema75.from_dict, obj.get("unknown2s"))
+        unknown2_s = from_list(Schema77.from_dict, obj.get("unknown2s"))
         unknown3_s = from_list(lambda x: from_list(from_float, x), obj.get("unknown3s"))
-        unknown5_s = from_list(Schema75.from_dict, obj.get("unknown5s"))
+        unknown5_s = from_list(Schema77.from_dict, obj.get("unknown5s"))
         unused10_s = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("unused10s")
         )
@@ -16483,13 +16430,13 @@ class WorldV1381_67_09PCBody:
         )
         result["unknown0"] = from_list(lambda x: from_list(to_float, x), self.unknown0)
         result["unknown2s"] = from_list(
-            lambda x: to_class(Schema75, x), self.unknown2_s
+            lambda x: to_class(Schema77, x), self.unknown2_s
         )
         result["unknown3s"] = from_list(
             lambda x: from_list(to_float, x), self.unknown3_s
         )
         result["unknown5s"] = from_list(
-            lambda x: to_class(Schema75, x), self.unknown5_s
+            lambda x: to_class(Schema77, x), self.unknown5_s
         )
         result["unused10s"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.unused10_s
@@ -17502,6 +17449,7 @@ class Platform(Enum):
     XBOX = "Xbox"
     XBOX360 = "Xbox360"
     XBOX_ONE = "XboxOne"
+    XBOX_SERIES = "XboxSeries"
 
 
 class BffClassHeader:

@@ -1,5 +1,5 @@
 from .resource import Resource
-from ..bff.io import Box, Sphere
+from ...common.types import *
 
 
 class Object(Resource):
