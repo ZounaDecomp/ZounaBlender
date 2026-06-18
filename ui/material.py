@@ -5,7 +5,7 @@ from ..common.util import get_material_from_context
 from ..zouna.generic.material import Material as GenericMaterial
 from ..zouna.v1_06_63_02_pc.material import MaterialV1_06_63_02_PC
 from ..zouna.bff.io import (
-    BffClassHeader,
+    BffResourceHeader,
     BffClass,
     Class,
     Platform,

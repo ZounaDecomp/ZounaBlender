@@ -1,18 +1,21 @@
 from ...common.util import safe_int
 from ...common.constants import BmTransp, PalFormat, BmFormat
 from ..bff.io import (
-    BitmapV106_63_02PCBody,
-    BitmapV106_63_02_PC,
-    AnimationV1291_03_06PCLinkHeader,
+    BitmapBodyV106_63_02PC,
+    ResourceObjectLinkHeaderV106_63_02PC,
+    TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV106_63_02PC,
 )
 from ..generic.bitmap import Bitmap
 
 
 class BitmapV1_06_63_02_PC:
     file_path: str
-    bitmap: BitmapV106_63_02_PC
+    bitmap: TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV106_63_02PC
 
-    def __init__(self, bitmap: BitmapV106_63_02_PC = None):
+    def __init__(
+        self,
+        bitmap: TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV106_63_02PC = None,
+    ):
         if bitmap is not None:
             self.bitmap = bitmap.bitmap_v1_06_63_02_pc
             self.file_path = bitmap.file_path
@@ -30,7 +33,7 @@ class BitmapV1_06_63_02_PC:
         mip_count = generic_bitmap.mip_count
         if mip_count > 0:
             flag += 32
-        body = BitmapV106_63_02PCBody(
+        body = BitmapBodyV106_63_02PC(
             flag=flag,
             format=generic_bitmap.format,
             format_copy=generic_bitmap.format,
@@ -43,11 +46,11 @@ class BitmapV1_06_63_02_PC:
             transp_format=generic_bitmap.transp_format,
         )
 
-        link_header = AnimationV1291_03_06PCLinkHeader(
+        link_header = ResourceObjectLinkHeaderV106_63_02PC(
             link_name=safe_int(generic_bitmap.file_name) or "", names=[], links=[]
         )
 
-        versioned_bitmap = BitmapV106_63_02_PC(
+        versioned_bitmap = TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV106_63_02PC(
             body=body,
             class_name="Bitmap_Z",
             link_header=link_header,
@@ -62,7 +65,7 @@ class BitmapV1_06_63_02_PC:
         return bmp
 
     def to_generic(self) -> Bitmap:
-        body: BitmapV106_63_02PCBody = self.bitmap.body
+        body: BitmapBodyV106_63_02PC = self.bitmap.body
         generic_bitmap = Bitmap()
 
         generic_bitmap.file_path = self.file_path

@@ -1,13 +1,21 @@
-from ..zouna.bff.io import ColBoxClass, BSphere, Seg, AmbitiousSchema, Cylindre, CunningSchema, Schema2
 from typing import TypeAlias
 
-Box: TypeAlias = ColBoxClass
-Sphere: TypeAlias = BSphere
-Segment: TypeAlias = Seg
-BoxCol: TypeAlias = AmbitiousSchema
-#Cylindre: TypeAlias = Cylindre
-CylindreCol: TypeAlias = CunningSchema
-SphereCol: TypeAlias = Schema2
+from ..zouna.bff.io import (
+    BffBox as _BffBox,
+    BoxCol as _BoxCol,
+    Cylindre,
+    CylindreCol3 as _CylindreCol,
+    Segment as _Segment,
+    Sphere as _Sphere,
+    SphereCol as _SphereCol,
+)
+
+Box: TypeAlias = _BffBox
+Sphere: TypeAlias = _Sphere
+Segment: TypeAlias = _Segment
+BoxCol: TypeAlias = _BoxCol
+CylindreCol: TypeAlias = _CylindreCol
+SphereCol: TypeAlias = _SphereCol
 
 __all__ = [
     "Box",

@@ -2,7 +2,7 @@ import inspect
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, Optional, Tuple
-from ..zouna.bff.io import BffClassHeader, BffClass, Class, Material, Mesh, Bitmap
+from ..zouna.bff.io import BffResourceHeader, BffClass, Class, Material, Mesh, Bitmap
 
 class_members = [
     "animation",
@@ -241,7 +241,7 @@ def make_handler(
 
             wrapped_resource = resource_wrapper_class(**all_wrapper_args)
 
-            header = BffClassHeader(platform=platform, version=version_str)
+            header = BffResourceHeader(platform=platform, version=version_str)
 
             class_members_args = {}
             for member in class_members:

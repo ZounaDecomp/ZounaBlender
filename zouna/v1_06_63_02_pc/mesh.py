@@ -1,30 +1,34 @@
 from collections import defaultdict
 from ..generic.mesh import Mesh, Vertex, Face
 from ..bff.io import (
-    MeshV106_63_02PCBody,
-    MeshV106_63_02_PC,
-    PrimInfoElement,
-    LayoutNoBlendElement,
-    MagentaSchema,
-    FriskySchema,
+    MeshBodyV106_63_02PC,
+    TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV106_63_02PC,
+    PrimitiveInfo,
+    LayoutNoBlend,
+    IndexBufferEXT,
+    VertexBufferEXT,
     Vertices,
-    PurpleMeshBuffers,
-    CameraZoneV106_63_02PCLinkHeader,
+    MeshBuffers,
+    ObjectLinkHeaderV106_63_02PC,
     AABBCol,
-    PurplePoints,
-    PurpleMorpher,
-    TypeEnum,
+    Points,
+    Morpher,
+    ObjectType,
 )
 from ..common.mesh import decode_vertex_buffer
 from ..common.resource import load_dependencies, save_dependencies
 from ...common.util import safe_int
 from ...common.types import *
 
+
 class MeshV1_06_63_02_PC:
     file_path: str
-    mesh: MeshV106_63_02_PC
+    mesh: TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV106_63_02PC
 
-    def __init__(self, mesh: MeshV106_63_02_PC = None):
+    def __init__(
+        self,
+        mesh: TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV106_63_02PC = None,
+    ):
         if mesh is not None:
             self.mesh = mesh.mesh_v1_06_63_02_pc
             self.file_path = mesh.file_path
@@ -33,7 +37,7 @@ class MeshV1_06_63_02_PC:
     @staticmethod
     def from_generic(generic_mesh: Mesh):
         """
-        Converts a generic Mesh object into the specific MeshV106_63_02_PC format structure.
+        Converts a generic Mesh object into the specific V1_06_63_02_PC format structure.
 
         It handles material-based vertex grouping, PrimInfo generation, LayoutNoBlend
         population, and material dependency saving.
@@ -47,8 +51,8 @@ class MeshV1_06_63_02_PC:
         final_uvs: list[list[float]] = []
         final_luvs: list[list[float]] = []
         final_all_tris: list[list[int]] = []
-        final_prim_infos: list[PrimInfoElement] = []
-        final_layout_no_blend: list[LayoutNoBlendElement] = []
+        final_prim_infos: list[PrimitiveInfo] = []
+        final_layout_no_blend: list[LayoutNoBlend] = []
 
         current_vertex_offset = 0
         index_buffer_offset_in_shorts = 0
@@ -104,7 +108,7 @@ class MeshV1_06_63_02_PC:
 
             material_vertex_count = len(material_vertices_data)
 
-            prim = PrimInfoElement(
+            prim = PrimitiveInfo(
                 face_count=len(faces),
                 index_buffer_offset_in_shorts=index_buffer_offset_in_shorts,
                 placeholder_pointers=[0, 0, 0],
@@ -128,7 +132,7 @@ class MeshV1_06_63_02_PC:
                     final_luvs.append(luv)
 
                 # TODO: Support other vertex types
-                element = LayoutNoBlendElement(
+                element = LayoutNoBlend(
                     luv=luv_out,
                     normal=norm,
                     normal_w=0,
@@ -147,7 +151,7 @@ class MeshV1_06_63_02_PC:
         ]
         material_names = save_dependencies(generic_mesh.file_path, dependencies_to_save)
 
-        index_buffer = [MagentaSchema(tris=final_all_tris)]
+        index_buffer = [IndexBufferEXT(tris=final_all_tris)]
         vertices_container = Vertices(
             layout_position=None,
             layout_position_uv=None,
@@ -156,13 +160,13 @@ class MeshV1_06_63_02_PC:
             layout4_blend=None,
             layout_unknown=None,
         )
-        vertex_buffers = [FriskySchema(vertices=vertices_container)]
-        mesh_buffers = PurpleMeshBuffers(
+        vertex_buffers = [VertexBufferEXT(vertices=vertices_container)]
+        mesh_buffers = MeshBuffers(
             index_buffers=index_buffer,
             prim_infos=final_prim_infos,
             vertex_buffers=vertex_buffers,
         )
-        link_header = CameraZoneV106_63_02PCLinkHeader(
+        link_header = ObjectLinkHeaderV106_63_02PC(
             b_box=generic_mesh.b_box,
             b_sphere=generic_mesh.b_sphere,
             data_name=generic_mesh.data_name,
@@ -170,9 +174,9 @@ class MeshV1_06_63_02_PC:
             flags=generic_mesh.flags,
             link_name=safe_int(generic_mesh.name),
             names=material_names,  # Use saved keys
-            type=TypeEnum.MESH,
+            type=ObjectType.MESH,
         )
-        body = MeshV106_63_02PCBody(
+        body = MeshBodyV106_63_02PC(
             aabb_col=AABBCol(
                 collision_aabb_nodes=[], collision_faces=[]
             ),  # TODO: Implement
@@ -184,8 +188,8 @@ class MeshV1_06_63_02_PC:
             unk6=None,  # TODO: should be saved as null
             unk_uints=[i for i in range(len(final_prim_infos))],
             unused4_s=[],
-            points=PurplePoints(
-                morpher=PurpleMorpher(morph_target_descs=[], morpher_relateds=[]),
+            points=Points(
+                morpher=Morpher(morph_target_descs=[], morpher_relateds=[]),
                 positions=[],
                 tb_vtxs=[],
             ),
@@ -201,12 +205,14 @@ class MeshV1_06_63_02_PC:
             uv_count=0,
             uvs=[],
         )
-        mesh_pc_structure = MeshV106_63_02_PC(
-            body=body,
-            class_name="Mesh_Z",
-            link_header=link_header,
-            link_name=safe_int(generic_mesh.name),
-            name=safe_int(generic_mesh.file_name),
+        mesh_pc_structure = (
+            TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV106_63_02PC(
+                body=body,
+                class_name="Mesh_Z",
+                link_header=link_header,
+                link_name=safe_int(generic_mesh.name),
+                name=safe_int(generic_mesh.file_name),
+            )
         )
         mesh_pc = MeshV1_06_63_02_PC()
         mesh_pc.file_path = generic_mesh.file_path
@@ -214,7 +220,7 @@ class MeshV1_06_63_02_PC:
         return mesh_pc
 
     def to_generic(self) -> Mesh:
-        body: MeshV106_63_02PCBody = self.mesh.body
+        body: MeshBodyV106_63_02PC = self.mesh.body
         generic_mesh = Mesh()
 
         generic_materials = load_dependencies(self.file_path, list(body.material_names))

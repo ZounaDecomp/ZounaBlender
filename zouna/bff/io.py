@@ -36,22 +36,13 @@ def from_str(x):
     return x
 
 
-import traceback
-
-
 def from_union(fs, x):
-    errors = []
     for f in fs:
         try:
             return f(x)
-        except Exception as e:
-            tb = traceback.format_exc()
-            errors.append(
-                f"Function {f.__name__ if hasattr(f, '__name__') else str(f)} failed:\n{tb}"
-            )
-    raise ValueError(
-        f"All from_union parsers failed for input: {repr(x)}\n\n" + "\n".join(errors)
-    )
+        except:
+            pass
+    assert False
 
 
 def from_none(x):
@@ -64,7 +55,12 @@ def from_dict(f, x):
     return {k: f(v) for (k, v) in x.items()}
 
 
-class InterpolationType(Enum):
+def from_bool(x):
+    assert isinstance(x, bool)
+    return x
+
+
+class KeyframerInterpolationType(Enum):
     LINEAR = "Linear"
     SMOOTH = "Smooth"
     SQUARE = "Square"
@@ -73,7 +69,7 @@ class InterpolationType(Enum):
     UNKNOWN8 = "Unknown8"
 
 
-class KeyframerFloatComp0Keyframe:
+class KeyTgtTplForInt16:
     def __init__(self, tangent_in, tangent_out, time, value):
         self.tangent_in = tangent_in
         self.tangent_out = tangent_out
@@ -87,7 +83,7 @@ class KeyframerFloatComp0Keyframe:
         tangent_out = from_int(obj.get("tangent_out"))
         time = from_float(obj.get("time"))
         value = from_int(obj.get("value"))
-        return KeyframerFloatComp0Keyframe(tangent_in, tangent_out, time, value)
+        return KeyTgtTplForInt16(tangent_in, tangent_out, time, value)
 
     def to_dict(self):
         result = {}
@@ -98,7 +94,7 @@ class KeyframerFloatComp0Keyframe:
         return result
 
 
-class KeyframerFloatComp0:
+class KeyframerTplForKeyTgtTplForInt16:
     def __init__(self, interpolation_type, keyframes):
         self.interpolation_type = interpolation_type
         self.keyframes = keyframes
@@ -106,24 +102,22 @@ class KeyframerFloatComp0:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        interpolation_type = InterpolationType(obj.get("interpolation_type"))
-        keyframes = from_list(
-            KeyframerFloatComp0Keyframe.from_dict, obj.get("keyframes")
-        )
-        return KeyframerFloatComp0(interpolation_type, keyframes)
+        interpolation_type = KeyframerInterpolationType(obj.get("interpolation_type"))
+        keyframes = from_list(KeyTgtTplForInt16.from_dict, obj.get("keyframes"))
+        return KeyframerTplForKeyTgtTplForInt16(interpolation_type, keyframes)
 
     def to_dict(self):
         result = {}
         result["interpolation_type"] = to_enum(
-            InterpolationType, self.interpolation_type
+            KeyframerInterpolationType, self.interpolation_type
         )
         result["keyframes"] = from_list(
-            lambda x: to_class(KeyframerFloatComp0Keyframe, x), self.keyframes
+            lambda x: to_class(KeyTgtTplForInt16, x), self.keyframes
         )
         return result
 
 
-class KeyframerVec3Comp0Keyframe:
+class KeyTgtTplForArraySize3_OfFloat:
     def __init__(self, tangent_in, tangent_out, time, value):
         self.tangent_in = tangent_in
         self.tangent_out = tangent_out
@@ -137,7 +131,7 @@ class KeyframerVec3Comp0Keyframe:
         tangent_out = from_list(from_float, obj.get("tangent_out"))
         time = from_float(obj.get("time"))
         value = from_list(from_float, obj.get("value"))
-        return KeyframerVec3Comp0Keyframe(tangent_in, tangent_out, time, value)
+        return KeyTgtTplForArraySize3_OfFloat(tangent_in, tangent_out, time, value)
 
     def to_dict(self):
         result = {}
@@ -148,7 +142,7 @@ class KeyframerVec3Comp0Keyframe:
         return result
 
 
-class KeyframerVec3Comp0:
+class KeyframerTplForKeyTgtTplForArraySize3_OfFloat:
     def __init__(self, interpolation_type, keyframes):
         self.interpolation_type = interpolation_type
         self.keyframes = keyframes
@@ -156,19 +150,21 @@ class KeyframerVec3Comp0:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        interpolation_type = InterpolationType(obj.get("interpolation_type"))
+        interpolation_type = KeyframerInterpolationType(obj.get("interpolation_type"))
         keyframes = from_list(
-            KeyframerVec3Comp0Keyframe.from_dict, obj.get("keyframes")
+            KeyTgtTplForArraySize3_OfFloat.from_dict, obj.get("keyframes")
         )
-        return KeyframerVec3Comp0(interpolation_type, keyframes)
+        return KeyframerTplForKeyTgtTplForArraySize3_OfFloat(
+            interpolation_type, keyframes
+        )
 
     def to_dict(self):
         result = {}
         result["interpolation_type"] = to_enum(
-            InterpolationType, self.interpolation_type
+            KeyframerInterpolationType, self.interpolation_type
         )
         result["keyframes"] = from_list(
-            lambda x: to_class(KeyframerVec3Comp0Keyframe, x), self.keyframes
+            lambda x: to_class(KeyTgtTplForArraySize3_OfFloat, x), self.keyframes
         )
         return result
 
@@ -191,19 +187,19 @@ class AnimationMaterial:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        keyframer_float_comp0 = KeyframerFloatComp0.from_dict(
+        keyframer_float_comp0 = KeyframerTplForKeyTgtTplForInt16.from_dict(
             obj.get("keyframer_float_comp0")
         )
-        keyframer_float_comp1 = KeyframerFloatComp0.from_dict(
+        keyframer_float_comp1 = KeyframerTplForKeyTgtTplForInt16.from_dict(
             obj.get("keyframer_float_comp1")
         )
-        keyframer_float_comp2 = KeyframerFloatComp0.from_dict(
+        keyframer_float_comp2 = KeyframerTplForKeyTgtTplForInt16.from_dict(
             obj.get("keyframer_float_comp2")
         )
-        keyframer_vec3_comp0 = KeyframerVec3Comp0.from_dict(
+        keyframer_vec3_comp0 = KeyframerTplForKeyTgtTplForArraySize3_OfFloat.from_dict(
             obj.get("keyframer_vec3_comp0")
         )
-        keyframer_vec3_comp1 = KeyframerVec3Comp0.from_dict(
+        keyframer_vec3_comp1 = KeyframerTplForKeyTgtTplForArraySize3_OfFloat.from_dict(
             obj.get("keyframer_vec3_comp1")
         )
         return AnimationMaterial(
@@ -217,24 +213,24 @@ class AnimationMaterial:
     def to_dict(self):
         result = {}
         result["keyframer_float_comp0"] = to_class(
-            KeyframerFloatComp0, self.keyframer_float_comp0
+            KeyframerTplForKeyTgtTplForInt16, self.keyframer_float_comp0
         )
         result["keyframer_float_comp1"] = to_class(
-            KeyframerFloatComp0, self.keyframer_float_comp1
+            KeyframerTplForKeyTgtTplForInt16, self.keyframer_float_comp1
         )
         result["keyframer_float_comp2"] = to_class(
-            KeyframerFloatComp0, self.keyframer_float_comp2
+            KeyframerTplForKeyTgtTplForInt16, self.keyframer_float_comp2
         )
         result["keyframer_vec3_comp0"] = to_class(
-            KeyframerVec3Comp0, self.keyframer_vec3_comp0
+            KeyframerTplForKeyTgtTplForArraySize3_OfFloat, self.keyframer_vec3_comp0
         )
         result["keyframer_vec3_comp1"] = to_class(
-            KeyframerVec3Comp0, self.keyframer_vec3_comp1
+            KeyframerTplForKeyTgtTplForArraySize3_OfFloat, self.keyframer_vec3_comp1
         )
         return result
 
 
-class AnimationMaterialModifierElement:
+class AnimationMaterialModifier:
     def __init__(
         self,
         flag,
@@ -303,7 +299,7 @@ class AnimationMaterialModifierElement:
         material_link_name = from_union(
             [from_int, from_str], obj.get("material_link_name")
         )
-        return AnimationMaterialModifierElement(
+        return AnimationMaterialModifier(
             flag,
             keyframer_float_comp0_frame_count,
             keyframer_float_comp0_start_frame,
@@ -366,7 +362,7 @@ class AnimationMesh:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        keyframer_float_comp = KeyframerFloatComp0.from_dict(
+        keyframer_float_comp = KeyframerTplForKeyTgtTplForInt16.from_dict(
             obj.get("keyframer_float_comp")
         )
         return AnimationMesh(keyframer_float_comp)
@@ -374,12 +370,12 @@ class AnimationMesh:
     def to_dict(self):
         result = {}
         result["keyframer_float_comp"] = to_class(
-            KeyframerFloatComp0, self.keyframer_float_comp
+            KeyframerTplForKeyTgtTplForInt16, self.keyframer_float_comp
         )
         return result
 
 
-class AnimationMeshModifierElement:
+class AnimationMeshModifier:
     def __init__(
         self,
         flag,
@@ -406,7 +402,7 @@ class AnimationMeshModifierElement:
         )
         mesh_id = from_int(obj.get("mesh_id"))
         mesh_link_name = from_union([from_int, from_str], obj.get("mesh_link_name"))
-        return AnimationMeshModifierElement(
+        return AnimationMeshModifier(
             flag,
             keyframer_float_comp_frame_count,
             keyframer_float_comp_start_frame,
@@ -435,7 +431,7 @@ class AnimationMorph:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        keyframer_float_comp = KeyframerFloatComp0.from_dict(
+        keyframer_float_comp = KeyframerTplForKeyTgtTplForInt16.from_dict(
             obj.get("keyframer_float_comp")
         )
         return AnimationMorph(keyframer_float_comp)
@@ -443,12 +439,12 @@ class AnimationMorph:
     def to_dict(self):
         result = {}
         result["keyframer_float_comp"] = to_class(
-            KeyframerFloatComp0, self.keyframer_float_comp
+            KeyframerTplForKeyTgtTplForInt16, self.keyframer_float_comp
         )
         return result
 
 
-class AnimationMorphModifierElement:
+class AnimationMorphModifier:
     def __init__(
         self,
         flag,
@@ -475,7 +471,7 @@ class AnimationMorphModifierElement:
         )
         mesh_id = from_int(obj.get("mesh_id"))
         mesh_link_name = from_union([from_int, from_str], obj.get("mesh_link_name"))
-        return AnimationMorphModifierElement(
+        return AnimationMorphModifier(
             flag,
             keyframer_float_comp_frame_count,
             keyframer_float_comp_start_frame,
@@ -497,7 +493,7 @@ class AnimationMorphModifierElement:
         return result
 
 
-class KeyframerBezierRot:
+class KeyframerNoFlagsTplForKeyTgtTplForArraySize3_OfFloat:
     def __init__(self, keyframes):
         self.keyframes = keyframes
 
@@ -505,19 +501,19 @@ class KeyframerBezierRot:
     def from_dict(obj):
         assert isinstance(obj, dict)
         keyframes = from_list(
-            KeyframerVec3Comp0Keyframe.from_dict, obj.get("keyframes")
+            KeyTgtTplForArraySize3_OfFloat.from_dict, obj.get("keyframes")
         )
-        return KeyframerBezierRot(keyframes)
+        return KeyframerNoFlagsTplForKeyTgtTplForArraySize3_OfFloat(keyframes)
 
     def to_dict(self):
         result = {}
         result["keyframes"] = from_list(
-            lambda x: to_class(KeyframerVec3Comp0Keyframe, x), self.keyframes
+            lambda x: to_class(KeyTgtTplForArraySize3_OfFloat, x), self.keyframes
         )
         return result
 
 
-class ValueElement:
+class Message:
     def __init__(self, c, message_class, message_name, parameter, reciever_name):
         self.c = c
         self.message_class = message_class
@@ -533,7 +529,7 @@ class ValueElement:
         message_name = from_union([from_int, from_str], obj.get("message_name"))
         parameter = from_float(obj.get("parameter"))
         reciever_name = from_union([from_int, from_str], obj.get("reciever_name"))
-        return ValueElement(c, message_class, message_name, parameter, reciever_name)
+        return Message(c, message_class, message_name, parameter, reciever_name)
 
     def to_dict(self):
         result = {}
@@ -545,7 +541,7 @@ class ValueElement:
         return result
 
 
-class Unknown30Keyframe:
+class KeyLinearTplForArrayOfMessage:
     def __init__(self, time, value):
         self.time = time
         self.value = value
@@ -554,35 +550,37 @@ class Unknown30Keyframe:
     def from_dict(obj):
         assert isinstance(obj, dict)
         time = from_float(obj.get("time"))
-        value = from_list(ValueElement.from_dict, obj.get("value"))
-        return Unknown30Keyframe(time, value)
+        value = from_list(Message.from_dict, obj.get("value"))
+        return KeyLinearTplForArrayOfMessage(time, value)
 
     def to_dict(self):
         result = {}
         result["time"] = to_float(self.time)
-        result["value"] = from_list(lambda x: to_class(ValueElement, x), self.value)
+        result["value"] = from_list(lambda x: to_class(Message, x), self.value)
         return result
 
 
-class KeyframerMessage:
+class KeyframerNoFlagsTplForKeyLinearTplForArrayOfMessage:
     def __init__(self, keyframes):
         self.keyframes = keyframes
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        keyframes = from_list(Unknown30Keyframe.from_dict, obj.get("keyframes"))
-        return KeyframerMessage(keyframes)
+        keyframes = from_list(
+            KeyLinearTplForArrayOfMessage.from_dict, obj.get("keyframes")
+        )
+        return KeyframerNoFlagsTplForKeyLinearTplForArrayOfMessage(keyframes)
 
     def to_dict(self):
         result = {}
         result["keyframes"] = from_list(
-            lambda x: to_class(Unknown30Keyframe, x), self.keyframes
+            lambda x: to_class(KeyLinearTplForArrayOfMessage, x), self.keyframes
         )
         return result
 
 
-class KeyframerRotKeyframe:
+class KeyLinearTplForArraySize4_OfFloat:
     def __init__(self, time, value):
         self.time = time
         self.value = value
@@ -592,7 +590,7 @@ class KeyframerRotKeyframe:
         assert isinstance(obj, dict)
         time = from_float(obj.get("time"))
         value = from_list(from_float, obj.get("value"))
-        return KeyframerRotKeyframe(time, value)
+        return KeyLinearTplForArraySize4_OfFloat(time, value)
 
     def to_dict(self):
         result = {}
@@ -601,20 +599,22 @@ class KeyframerRotKeyframe:
         return result
 
 
-class KeyframerRot:
+class KeyframerNoFlagsTplForKeyLinearTplForArraySize4_OfFloat:
     def __init__(self, keyframes):
         self.keyframes = keyframes
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        keyframes = from_list(KeyframerRotKeyframe.from_dict, obj.get("keyframes"))
-        return KeyframerRot(keyframes)
+        keyframes = from_list(
+            KeyLinearTplForArraySize4_OfFloat.from_dict, obj.get("keyframes")
+        )
+        return KeyframerNoFlagsTplForKeyLinearTplForArraySize4_OfFloat(keyframes)
 
     def to_dict(self):
         result = {}
         result["keyframes"] = from_list(
-            lambda x: to_class(KeyframerRotKeyframe, x), self.keyframes
+            lambda x: to_class(KeyLinearTplForArraySize4_OfFloat, x), self.keyframes
         )
         return result
 
@@ -639,13 +639,25 @@ class AnimationNode:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        keyframer_bezier_rot = KeyframerBezierRot.from_dict(
-            obj.get("keyframer_bezier_rot")
+        keyframer_bezier_rot = (
+            KeyframerNoFlagsTplForKeyTgtTplForArraySize3_OfFloat.from_dict(
+                obj.get("keyframer_bezier_rot")
+            )
         )
-        keyframer_message = KeyframerMessage.from_dict(obj.get("keyframer_message"))
-        keyframer_rot = KeyframerRot.from_dict(obj.get("keyframer_rot"))
-        keyframer_scale = KeyframerVec3Comp0.from_dict(obj.get("keyframer_scale"))
-        keyframer_translation = KeyframerVec3Comp0.from_dict(
+        keyframer_message = (
+            KeyframerNoFlagsTplForKeyLinearTplForArrayOfMessage.from_dict(
+                obj.get("keyframer_message")
+            )
+        )
+        keyframer_rot = (
+            KeyframerNoFlagsTplForKeyLinearTplForArraySize4_OfFloat.from_dict(
+                obj.get("keyframer_rot")
+            )
+        )
+        keyframer_scale = KeyframerTplForKeyTgtTplForArraySize3_OfFloat.from_dict(
+            obj.get("keyframer_scale")
+        )
+        keyframer_translation = KeyframerTplForKeyTgtTplForArraySize3_OfFloat.from_dict(
             obj.get("keyframer_translation")
         )
         unknown = from_int(obj.get("unknown"))
@@ -661,19 +673,26 @@ class AnimationNode:
     def to_dict(self):
         result = {}
         result["keyframer_bezier_rot"] = to_class(
-            KeyframerBezierRot, self.keyframer_bezier_rot
+            KeyframerNoFlagsTplForKeyTgtTplForArraySize3_OfFloat,
+            self.keyframer_bezier_rot,
         )
-        result["keyframer_message"] = to_class(KeyframerMessage, self.keyframer_message)
-        result["keyframer_rot"] = to_class(KeyframerRot, self.keyframer_rot)
-        result["keyframer_scale"] = to_class(KeyframerVec3Comp0, self.keyframer_scale)
+        result["keyframer_message"] = to_class(
+            KeyframerNoFlagsTplForKeyLinearTplForArrayOfMessage, self.keyframer_message
+        )
+        result["keyframer_rot"] = to_class(
+            KeyframerNoFlagsTplForKeyLinearTplForArraySize4_OfFloat, self.keyframer_rot
+        )
+        result["keyframer_scale"] = to_class(
+            KeyframerTplForKeyTgtTplForArraySize3_OfFloat, self.keyframer_scale
+        )
         result["keyframer_translation"] = to_class(
-            KeyframerVec3Comp0, self.keyframer_translation
+            KeyframerTplForKeyTgtTplForArraySize3_OfFloat, self.keyframer_translation
         )
         result["unknown"] = from_int(self.unknown)
         return result
 
 
-class AnimationNodeModifierElement:
+class AnimationNodeModifier:
     def __init__(
         self,
         bezier_frame_count,
@@ -720,7 +739,7 @@ class AnimationNodeModifierElement:
         scale_start_frame = from_int(obj.get("scale_start_frame"))
         translation_frame_count = from_int(obj.get("translation_frame_count"))
         translation_start_frame = from_int(obj.get("translation_start_frame"))
-        return AnimationNodeModifierElement(
+        return AnimationNodeModifier(
             bezier_frame_count,
             bezier_start_frame,
             bone_id,
@@ -754,7 +773,7 @@ class AnimationNodeModifierElement:
         return result
 
 
-class AnimationV1291_03_06PCBody:
+class AnimationBodyV1291_03_06PC:
     def __init__(
         self,
         animation_material,
@@ -786,26 +805,24 @@ class AnimationV1291_03_06PCBody:
         assert isinstance(obj, dict)
         animation_material = AnimationMaterial.from_dict(obj.get("animation_material"))
         animation_material_modifiers = from_list(
-            AnimationMaterialModifierElement.from_dict,
-            obj.get("animation_material_modifiers"),
+            AnimationMaterialModifier.from_dict, obj.get("animation_material_modifiers")
         )
         animation_mesh = AnimationMesh.from_dict(obj.get("animation_mesh"))
         animation_mesh_modifiers = from_list(
-            AnimationMeshModifierElement.from_dict, obj.get("animation_mesh_modifiers")
+            AnimationMeshModifier.from_dict, obj.get("animation_mesh_modifiers")
         )
         animation_morph = AnimationMorph.from_dict(obj.get("animation_morph"))
         animation_morph_modifiers = from_list(
-            AnimationMorphModifierElement.from_dict,
-            obj.get("animation_morph_modifiers"),
+            AnimationMorphModifier.from_dict, obj.get("animation_morph_modifiers")
         )
         animation_node = AnimationNode.from_dict(obj.get("animation_node"))
         animation_node_modifiers = from_list(
-            AnimationNodeModifierElement.from_dict, obj.get("animation_node_modifiers")
+            AnimationNodeModifier.from_dict, obj.get("animation_node_modifiers")
         )
         blending = from_float(obj.get("blending"))
         duration = from_float(obj.get("duration"))
         unknown = from_int(obj.get("unknown"))
-        return AnimationV1291_03_06PCBody(
+        return AnimationBodyV1291_03_06PC(
             animation_material,
             animation_material_modifiers,
             animation_mesh,
@@ -825,23 +842,21 @@ class AnimationV1291_03_06PCBody:
             AnimationMaterial, self.animation_material
         )
         result["animation_material_modifiers"] = from_list(
-            lambda x: to_class(AnimationMaterialModifierElement, x),
+            lambda x: to_class(AnimationMaterialModifier, x),
             self.animation_material_modifiers,
         )
         result["animation_mesh"] = to_class(AnimationMesh, self.animation_mesh)
         result["animation_mesh_modifiers"] = from_list(
-            lambda x: to_class(AnimationMeshModifierElement, x),
-            self.animation_mesh_modifiers,
+            lambda x: to_class(AnimationMeshModifier, x), self.animation_mesh_modifiers
         )
         result["animation_morph"] = to_class(AnimationMorph, self.animation_morph)
         result["animation_morph_modifiers"] = from_list(
-            lambda x: to_class(AnimationMorphModifierElement, x),
+            lambda x: to_class(AnimationMorphModifier, x),
             self.animation_morph_modifiers,
         )
         result["animation_node"] = to_class(AnimationNode, self.animation_node)
         result["animation_node_modifiers"] = from_list(
-            lambda x: to_class(AnimationNodeModifierElement, x),
-            self.animation_node_modifiers,
+            lambda x: to_class(AnimationNodeModifier, x), self.animation_node_modifiers
         )
         result["blending"] = to_float(self.blending)
         result["duration"] = to_float(self.duration)
@@ -849,7 +864,7 @@ class AnimationV1291_03_06PCBody:
         return result
 
 
-class AnimationV1291_03_06PCLinkHeader:
+class ResourceObjectLinkHeaderV106_63_02PC:
     def __init__(self, link_name, links, names):
         self.link_name = link_name
         self.links = links
@@ -863,7 +878,7 @@ class AnimationV1291_03_06PCLinkHeader:
         names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("names")
         )
-        return AnimationV1291_03_06PCLinkHeader(link_name, links, names)
+        return ResourceObjectLinkHeaderV106_63_02PC(link_name, links, names)
 
     def to_dict(self):
         result = {}
@@ -875,7 +890,7 @@ class AnimationV1291_03_06PCLinkHeader:
         return result
 
 
-class AnimationV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndAnimationBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -886,29 +901,33 @@ class AnimationV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = AnimationV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = AnimationBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return AnimationV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndAnimationBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(AnimationV1291_03_06PCBody, self.body)
+        result["body"] = to_class(AnimationBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class AnimationV1381_67_09PCBody:
+class AnimationBodyV1381_67_09PC:
     def __init__(
         self,
         animation_material,
@@ -940,26 +959,24 @@ class AnimationV1381_67_09PCBody:
         assert isinstance(obj, dict)
         animation_material = AnimationMaterial.from_dict(obj.get("animation_material"))
         animation_material_modifiers = from_list(
-            AnimationMaterialModifierElement.from_dict,
-            obj.get("animation_material_modifiers"),
+            AnimationMaterialModifier.from_dict, obj.get("animation_material_modifiers")
         )
         animation_mesh = AnimationMesh.from_dict(obj.get("animation_mesh"))
         animation_mesh_modifiers = from_list(
-            AnimationMeshModifierElement.from_dict, obj.get("animation_mesh_modifiers")
+            AnimationMeshModifier.from_dict, obj.get("animation_mesh_modifiers")
         )
         animation_morph = AnimationMorph.from_dict(obj.get("animation_morph"))
         animation_morph_modifiers = from_list(
-            AnimationMorphModifierElement.from_dict,
-            obj.get("animation_morph_modifiers"),
+            AnimationMorphModifier.from_dict, obj.get("animation_morph_modifiers")
         )
         animation_node = AnimationNode.from_dict(obj.get("animation_node"))
         animation_node_modifiers = from_list(
-            AnimationNodeModifierElement.from_dict, obj.get("animation_node_modifiers")
+            AnimationNodeModifier.from_dict, obj.get("animation_node_modifiers")
         )
         blending = from_float(obj.get("blending"))
         duration = from_float(obj.get("duration"))
         unknown = from_int(obj.get("unknown"))
-        return AnimationV1381_67_09PCBody(
+        return AnimationBodyV1381_67_09PC(
             animation_material,
             animation_material_modifiers,
             animation_mesh,
@@ -979,23 +996,21 @@ class AnimationV1381_67_09PCBody:
             AnimationMaterial, self.animation_material
         )
         result["animation_material_modifiers"] = from_list(
-            lambda x: to_class(AnimationMaterialModifierElement, x),
+            lambda x: to_class(AnimationMaterialModifier, x),
             self.animation_material_modifiers,
         )
         result["animation_mesh"] = to_class(AnimationMesh, self.animation_mesh)
         result["animation_mesh_modifiers"] = from_list(
-            lambda x: to_class(AnimationMeshModifierElement, x),
-            self.animation_mesh_modifiers,
+            lambda x: to_class(AnimationMeshModifier, x), self.animation_mesh_modifiers
         )
         result["animation_morph"] = to_class(AnimationMorph, self.animation_morph)
         result["animation_morph_modifiers"] = from_list(
-            lambda x: to_class(AnimationMorphModifierElement, x),
+            lambda x: to_class(AnimationMorphModifier, x),
             self.animation_morph_modifiers,
         )
         result["animation_node"] = to_class(AnimationNode, self.animation_node)
         result["animation_node_modifiers"] = from_list(
-            lambda x: to_class(AnimationNodeModifierElement, x),
-            self.animation_node_modifiers,
+            lambda x: to_class(AnimationNodeModifier, x), self.animation_node_modifiers
         )
         result["blending"] = to_float(self.blending)
         result["duration"] = to_float(self.duration)
@@ -1003,7 +1018,7 @@ class AnimationV1381_67_09PCBody:
         return result
 
 
-class AnimationV1381_67_09PCLinkHeader:
+class ResourceObjectLinkHeaderV1381_67_09PC:
     def __init__(self, link_name):
         self.link_name = link_name
 
@@ -1011,7 +1026,7 @@ class AnimationV1381_67_09PCLinkHeader:
     def from_dict(obj):
         assert isinstance(obj, dict)
         link_name = from_union([from_int, from_str], obj.get("link_name"))
-        return AnimationV1381_67_09PCLinkHeader(link_name)
+        return ResourceObjectLinkHeaderV1381_67_09PC(link_name)
 
     def to_dict(self):
         result = {}
@@ -1019,7 +1034,7 @@ class AnimationV1381_67_09PCLinkHeader:
         return result
 
 
-class AnimationV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndAnimationBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -1030,23 +1045,27 @@ class AnimationV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = AnimationV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = AnimationBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return AnimationV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndAnimationBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(AnimationV1381_67_09PCBody, self.body)
+        result["body"] = to_class(AnimationBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -1061,11 +1080,17 @@ class Animation:
     def from_dict(obj):
         assert isinstance(obj, dict)
         animation_v1_291_03_06_pc = from_union(
-            [AnimationV1291_03_06_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndAnimationBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
             obj.get("AnimationV1_291_03_06PC"),
         )
         animation_v1_381_67_09_pc = from_union(
-            [AnimationV1381_67_09_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndAnimationBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
             obj.get("AnimationV1_381_67_09PC"),
         )
         return Animation(animation_v1_291_03_06_pc, animation_v1_381_67_09_pc)
@@ -1074,52 +1099,67 @@ class Animation:
         result = {}
         if self.animation_v1_291_03_06_pc is not None:
             result["AnimationV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(AnimationV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndAnimationBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.animation_v1_291_03_06_pc,
             )
         if self.animation_v1_381_67_09_pc is not None:
             result["AnimationV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(AnimationV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndAnimationBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.animation_v1_381_67_09_pc,
             )
         return result
 
 
-class AltitudeElement:
-    def __init__(self, value):
-        self.value = value
+class AltitudePack:
+    def __init__(self, even, odd):
+        self.even = even
+        self.odd = odd
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return AltitudeElement(value)
+        even = from_int(obj.get("even"))
+        odd = from_int(obj.get("odd"))
+        return AltitudePack(even, odd)
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["even"] = from_int(self.even)
+        result["odd"] = from_int(self.odd)
         return result
 
 
-class AltitudesPackedElement:
+class AltitudesPacked:
     def __init__(self, altitudes):
         self.altitudes = altitudes
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        altitudes = from_list(AltitudeElement.from_dict, obj.get("altitudes"))
-        return AltitudesPackedElement(altitudes)
+        altitudes = from_list(AltitudePack.from_dict, obj.get("altitudes"))
+        return AltitudesPacked(altitudes)
 
     def to_dict(self):
         result = {}
         result["altitudes"] = from_list(
-            lambda x: to_class(AltitudeElement, x), self.altitudes
+            lambda x: to_class(AltitudePack, x), self.altitudes
         )
         return result
 
 
-class AltitudesUnpackedElement:
+class AltitudesUnpacked:
     def __init__(self, altitudes):
         self.altitudes = altitudes
 
@@ -1127,7 +1167,7 @@ class AltitudesUnpackedElement:
     def from_dict(obj):
         assert isinstance(obj, dict)
         altitudes = from_list(from_int, obj.get("altitudes"))
-        return AltitudesUnpackedElement(altitudes)
+        return AltitudesUnpacked(altitudes)
 
     def to_dict(self):
         result = {}
@@ -1135,23 +1175,26 @@ class AltitudesUnpackedElement:
         return result
 
 
-class LookupElement:
-    def __init__(self, value):
-        self.value = value
+class LookupDescription:
+    def __init__(self, altitudes_index, horizon):
+        self.altitudes_index = altitudes_index
+        self.horizon = horizon
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return LookupElement(value)
+        altitudes_index = from_int(obj.get("altitudes_index"))
+        horizon = from_int(obj.get("horizon"))
+        return LookupDescription(altitudes_index, horizon)
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["altitudes_index"] = from_int(self.altitudes_index)
+        result["horizon"] = from_int(self.horizon)
         return result
 
 
-class Data:
+class Internal:
     def __init__(
         self,
         altitudes_packed,
@@ -1180,20 +1223,20 @@ class Data:
     def from_dict(obj):
         assert isinstance(obj, dict)
         altitudes_packed = from_list(
-            AltitudesPackedElement.from_dict, obj.get("altitudes_packed")
+            AltitudesPacked.from_dict, obj.get("altitudes_packed")
         )
         altitudes_packed_size = from_int(obj.get("altitudes_packed_size"))
         altitudes_total_size = from_int(obj.get("altitudes_total_size"))
         altitudes_unpacked = from_list(
-            AltitudesUnpackedElement.from_dict, obj.get("altitudes_unpacked")
+            AltitudesUnpacked.from_dict, obj.get("altitudes_unpacked")
         )
         denominator = from_float(obj.get("denominator"))
         height = from_int(obj.get("height"))
-        lookup = from_list(LookupElement.from_dict, obj.get("lookup"))
+        lookup = from_list(LookupDescription.from_dict, obj.get("lookup"))
         negative_one = from_int(obj.get("negative_one"))
         two = from_float(obj.get("two"))
         width = from_int(obj.get("width"))
-        return Data(
+        return Internal(
             altitudes_packed,
             altitudes_packed_size,
             altitudes_total_size,
@@ -1209,23 +1252,25 @@ class Data:
     def to_dict(self):
         result = {}
         result["altitudes_packed"] = from_list(
-            lambda x: to_class(AltitudesPackedElement, x), self.altitudes_packed
+            lambda x: to_class(AltitudesPacked, x), self.altitudes_packed
         )
         result["altitudes_packed_size"] = from_int(self.altitudes_packed_size)
         result["altitudes_total_size"] = from_int(self.altitudes_total_size)
         result["altitudes_unpacked"] = from_list(
-            lambda x: to_class(AltitudesUnpackedElement, x), self.altitudes_unpacked
+            lambda x: to_class(AltitudesUnpacked, x), self.altitudes_unpacked
         )
         result["denominator"] = to_float(self.denominator)
         result["height"] = from_int(self.height)
-        result["lookup"] = from_list(lambda x: to_class(LookupElement, x), self.lookup)
+        result["lookup"] = from_list(
+            lambda x: to_class(LookupDescription, x), self.lookup
+        )
         result["negative_one"] = from_int(self.negative_one)
         result["two"] = to_float(self.two)
         result["width"] = from_int(self.width)
         return result
 
 
-class BinaryV1381_67_09PCBody:
+class BinaryBodyV1381_67_09PC:
     def __init__(self, data, data_size):
         self.data = data
         self.data_size = data_size
@@ -1233,18 +1278,18 @@ class BinaryV1381_67_09PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        data = Data.from_dict(obj.get("data"))
+        data = Internal.from_dict(obj.get("data"))
         data_size = from_int(obj.get("data_size"))
-        return BinaryV1381_67_09PCBody(data, data_size)
+        return BinaryBodyV1381_67_09PC(data, data_size)
 
     def to_dict(self):
         result = {}
-        result["data"] = to_class(Data, self.data)
+        result["data"] = to_class(Internal, self.data)
         result["data_size"] = from_int(self.data_size)
         return result
 
 
-class BinaryV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndBinaryBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -1255,23 +1300,27 @@ class BinaryV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = BinaryV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = BinaryBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return BinaryV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndBinaryBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(BinaryV1381_67_09PCBody, self.body)
+        result["body"] = to_class(BinaryBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -1284,7 +1333,7 @@ class Binary:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        binary_v1_381_67_09_pc = BinaryV1381_67_09_PC.from_dict(
+        binary_v1_381_67_09_pc = TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndBinaryBodyV1381_67_09PC.from_dict(
             obj.get("BinaryV1_381_67_09PC")
         )
         return Binary(binary_v1_381_67_09_pc)
@@ -1292,12 +1341,13 @@ class Binary:
     def to_dict(self):
         result = {}
         result["BinaryV1_381_67_09PC"] = to_class(
-            BinaryV1381_67_09_PC, self.binary_v1_381_67_09_pc
+            TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndBinaryBodyV1381_67_09PC,
+            self.binary_v1_381_67_09_pc,
         )
         return result
 
 
-class BitmapV106_63_02PCBody:
+class BitmapBodyV106_63_02PC:
     def __init__(
         self,
         flag,
@@ -1335,7 +1385,7 @@ class BitmapV106_63_02PCBody:
         precalculated_size = from_int(obj.get("precalculated_size"))
         transp_format = from_int(obj.get("transp_format"))
         width = from_int(obj.get("width"))
-        return BitmapV106_63_02PCBody(
+        return BitmapBodyV106_63_02PC(
             flag,
             format,
             format_copy,
@@ -1363,7 +1413,7 @@ class BitmapV106_63_02PCBody:
         return result
 
 
-class BitmapV106_63_02_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -1374,29 +1424,33 @@ class BitmapV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = BitmapV106_63_02PCBody.from_dict(obj.get("body"))
+        body = BitmapBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return BitmapV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(BitmapV106_63_02PCBody, self.body)
+        result["body"] = to_class(BitmapBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class BodyHeader:
+class BitmapHeader:
     def __init__(
         self, flag, format, height, mipmap_count, precalculated_size, unknown, width
     ):
@@ -1418,7 +1472,7 @@ class BodyHeader:
         precalculated_size = from_int(obj.get("precalculated_size"))
         unknown = from_int(obj.get("unknown"))
         width = from_int(obj.get("width"))
-        return BodyHeader(
+        return BitmapHeader(
             flag, format, height, mipmap_count, precalculated_size, unknown, width
         )
 
@@ -1434,23 +1488,23 @@ class BodyHeader:
         return result
 
 
-class BitmapV1291_03_06PCBody:
+class BitmapBodyV1291_03_06PC:
     def __init__(self, header):
         self.header = header
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        header = BodyHeader.from_dict(obj.get("header"))
-        return BitmapV1291_03_06PCBody(header)
+        header = BitmapHeader.from_dict(obj.get("header"))
+        return BitmapBodyV1291_03_06PC(header)
 
     def to_dict(self):
         result = {}
-        result["header"] = to_class(BodyHeader, self.header)
+        result["header"] = to_class(BitmapHeader, self.header)
         return result
 
 
-class BitmapV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -1461,23 +1515,27 @@ class BitmapV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = BitmapV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = BitmapBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return BitmapV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(BitmapV1291_03_06PCBody, self.body)
+        result["body"] = to_class(BitmapBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -1493,14 +1551,14 @@ class BitmapClass2(Enum):
     SINGLE2 = "Single2"
 
 
-class Transparency(Enum):
+class BmTransp(Enum):
     CUBEMAP = "Cubemap"
     NO_TRANSP = "NoTransp"
     TRANSP = "Transp"
     TRANSP_ONE = "TranspOne"
 
 
-class BitmapV1381_67_09PCLinkHeader:
+class LinkHeader:
     def __init__(
         self,
         bitmap_class,
@@ -1534,8 +1592,8 @@ class BitmapV1381_67_09PCLinkHeader:
         layer = from_float(obj.get("layer"))
         link_name = from_union([from_int, from_str], obj.get("link_name"))
         pad = from_int(obj.get("pad"))
-        transparency = Transparency(obj.get("transparency"))
-        return BitmapV1381_67_09PCLinkHeader(
+        transparency = BmTransp(obj.get("transparency"))
+        return LinkHeader(
             bitmap_class,
             bitmap_class2,
             bitmap_type,
@@ -1557,11 +1615,11 @@ class BitmapV1381_67_09PCLinkHeader:
         result["layer"] = to_float(self.layer)
         result["link_name"] = from_union([from_int, from_str], self.link_name)
         result["pad"] = from_int(self.pad)
-        result["transparency"] = to_enum(Transparency, self.transparency)
+        result["transparency"] = to_enum(BmTransp, self.transparency)
         return result
 
 
-class BitmapV1381_67_09_PC:
+class TrivialClassForLinkHeaderAndBitmapBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -1574,21 +1632,21 @@ class BitmapV1381_67_09_PC:
         assert isinstance(obj, dict)
         body = from_dict(lambda x: x, obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = BitmapV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = LinkHeader.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return BitmapV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForLinkHeaderAndBitmapBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
         result["body"] = from_dict(lambda x: x, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            BitmapV1381_67_09PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(LinkHeader, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -1606,13 +1664,22 @@ class Bitmap:
     def from_dict(obj):
         assert isinstance(obj, dict)
         bitmap_v1_06_63_02_pc = from_union(
-            [BitmapV106_63_02_PC.from_dict, from_none], obj.get("BitmapV1_06_63_02PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("BitmapV1_06_63_02PC"),
         )
         bitmap_v1_291_03_06_pc = from_union(
-            [BitmapV1291_03_06_PC.from_dict, from_none], obj.get("BitmapV1_291_03_06PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
+            obj.get("BitmapV1_291_03_06PC"),
         )
         bitmap_v1_381_67_09_pc = from_union(
-            [BitmapV1381_67_09_PC.from_dict, from_none], obj.get("BitmapV1_381_67_09PC")
+            [TrivialClassForLinkHeaderAndBitmapBodyV1381_67_09PC.from_dict, from_none],
+            obj.get("BitmapV1_381_67_09PC"),
         )
         return Bitmap(
             bitmap_v1_06_63_02_pc, bitmap_v1_291_03_06_pc, bitmap_v1_381_67_09_pc
@@ -1622,23 +1689,40 @@ class Bitmap:
         result = {}
         if self.bitmap_v1_06_63_02_pc is not None:
             result["BitmapV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(BitmapV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.bitmap_v1_06_63_02_pc,
             )
         if self.bitmap_v1_291_03_06_pc is not None:
             result["BitmapV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(BitmapV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.bitmap_v1_291_03_06_pc,
             )
         if self.bitmap_v1_381_67_09_pc is not None:
             result["BitmapV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(BitmapV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForLinkHeaderAndBitmapBodyV1381_67_09PC, x
+                    ),
+                    from_none,
+                ],
                 self.bitmap_v1_381_67_09_pc,
             )
         return result
 
 
-class CameraV1381_67_09PCBody:
+class CameraBodyV1381_67_09PC:
     def __init__(self, angle_of_view, node_name, zero):
         self.angle_of_view = angle_of_view
         self.node_name = node_name
@@ -1650,7 +1734,7 @@ class CameraV1381_67_09PCBody:
         angle_of_view = from_float(obj.get("angle_of_view"))
         node_name = from_union([from_int, from_str], obj.get("node_name"))
         zero = from_float(obj.get("zero"))
-        return CameraV1381_67_09PCBody(angle_of_view, node_name, zero)
+        return CameraBodyV1381_67_09PC(angle_of_view, node_name, zero)
 
     def to_dict(self):
         result = {}
@@ -1660,7 +1744,7 @@ class CameraV1381_67_09PCBody:
         return result
 
 
-class ColBoxClass:
+class BffBox:
     def __init__(self, matrix, scale, vec):
         self.matrix = matrix
         self.scale = scale
@@ -1672,7 +1756,7 @@ class ColBoxClass:
         matrix = from_list(lambda x: from_list(from_float, x), obj.get("matrix"))
         scale = from_float(obj.get("scale"))
         vec = from_list(from_float, obj.get("vec"))
-        return ColBoxClass(matrix, scale, vec)
+        return BffBox(matrix, scale, vec)
 
     def to_dict(self):
         result = {}
@@ -1682,7 +1766,7 @@ class ColBoxClass:
         return result
 
 
-class BSphere:
+class Sphere:
     def __init__(self, center, radius):
         self.center = center
         self.radius = radius
@@ -1692,7 +1776,7 @@ class BSphere:
         assert isinstance(obj, dict)
         center = from_list(from_float, obj.get("center"))
         radius = from_float(obj.get("radius"))
-        return BSphere(center, radius)
+        return Sphere(center, radius)
 
     def to_dict(self):
         result = {}
@@ -1701,23 +1785,183 @@ class BSphere:
         return result
 
 
-class ResourceLinkHeaderFlags:
-    def __init__(self, value):
-        self.value = value
+class ObjectFlagsV1381_67_09PC:
+    def __init__(
+        self,
+        init,
+        light_baked,
+        light_baked_with_material,
+        linear_mapping,
+        max_bsphere,
+        morphed,
+        no_display,
+        no_seadcollide,
+        no_seaddisplay,
+        no_tesselate,
+        optimized_vertex,
+        orientedbbox,
+        shadow_receiver,
+        skinned,
+        skinned_with_one_bone,
+        transparent,
+        unknown17,
+        unknown18,
+        unknown19,
+        unknown20,
+        unknown21,
+        unknown22,
+        unknown23,
+        unknown24,
+        unknown25,
+        unknown26,
+        unknown27,
+        unknown28,
+        unknown29,
+        unknown30,
+        unknown31,
+        unknown32,
+    ):
+        self.init = init
+        self.light_baked = light_baked
+        self.light_baked_with_material = light_baked_with_material
+        self.linear_mapping = linear_mapping
+        self.max_bsphere = max_bsphere
+        self.morphed = morphed
+        self.no_display = no_display
+        self.no_seadcollide = no_seadcollide
+        self.no_seaddisplay = no_seaddisplay
+        self.no_tesselate = no_tesselate
+        self.optimized_vertex = optimized_vertex
+        self.orientedbbox = orientedbbox
+        self.shadow_receiver = shadow_receiver
+        self.skinned = skinned
+        self.skinned_with_one_bone = skinned_with_one_bone
+        self.transparent = transparent
+        self.unknown17 = unknown17
+        self.unknown18 = unknown18
+        self.unknown19 = unknown19
+        self.unknown20 = unknown20
+        self.unknown21 = unknown21
+        self.unknown22 = unknown22
+        self.unknown23 = unknown23
+        self.unknown24 = unknown24
+        self.unknown25 = unknown25
+        self.unknown26 = unknown26
+        self.unknown27 = unknown27
+        self.unknown28 = unknown28
+        self.unknown29 = unknown29
+        self.unknown30 = unknown30
+        self.unknown31 = unknown31
+        self.unknown32 = unknown32
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return ResourceLinkHeaderFlags(value)
+        init = from_int(obj.get("init"))
+        light_baked = from_int(obj.get("light_baked"))
+        light_baked_with_material = from_int(obj.get("light_baked_with_material"))
+        linear_mapping = from_int(obj.get("linear_mapping"))
+        max_bsphere = from_int(obj.get("max_bsphere"))
+        morphed = from_int(obj.get("morphed"))
+        no_display = from_int(obj.get("no_display"))
+        no_seadcollide = from_int(obj.get("no_seadcollide"))
+        no_seaddisplay = from_int(obj.get("no_seaddisplay"))
+        no_tesselate = from_int(obj.get("no_tesselate"))
+        optimized_vertex = from_int(obj.get("optimized_vertex"))
+        orientedbbox = from_int(obj.get("orientedbbox"))
+        shadow_receiver = from_int(obj.get("shadow_receiver"))
+        skinned = from_int(obj.get("skinned"))
+        skinned_with_one_bone = from_int(obj.get("skinned_with_one_bone"))
+        transparent = from_int(obj.get("transparent"))
+        unknown17 = from_int(obj.get("unknown17"))
+        unknown18 = from_int(obj.get("unknown18"))
+        unknown19 = from_int(obj.get("unknown19"))
+        unknown20 = from_int(obj.get("unknown20"))
+        unknown21 = from_int(obj.get("unknown21"))
+        unknown22 = from_int(obj.get("unknown22"))
+        unknown23 = from_int(obj.get("unknown23"))
+        unknown24 = from_int(obj.get("unknown24"))
+        unknown25 = from_int(obj.get("unknown25"))
+        unknown26 = from_int(obj.get("unknown26"))
+        unknown27 = from_int(obj.get("unknown27"))
+        unknown28 = from_int(obj.get("unknown28"))
+        unknown29 = from_int(obj.get("unknown29"))
+        unknown30 = from_int(obj.get("unknown30"))
+        unknown31 = from_int(obj.get("unknown31"))
+        unknown32 = from_int(obj.get("unknown32"))
+        return ObjectFlagsV1381_67_09PC(
+            init,
+            light_baked,
+            light_baked_with_material,
+            linear_mapping,
+            max_bsphere,
+            morphed,
+            no_display,
+            no_seadcollide,
+            no_seaddisplay,
+            no_tesselate,
+            optimized_vertex,
+            orientedbbox,
+            shadow_receiver,
+            skinned,
+            skinned_with_one_bone,
+            transparent,
+            unknown17,
+            unknown18,
+            unknown19,
+            unknown20,
+            unknown21,
+            unknown22,
+            unknown23,
+            unknown24,
+            unknown25,
+            unknown26,
+            unknown27,
+            unknown28,
+            unknown29,
+            unknown30,
+            unknown31,
+            unknown32,
+        )
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["init"] = from_int(self.init)
+        result["light_baked"] = from_int(self.light_baked)
+        result["light_baked_with_material"] = from_int(self.light_baked_with_material)
+        result["linear_mapping"] = from_int(self.linear_mapping)
+        result["max_bsphere"] = from_int(self.max_bsphere)
+        result["morphed"] = from_int(self.morphed)
+        result["no_display"] = from_int(self.no_display)
+        result["no_seadcollide"] = from_int(self.no_seadcollide)
+        result["no_seaddisplay"] = from_int(self.no_seaddisplay)
+        result["no_tesselate"] = from_int(self.no_tesselate)
+        result["optimized_vertex"] = from_int(self.optimized_vertex)
+        result["orientedbbox"] = from_int(self.orientedbbox)
+        result["shadow_receiver"] = from_int(self.shadow_receiver)
+        result["skinned"] = from_int(self.skinned)
+        result["skinned_with_one_bone"] = from_int(self.skinned_with_one_bone)
+        result["transparent"] = from_int(self.transparent)
+        result["unknown17"] = from_int(self.unknown17)
+        result["unknown18"] = from_int(self.unknown18)
+        result["unknown19"] = from_int(self.unknown19)
+        result["unknown20"] = from_int(self.unknown20)
+        result["unknown21"] = from_int(self.unknown21)
+        result["unknown22"] = from_int(self.unknown22)
+        result["unknown23"] = from_int(self.unknown23)
+        result["unknown24"] = from_int(self.unknown24)
+        result["unknown25"] = from_int(self.unknown25)
+        result["unknown26"] = from_int(self.unknown26)
+        result["unknown27"] = from_int(self.unknown27)
+        result["unknown28"] = from_int(self.unknown28)
+        result["unknown29"] = from_int(self.unknown29)
+        result["unknown30"] = from_int(self.unknown30)
+        result["unknown31"] = from_int(self.unknown31)
+        result["unknown32"] = from_int(self.unknown32)
         return result
 
 
-class TypeEnum(Enum):
+class ObjectType(Enum):
     CAMERA = "Camera"
     CAMERA_ZONE = "CameraZone"
     COLLISION_VOL = "CollisionVol"
@@ -1746,7 +1990,7 @@ class TypeEnum(Enum):
     WORLD_REF = "WorldRef"
 
 
-class CameraV1381_67_09PCLinkHeader:
+class ObjectLinkHeaderV1381_67_09PC:
     def __init__(
         self, b_box, b_sphere, data_name, fade_out_dist, flags, link_name, type
     ):
@@ -1761,30 +2005,30 @@ class CameraV1381_67_09PCLinkHeader:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_box = ColBoxClass.from_dict(obj.get("b_box"))
-        b_sphere = BSphere.from_dict(obj.get("b_sphere"))
+        b_box = BffBox.from_dict(obj.get("b_box"))
+        b_sphere = Sphere.from_dict(obj.get("b_sphere"))
         data_name = from_union([from_int, from_str], obj.get("data_name"))
         fade_out_dist = from_float(obj.get("fade_out_dist"))
-        flags = ResourceLinkHeaderFlags.from_dict(obj.get("flags"))
+        flags = ObjectFlagsV1381_67_09PC.from_dict(obj.get("flags"))
         link_name = from_union([from_int, from_str], obj.get("link_name"))
-        type = TypeEnum(obj.get("type"))
-        return CameraV1381_67_09PCLinkHeader(
+        type = ObjectType(obj.get("type"))
+        return ObjectLinkHeaderV1381_67_09PC(
             b_box, b_sphere, data_name, fade_out_dist, flags, link_name, type
         )
 
     def to_dict(self):
         result = {}
-        result["b_box"] = to_class(ColBoxClass, self.b_box)
-        result["b_sphere"] = to_class(BSphere, self.b_sphere)
+        result["b_box"] = to_class(BffBox, self.b_box)
+        result["b_sphere"] = to_class(Sphere, self.b_sphere)
         result["data_name"] = from_union([from_int, from_str], self.data_name)
         result["fade_out_dist"] = to_float(self.fade_out_dist)
-        result["flags"] = to_class(ResourceLinkHeaderFlags, self.flags)
+        result["flags"] = to_class(ObjectFlagsV1381_67_09PC, self.flags)
         result["link_name"] = from_union([from_int, from_str], self.link_name)
-        result["type"] = to_enum(TypeEnum, self.type)
+        result["type"] = to_enum(ObjectType, self.type)
         return result
 
 
-class CameraV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndCameraBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -1795,23 +2039,25 @@ class CameraV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = CameraV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = CameraBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return CameraV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV1381_67_09PCAndCameraBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(CameraV1381_67_09PCBody, self.body)
+        result["body"] = to_class(CameraBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -1824,7 +2070,7 @@ class Camera:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        camera_v1_381_67_09_pc = CameraV1381_67_09_PC.from_dict(
+        camera_v1_381_67_09_pc = TrivialClassForObjectLinkHeaderV1381_67_09PCAndCameraBodyV1381_67_09PC.from_dict(
             obj.get("CameraV1_381_67_09PC")
         )
         return Camera(camera_v1_381_67_09_pc)
@@ -1832,12 +2078,13 @@ class Camera:
     def to_dict(self):
         result = {}
         result["CameraV1_381_67_09PC"] = to_class(
-            CameraV1381_67_09_PC, self.camera_v1_381_67_09_pc
+            TrivialClassForObjectLinkHeaderV1381_67_09PCAndCameraBodyV1381_67_09PC,
+            self.camera_v1_381_67_09_pc,
         )
         return result
 
 
-class TriggerIDSRefElement:
+class RangeSizeOffset:
     def __init__(self, offset, size):
         self.offset = offset
         self.size = size
@@ -1847,7 +2094,7 @@ class TriggerIDSRefElement:
         assert isinstance(obj, dict)
         offset = from_int(obj.get("offset"))
         size = from_int(obj.get("size"))
-        return TriggerIDSRefElement(offset, size)
+        return RangeSizeOffset(offset, size)
 
     def to_dict(self):
         result = {}
@@ -1880,7 +2127,7 @@ class SplineZoneSead:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        grid_da = from_list(TriggerIDSRefElement.from_dict, obj.get("grid_da"))
+        grid_da = from_list(RangeSizeOffset.from_dict, obj.get("grid_da"))
         inv_diag = from_list(from_float, obj.get("inv_diag"))
         max_zone_index = from_int(obj.get("max_zone_index"))
         p_max = from_list(from_float, obj.get("p_max"))
@@ -1902,7 +2149,7 @@ class SplineZoneSead:
     def to_dict(self):
         result = {}
         result["grid_da"] = from_list(
-            lambda x: to_class(TriggerIDSRefElement, x), self.grid_da
+            lambda x: to_class(RangeSizeOffset, x), self.grid_da
         )
         result["inv_diag"] = from_list(to_float, self.inv_diag)
         result["max_zone_index"] = from_int(self.max_zone_index)
@@ -1914,7 +2161,7 @@ class SplineZoneSead:
         return result
 
 
-class SplineZoneElement:
+class SplineZone:
     def __init__(self, point_flag, spline_ids_ref, unknown0, unknown1, y):
         self.point_flag = point_flag
         self.spline_ids_ref = spline_ids_ref
@@ -1926,23 +2173,23 @@ class SplineZoneElement:
     def from_dict(obj):
         assert isinstance(obj, dict)
         point_flag = from_int(obj.get("point_flag"))
-        spline_ids_ref = TriggerIDSRefElement.from_dict(obj.get("spline_ids_ref"))
+        spline_ids_ref = RangeSizeOffset.from_dict(obj.get("spline_ids_ref"))
         unknown0 = from_int(obj.get("unknown0"))
         unknown1 = from_int(obj.get("unknown1"))
         y = from_float(obj.get("y"))
-        return SplineZoneElement(point_flag, spline_ids_ref, unknown0, unknown1, y)
+        return SplineZone(point_flag, spline_ids_ref, unknown0, unknown1, y)
 
     def to_dict(self):
         result = {}
         result["point_flag"] = from_int(self.point_flag)
-        result["spline_ids_ref"] = to_class(TriggerIDSRefElement, self.spline_ids_ref)
+        result["spline_ids_ref"] = to_class(RangeSizeOffset, self.spline_ids_ref)
         result["unknown0"] = from_int(self.unknown0)
         result["unknown1"] = from_int(self.unknown1)
         result["y"] = to_float(self.y)
         return result
 
 
-class SplineZoneSpline:
+class Spline:
     def __init__(self, pt_0__id, pt_1__id):
         self.pt_0__id = pt_0__id
         self.pt_1__id = pt_1__id
@@ -1952,7 +2199,7 @@ class SplineZoneSpline:
         assert isinstance(obj, dict)
         pt_0__id = from_int(obj.get("pt_0_id"))
         pt_1__id = from_int(obj.get("pt_1_id"))
-        return SplineZoneSpline(pt_0__id, pt_1__id)
+        return Spline(pt_0__id, pt_1__id)
 
     def to_dict(self):
         result = {}
@@ -1961,7 +2208,7 @@ class SplineZoneSpline:
         return result
 
 
-class SplineZone:
+class SplineZoneZ:
     def __init__(
         self,
         points,
@@ -1986,11 +2233,11 @@ class SplineZone:
         points = from_list(lambda x: from_list(from_float, x), obj.get("points"))
         spline_ids = from_list(from_int, obj.get("spline_ids"))
         spline_zone_sead = SplineZoneSead.from_dict(obj.get("spline_zone_sead"))
-        spline_zones = from_list(SplineZoneElement.from_dict, obj.get("spline_zones"))
-        splines = from_list(SplineZoneSpline.from_dict, obj.get("splines"))
+        spline_zones = from_list(SplineZone.from_dict, obj.get("spline_zones"))
+        splines = from_list(Spline.from_dict, obj.get("splines"))
         unknown = from_list(from_float, obj.get("unknown"))
         unknowns = from_list(lambda x: from_list(from_float, x), obj.get("unknowns"))
-        return SplineZone(
+        return SplineZoneZ(
             points,
             spline_ids,
             spline_zone_sead,
@@ -2006,17 +2253,15 @@ class SplineZone:
         result["spline_ids"] = from_list(from_int, self.spline_ids)
         result["spline_zone_sead"] = to_class(SplineZoneSead, self.spline_zone_sead)
         result["spline_zones"] = from_list(
-            lambda x: to_class(SplineZoneElement, x), self.spline_zones
+            lambda x: to_class(SplineZone, x), self.spline_zones
         )
-        result["splines"] = from_list(
-            lambda x: to_class(SplineZoneSpline, x), self.splines
-        )
+        result["splines"] = from_list(lambda x: to_class(Spline, x), self.splines)
         result["unknown"] = from_list(to_float, self.unknown)
         result["unknowns"] = from_list(lambda x: from_list(to_float, x), self.unknowns)
         return result
 
 
-class TriggerElement:
+class Trigger:
     def __init__(
         self,
         at_point_id,
@@ -2066,7 +2311,7 @@ class TriggerElement:
         spline_id = from_int(obj.get("spline_id"))
         spline_length = from_float(obj.get("spline_length"))
         unknown = from_list(from_float, obj.get("unknown"))
-        return TriggerElement(
+        return Trigger(
             at_point_id,
             color,
             dist,
@@ -2102,23 +2347,23 @@ class TriggerElement:
         return result
 
 
-class ZoneTriggerElement:
+class ZoneTriggers:
     def __init__(self, trigger_ids_ref):
         self.trigger_ids_ref = trigger_ids_ref
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        trigger_ids_ref = TriggerIDSRefElement.from_dict(obj.get("trigger_ids_ref"))
-        return ZoneTriggerElement(trigger_ids_ref)
+        trigger_ids_ref = RangeSizeOffset.from_dict(obj.get("trigger_ids_ref"))
+        return ZoneTriggers(trigger_ids_ref)
 
     def to_dict(self):
         result = {}
-        result["trigger_ids_ref"] = to_class(TriggerIDSRefElement, self.trigger_ids_ref)
+        result["trigger_ids_ref"] = to_class(RangeSizeOffset, self.trigger_ids_ref)
         return result
 
 
-class CameraZoneV106_63_02PCBody:
+class CameraZoneBodyV106_63_02PC:
     def __init__(self, spline_zone, trigger_ids, triggers, zone_triggers):
         self.spline_zone = spline_zone
         self.trigger_ids = trigger_ids
@@ -2128,30 +2373,26 @@ class CameraZoneV106_63_02PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        spline_zone = SplineZone.from_dict(obj.get("spline_zone"))
+        spline_zone = SplineZoneZ.from_dict(obj.get("spline_zone"))
         trigger_ids = from_list(from_int, obj.get("trigger_ids"))
-        triggers = from_list(TriggerElement.from_dict, obj.get("triggers"))
-        zone_triggers = from_list(
-            ZoneTriggerElement.from_dict, obj.get("zone_triggers")
-        )
-        return CameraZoneV106_63_02PCBody(
+        triggers = from_list(Trigger.from_dict, obj.get("triggers"))
+        zone_triggers = from_list(ZoneTriggers.from_dict, obj.get("zone_triggers"))
+        return CameraZoneBodyV106_63_02PC(
             spline_zone, trigger_ids, triggers, zone_triggers
         )
 
     def to_dict(self):
         result = {}
-        result["spline_zone"] = to_class(SplineZone, self.spline_zone)
+        result["spline_zone"] = to_class(SplineZoneZ, self.spline_zone)
         result["trigger_ids"] = from_list(from_int, self.trigger_ids)
-        result["triggers"] = from_list(
-            lambda x: to_class(TriggerElement, x), self.triggers
-        )
+        result["triggers"] = from_list(lambda x: to_class(Trigger, x), self.triggers)
         result["zone_triggers"] = from_list(
-            lambda x: to_class(ZoneTriggerElement, x), self.zone_triggers
+            lambda x: to_class(ZoneTriggers, x), self.zone_triggers
         )
         return result
 
 
-class CameraZoneV106_63_02PCLinkHeader:
+class ObjectLinkHeaderV106_63_02PC:
     def __init__(
         self, b_box, b_sphere, data_name, fade_out_dist, flags, link_name, names, type
     ):
@@ -2167,8 +2408,8 @@ class CameraZoneV106_63_02PCLinkHeader:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_box = ColBoxClass.from_dict(obj.get("b_box"))
-        b_sphere = BSphere.from_dict(obj.get("b_sphere"))
+        b_box = BffBox.from_dict(obj.get("b_box"))
+        b_sphere = Sphere.from_dict(obj.get("b_sphere"))
         data_name = from_union([from_int, from_str], obj.get("data_name"))
         fade_out_dist = from_float(obj.get("fade_out_dist"))
         flags = from_int(obj.get("flags"))
@@ -2176,15 +2417,15 @@ class CameraZoneV106_63_02PCLinkHeader:
         names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("names")
         )
-        type = TypeEnum(obj.get("type"))
-        return CameraZoneV106_63_02PCLinkHeader(
+        type = ObjectType(obj.get("type"))
+        return ObjectLinkHeaderV106_63_02PC(
             b_box, b_sphere, data_name, fade_out_dist, flags, link_name, names, type
         )
 
     def to_dict(self):
         result = {}
-        result["b_box"] = to_class(ColBoxClass, self.b_box)
-        result["b_sphere"] = to_class(BSphere, self.b_sphere)
+        result["b_box"] = to_class(BffBox, self.b_box)
+        result["b_sphere"] = to_class(Sphere, self.b_sphere)
         result["data_name"] = from_union([from_int, from_str], self.data_name)
         result["fade_out_dist"] = to_float(self.fade_out_dist)
         result["flags"] = from_int(self.flags)
@@ -2192,11 +2433,11 @@ class CameraZoneV106_63_02PCLinkHeader:
         result["names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.names
         )
-        result["type"] = to_enum(TypeEnum, self.type)
+        result["type"] = to_enum(ObjectType, self.type)
         return result
 
 
-class CameraZoneV106_63_02_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndCameraZoneBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -2207,23 +2448,23 @@ class CameraZoneV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = CameraZoneV106_63_02PCBody.from_dict(obj.get("body"))
+        body = CameraZoneBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return CameraZoneV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV106_63_02PCAndCameraZoneBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(CameraZoneV106_63_02PCBody, self.body)
+        result["body"] = to_class(CameraZoneBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -2236,7 +2477,7 @@ class CameraZone:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        camera_zone_v1_06_63_02_pc = CameraZoneV106_63_02_PC.from_dict(
+        camera_zone_v1_06_63_02_pc = TrivialClassForObjectLinkHeaderV106_63_02PCAndCameraZoneBodyV106_63_02PC.from_dict(
             obj.get("CameraZoneV1_06_63_02PC")
         )
         return CameraZone(camera_zone_v1_06_63_02_pc)
@@ -2244,12 +2485,13 @@ class CameraZone:
     def to_dict(self):
         result = {}
         result["CameraZoneV1_06_63_02PC"] = to_class(
-            CameraZoneV106_63_02_PC, self.camera_zone_v1_06_63_02_pc
+            TrivialClassForObjectLinkHeaderV106_63_02PCAndCameraZoneBodyV106_63_02PC,
+            self.camera_zone_v1_06_63_02_pc,
         )
         return result
 
 
-class PurpleSchema:
+class CollisionVolInfo:
     def __init__(self, inv_local_transform, local_transform):
         self.inv_local_transform = inv_local_transform
         self.local_transform = local_transform
@@ -2263,7 +2505,7 @@ class PurpleSchema:
         local_transform = from_list(
             lambda x: from_list(from_float, x), obj.get("local_transform")
         )
-        return PurpleSchema(inv_local_transform, local_transform)
+        return CollisionVolInfo(inv_local_transform, local_transform)
 
     def to_dict(self):
         result = {}
@@ -2276,7 +2518,7 @@ class PurpleSchema:
         return result
 
 
-class CollisionVolV1291_03_06PCBody:
+class CollisionVolBodyV1291_03_06PC:
     def __init__(
         self,
         anim_frame_names,
@@ -2308,13 +2550,13 @@ class CollisionVolV1291_03_06PCBody:
             [from_int, from_str], obj.get("collision_vol_agent_name")
         )
         collision_vol_infos = from_list(
-            PurpleSchema.from_dict, obj.get("collision_vol_infos")
+            CollisionVolInfo.from_dict, obj.get("collision_vol_infos")
         )
         float_param_names = from_list(from_int, obj.get("float_param_names"))
         in_message_id = from_int(obj.get("in_message_id"))
         node_param_names = from_list(from_int, obj.get("node_param_names"))
         out_message_id = from_int(obj.get("out_message_id"))
-        return CollisionVolV1291_03_06PCBody(
+        return CollisionVolBodyV1291_03_06PC(
             anim_frame_names,
             anim_start_time,
             collision_vol_agent_name,
@@ -2335,7 +2577,7 @@ class CollisionVolV1291_03_06PCBody:
             [from_int, from_str], self.collision_vol_agent_name
         )
         result["collision_vol_infos"] = from_list(
-            lambda x: to_class(PurpleSchema, x), self.collision_vol_infos
+            lambda x: to_class(CollisionVolInfo, x), self.collision_vol_infos
         )
         result["float_param_names"] = from_list(from_int, self.float_param_names)
         result["in_message_id"] = from_int(self.in_message_id)
@@ -2344,7 +2586,7 @@ class CollisionVolV1291_03_06PCBody:
         return result
 
 
-class CollisionVolV1291_03_06_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndCollisionVolBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -2355,31 +2597,31 @@ class CollisionVolV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = CollisionVolV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = CollisionVolBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return CollisionVolV1291_03_06_PC(
-            body, class_name, link_header, link_name, name
+        return (
+            TrivialClassForObjectLinkHeaderV106_63_02PCAndCollisionVolBodyV1291_03_06PC(
+                body, class_name, link_header, link_name, name
+            )
         )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(CollisionVolV1291_03_06PCBody, self.body)
+        result["body"] = to_class(CollisionVolBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class FluffySchema:
+class CollisionVolInfo2:
     def __init__(self, local_transform, local_transform_inverse):
         self.local_transform = local_transform
         self.local_transform_inverse = local_transform_inverse
@@ -2393,7 +2635,7 @@ class FluffySchema:
         local_transform_inverse = from_list(
             lambda x: from_list(from_float, x), obj.get("local_transform_inverse")
         )
-        return FluffySchema(local_transform, local_transform_inverse)
+        return CollisionVolInfo2(local_transform, local_transform_inverse)
 
     def to_dict(self):
         result = {}
@@ -2406,7 +2648,7 @@ class FluffySchema:
         return result
 
 
-class CollisionVolV1381_67_09PCBody:
+class CollisionVolBodyV1381_67_09PC:
     def __init__(
         self,
         anim_frame_names,
@@ -2436,7 +2678,7 @@ class CollisionVolV1381_67_09PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("anim_frame_names")
         )
         collision_vol_info = from_list(
-            FluffySchema.from_dict, obj.get("collision_vol_info")
+            CollisionVolInfo2.from_dict, obj.get("collision_vol_info")
         )
         delay = from_float(obj.get("delay"))
         float_params = from_list(from_float, obj.get("float_params"))
@@ -2450,7 +2692,7 @@ class CollisionVolV1381_67_09PCBody:
         )
         out_message_id = from_union([from_int, from_str], obj.get("out_message_id"))
         volume_type = from_union([from_int, from_str], obj.get("volume_type"))
-        return CollisionVolV1381_67_09PCBody(
+        return CollisionVolBodyV1381_67_09PC(
             anim_frame_names,
             collision_vol_info,
             delay,
@@ -2468,7 +2710,7 @@ class CollisionVolV1381_67_09PCBody:
             lambda x: from_union([from_int, from_str], x), self.anim_frame_names
         )
         result["collision_vol_info"] = from_list(
-            lambda x: to_class(FluffySchema, x), self.collision_vol_info
+            lambda x: to_class(CollisionVolInfo2, x), self.collision_vol_info
         )
         result["delay"] = to_float(self.delay)
         result["float_params"] = from_list(to_float, self.float_params)
@@ -2484,7 +2726,7 @@ class CollisionVolV1381_67_09PCBody:
         return result
 
 
-class CollisionVolV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndCollisionVolBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -2495,25 +2737,25 @@ class CollisionVolV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = CollisionVolV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = CollisionVolBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return CollisionVolV1381_67_09_PC(
+        return TrivialClassForObjectLinkHeaderV1381_67_09PCAndCollisionVolBodyV1381_67_09PC(
             body, class_name, link_header, link_name, name
         )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(CollisionVolV1381_67_09PCBody, self.body)
+        result["body"] = to_class(CollisionVolBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -2528,11 +2770,17 @@ class CollisionVol:
     def from_dict(obj):
         assert isinstance(obj, dict)
         collision_vol_v1_291_03_06_pc = from_union(
-            [CollisionVolV1291_03_06_PC.from_dict, from_none],
+            [
+                TrivialClassForObjectLinkHeaderV106_63_02PCAndCollisionVolBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
             obj.get("CollisionVolV1_291_03_06PC"),
         )
         collision_vol_v1_381_67_09_pc = from_union(
-            [CollisionVolV1381_67_09_PC.from_dict, from_none],
+            [
+                TrivialClassForObjectLinkHeaderV1381_67_09PCAndCollisionVolBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
             obj.get("CollisionVolV1_381_67_09PC"),
         )
         return CollisionVol(
@@ -2543,18 +2791,30 @@ class CollisionVol:
         result = {}
         if self.collision_vol_v1_291_03_06_pc is not None:
             result["CollisionVolV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(CollisionVolV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV106_63_02PCAndCollisionVolBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.collision_vol_v1_291_03_06_pc,
             )
         if self.collision_vol_v1_381_67_09_pc is not None:
             result["CollisionVolV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(CollisionVolV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV1381_67_09PCAndCollisionVolBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.collision_vol_v1_381_67_09_pc,
             )
         return result
 
 
-class CharacterValue:
+class Character:
     def __init__(self, bottom_right_corner, descent, material_index, top_left_corner):
         self.bottom_right_corner = bottom_right_corner
         self.descent = descent
@@ -2568,9 +2828,7 @@ class CharacterValue:
         descent = from_float(obj.get("descent"))
         material_index = from_int(obj.get("material_index"))
         top_left_corner = from_list(from_float, obj.get("top_left_corner"))
-        return CharacterValue(
-            bottom_right_corner, descent, material_index, top_left_corner
-        )
+        return Character(bottom_right_corner, descent, material_index, top_left_corner)
 
     def to_dict(self):
         result = {}
@@ -2581,7 +2839,7 @@ class CharacterValue:
         return result
 
 
-class FontsV106_63_02PCBody:
+class FontsBodyV106_63_02PC:
     def __init__(self, characters, material_names):
         self.characters = characters
         self.material_names = material_names
@@ -2589,16 +2847,16 @@ class FontsV106_63_02PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        characters = from_dict(CharacterValue.from_dict, obj.get("characters"))
+        characters = from_dict(Character.from_dict, obj.get("characters"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
         )
-        return FontsV106_63_02PCBody(characters, material_names)
+        return FontsBodyV106_63_02PC(characters, material_names)
 
     def to_dict(self):
         result = {}
         result["characters"] = from_dict(
-            lambda x: to_class(CharacterValue, x), self.characters
+            lambda x: to_class(Character, x), self.characters
         )
         result["material_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.material_names
@@ -2606,7 +2864,7 @@ class FontsV106_63_02PCBody:
         return result
 
 
-class FontsV106_63_02_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndFontsBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -2617,29 +2875,35 @@ class FontsV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = FontsV106_63_02PCBody.from_dict(obj.get("body"))
+        body = FontsBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return FontsV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return (
+            TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndFontsBodyV106_63_02PC(
+                body, class_name, link_header, link_name, name
+            )
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(FontsV106_63_02PCBody, self.body)
+        result["body"] = to_class(FontsBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class FontsV1381_67_09PCBody:
+class FontsBodyV1381_67_09PC:
     def __init__(self, characters, material_names):
         self.characters = characters
         self.material_names = material_names
@@ -2647,16 +2911,16 @@ class FontsV1381_67_09PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        characters = from_dict(CharacterValue.from_dict, obj.get("characters"))
+        characters = from_dict(Character.from_dict, obj.get("characters"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
         )
-        return FontsV1381_67_09PCBody(characters, material_names)
+        return FontsBodyV1381_67_09PC(characters, material_names)
 
     def to_dict(self):
         result = {}
         result["characters"] = from_dict(
-            lambda x: to_class(CharacterValue, x), self.characters
+            lambda x: to_class(Character, x), self.characters
         )
         result["material_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.material_names
@@ -2664,7 +2928,7 @@ class FontsV1381_67_09PCBody:
         return result
 
 
-class FontsV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndFontsBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -2675,23 +2939,27 @@ class FontsV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = FontsV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = FontsBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return FontsV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndFontsBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(FontsV1381_67_09PCBody, self.body)
+        result["body"] = to_class(FontsBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -2706,10 +2974,18 @@ class Fonts:
     def from_dict(obj):
         assert isinstance(obj, dict)
         fonts_v1_06_63_02_pc = from_union(
-            [FontsV106_63_02_PC.from_dict, from_none], obj.get("FontsV1_06_63_02PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndFontsBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("FontsV1_06_63_02PC"),
         )
         fonts_v1_381_67_09_pc = from_union(
-            [FontsV1381_67_09_PC.from_dict, from_none], obj.get("FontsV1_381_67_09PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndFontsBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("FontsV1_381_67_09PC"),
         )
         return Fonts(fonts_v1_06_63_02_pc, fonts_v1_381_67_09_pc)
 
@@ -2717,18 +2993,30 @@ class Fonts:
         result = {}
         if self.fonts_v1_06_63_02_pc is not None:
             result["FontsV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(FontsV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndFontsBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.fonts_v1_06_63_02_pc,
             )
         if self.fonts_v1_381_67_09_pc is not None:
             result["FontsV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(FontsV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndFontsBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.fonts_v1_381_67_09_pc,
             )
         return result
 
 
-class GameObjV1291_03_06PCBody:
+class GameObjBodyV1291_03_06PC:
     def __init__(self, node_names):
         self.node_names = node_names
 
@@ -2738,7 +3026,7 @@ class GameObjV1291_03_06PCBody:
         node_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("node_names")
         )
-        return GameObjV1291_03_06PCBody(node_names)
+        return GameObjBodyV1291_03_06PC(node_names)
 
     def to_dict(self):
         result = {}
@@ -2748,7 +3036,7 @@ class GameObjV1291_03_06PCBody:
         return result
 
 
-class GameObjV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndGameObjBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -2759,29 +3047,33 @@ class GameObjV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = GameObjV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = GameObjBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return GameObjV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndGameObjBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(GameObjV1291_03_06PCBody, self.body)
+        result["body"] = to_class(GameObjBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class PrefabElement:
+class Prefab:
     def __init__(self, in_world, names, string):
         self.in_world = in_world
         self.names = names
@@ -2795,7 +3087,7 @@ class PrefabElement:
             lambda x: from_union([from_int, from_str], x), obj.get("names")
         )
         string = from_str(obj.get("string"))
-        return PrefabElement(in_world, names, string)
+        return Prefab(in_world, names, string)
 
     def to_dict(self):
         result = {}
@@ -2807,25 +3099,23 @@ class PrefabElement:
         return result
 
 
-class GameObjV1381_67_09PCBody:
+class GameObjBodyV1381_67_09PC:
     def __init__(self, prefabs):
         self.prefabs = prefabs
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        prefabs = from_list(PrefabElement.from_dict, obj.get("prefabs"))
-        return GameObjV1381_67_09PCBody(prefabs)
+        prefabs = from_list(Prefab.from_dict, obj.get("prefabs"))
+        return GameObjBodyV1381_67_09PC(prefabs)
 
     def to_dict(self):
         result = {}
-        result["prefabs"] = from_list(
-            lambda x: to_class(PrefabElement, x), self.prefabs
-        )
+        result["prefabs"] = from_list(lambda x: to_class(Prefab, x), self.prefabs)
         return result
 
 
-class GameObjV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndGameObjBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -2836,23 +3126,27 @@ class GameObjV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = GameObjV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = GameObjBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return GameObjV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndGameObjBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(GameObjV1381_67_09PCBody, self.body)
+        result["body"] = to_class(GameObjBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -2867,11 +3161,17 @@ class GameObj:
     def from_dict(obj):
         assert isinstance(obj, dict)
         game_obj_v1_291_03_06_pc = from_union(
-            [GameObjV1291_03_06_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndGameObjBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
             obj.get("GameObjV1_291_03_06PC"),
         )
         game_obj_v1_381_67_09_pc = from_union(
-            [GameObjV1381_67_09_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndGameObjBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
             obj.get("GameObjV1_381_67_09PC"),
         )
         return GameObj(game_obj_v1_291_03_06_pc, game_obj_v1_381_67_09_pc)
@@ -2880,18 +3180,30 @@ class GameObj:
         result = {}
         if self.game_obj_v1_291_03_06_pc is not None:
             result["GameObjV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(GameObjV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndGameObjBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.game_obj_v1_291_03_06_pc,
             )
         if self.game_obj_v1_381_67_09_pc is not None:
             result["GameObjV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(GameObjV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndGameObjBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.game_obj_v1_381_67_09_pc,
             )
         return result
 
 
-class CAFlatSurfaceElement:
+class CAFlatSurface:
     def __init__(
         self,
         a,
@@ -2962,7 +3274,7 @@ class CAFlatSurfaceElement:
         zero2 = from_int(obj.get("zero2"))
         zero3 = from_int(obj.get("zero3"))
         zero4 = from_int(obj.get("zero4"))
-        return CAFlatSurfaceElement(
+        return CAFlatSurface(
             a,
             b,
             c,
@@ -3012,7 +3324,7 @@ class CAFlatSurfaceElement:
         return result
 
 
-class CategoryValue:
+class Category:
     def __init__(self, node_name_arrays, one):
         self.node_name_arrays = node_name_arrays
         self.one = one
@@ -3024,7 +3336,7 @@ class CategoryValue:
             lambda x: from_union([from_int, from_str], x), obj.get("node_name_arrays")
         )
         one = from_int(obj.get("one"))
-        return CategoryValue(node_name_arrays, one)
+        return Category(node_name_arrays, one)
 
     def to_dict(self):
         result = {}
@@ -3035,7 +3347,7 @@ class CategoryValue:
         return result
 
 
-class RegionEdgeElement:
+class RegionEdge:
     def __init__(self, region_vertices_index_a, region_vertices_index_b):
         self.region_vertices_index_a = region_vertices_index_a
         self.region_vertices_index_b = region_vertices_index_b
@@ -3045,7 +3357,7 @@ class RegionEdgeElement:
         assert isinstance(obj, dict)
         region_vertices_index_a = from_int(obj.get("region_vertices_index_a"))
         region_vertices_index_b = from_int(obj.get("region_vertices_index_b"))
-        return RegionEdgeElement(region_vertices_index_a, region_vertices_index_b)
+        return RegionEdge(region_vertices_index_a, region_vertices_index_b)
 
     def to_dict(self):
         result = {}
@@ -3054,7 +3366,7 @@ class RegionEdgeElement:
         return result
 
 
-class RegionValue:
+class Region:
     def __init__(self, region_edges_indices, unknown):
         self.region_edges_indices = region_edges_indices
         self.unknown = unknown
@@ -3064,7 +3376,7 @@ class RegionValue:
         assert isinstance(obj, dict)
         region_edges_indices = from_list(from_int, obj.get("region_edges_indices"))
         unknown = from_int(obj.get("unknown"))
-        return RegionValue(region_edges_indices, unknown)
+        return Region(region_edges_indices, unknown)
 
     def to_dict(self):
         result = {}
@@ -3073,7 +3385,7 @@ class RegionValue:
         return result
 
 
-class Unused10Element:
+class Unused10:
     def __init__(self, unused0, unused1_s, unused2, unused3, unused4):
         self.unused0 = unused0
         self.unused1_s = unused1_s
@@ -3089,7 +3401,7 @@ class Unused10Element:
         unused2 = from_int(obj.get("unused2"))
         unused3 = from_int(obj.get("unused3"))
         unused4 = from_int(obj.get("unused4"))
-        return Unused10Element(unused0, unused1_s, unused2, unused3, unused4)
+        return Unused10(unused0, unused1_s, unused2, unused3, unused4)
 
     def to_dict(self):
         result = {}
@@ -3101,7 +3413,7 @@ class Unused10Element:
         return result
 
 
-class GenWorldV1381_67_09PCBody:
+class GenWorldBodyV1381_67_09PC:
     def __init__(
         self,
         binary_names,
@@ -3144,27 +3456,27 @@ class GenWorldV1381_67_09PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("bitmap_names")
         )
         ca_flat_surfaces = from_list(
-            CAFlatSurfaceElement.from_dict, obj.get("ca_flat_surfaces")
+            CAFlatSurface.from_dict, obj.get("ca_flat_surfaces")
         )
         cancel_auto_mesh_placement = from_list(
             lambda x: from_list(lambda x: from_list(from_float, x), x),
             obj.get("cancel_auto_mesh_placement"),
         )
-        categories = from_dict(CategoryValue.from_dict, obj.get("categories"))
+        categories = from_dict(Category.from_dict, obj.get("categories"))
         equals41 = from_int(obj.get("equals41"))
         gw_road_name = from_union([from_int, from_str], obj.get("gw_road_name"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
         )
         node_name = from_union([from_int, from_str], obj.get("node_name"))
-        region_edges = from_list(RegionEdgeElement.from_dict, obj.get("region_edges"))
+        region_edges = from_list(RegionEdge.from_dict, obj.get("region_edges"))
         region_vertices = from_list(
             lambda x: from_list(from_float, x), obj.get("region_vertices")
         )
-        regions = from_dict(RegionValue.from_dict, obj.get("regions"))
-        unused10_s = from_list(Unused10Element.from_dict, obj.get("unused10s"))
+        regions = from_dict(Region.from_dict, obj.get("regions"))
+        unused10_s = from_list(Unused10.from_dict, obj.get("unused10s"))
         user_define_name = from_union([from_int, from_str], obj.get("user_define_name"))
-        return GenWorldV1381_67_09PCBody(
+        return GenWorldBodyV1381_67_09PC(
             binary_names,
             bitmap_names,
             ca_flat_surfaces,
@@ -3190,14 +3502,14 @@ class GenWorldV1381_67_09PCBody:
             lambda x: from_union([from_int, from_str], x), self.bitmap_names
         )
         result["ca_flat_surfaces"] = from_list(
-            lambda x: to_class(CAFlatSurfaceElement, x), self.ca_flat_surfaces
+            lambda x: to_class(CAFlatSurface, x), self.ca_flat_surfaces
         )
         result["cancel_auto_mesh_placement"] = from_list(
             lambda x: from_list(lambda x: from_list(to_float, x), x),
             self.cancel_auto_mesh_placement,
         )
         result["categories"] = from_dict(
-            lambda x: to_class(CategoryValue, x), self.categories
+            lambda x: to_class(Category, x), self.categories
         )
         result["equals41"] = from_int(self.equals41)
         result["gw_road_name"] = from_union([from_int, from_str], self.gw_road_name)
@@ -3206,14 +3518,14 @@ class GenWorldV1381_67_09PCBody:
         )
         result["node_name"] = from_union([from_int, from_str], self.node_name)
         result["region_edges"] = from_list(
-            lambda x: to_class(RegionEdgeElement, x), self.region_edges
+            lambda x: to_class(RegionEdge, x), self.region_edges
         )
         result["region_vertices"] = from_list(
             lambda x: from_list(to_float, x), self.region_vertices
         )
-        result["regions"] = from_dict(lambda x: to_class(RegionValue, x), self.regions)
+        result["regions"] = from_dict(lambda x: to_class(Region, x), self.regions)
         result["unused10s"] = from_list(
-            lambda x: to_class(Unused10Element, x), self.unused10_s
+            lambda x: to_class(Unused10, x), self.unused10_s
         )
         result["user_define_name"] = from_union(
             [from_int, from_str], self.user_define_name
@@ -3221,7 +3533,7 @@ class GenWorldV1381_67_09PCBody:
         return result
 
 
-class GenWorldV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndGenWorldBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -3232,23 +3544,25 @@ class GenWorldV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = GenWorldV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = GenWorldBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return GenWorldV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV1381_67_09PCAndGenWorldBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(GenWorldV1381_67_09PCBody, self.body)
+        result["body"] = to_class(GenWorldBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -3261,7 +3575,7 @@ class GenWorld:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        gen_world_v1_381_67_09_pc = GenWorldV1381_67_09_PC.from_dict(
+        gen_world_v1_381_67_09_pc = TrivialClassForObjectLinkHeaderV1381_67_09PCAndGenWorldBodyV1381_67_09PC.from_dict(
             obj.get("GenWorldV1_381_67_09PC")
         )
         return GenWorld(gen_world_v1_381_67_09_pc)
@@ -3269,28 +3583,54 @@ class GenWorld:
     def to_dict(self):
         result = {}
         result["GenWorldV1_381_67_09PC"] = to_class(
-            GenWorldV1381_67_09_PC, self.gen_world_v1_381_67_09_pc
+            TrivialClassForObjectLinkHeaderV1381_67_09PCAndGenWorldBodyV1381_67_09PC,
+            self.gen_world_v1_381_67_09_pc,
         )
         return result
 
 
-class TypeClass:
-    def __init__(self, value):
-        self.value = value
+class SubType(Enum):
+    BIG_DIRT_ROAD = "BigDirtRoad"
+    BIG_TARMAC_ROAD = "BigTarmacRoad"
+    BRIDGE = "Bridge"
+    CIRCUIT_TRACK = "CircuitTrack"
+    FIELD_ROAD = "FieldRoad"
+    GOAT_PATH = "GoatPath"
+    HIGH_WAY = "HighWay"
+    NORMAL_DIRT_ROAD = "NormalDirtRoad"
+    NORMAL_TARMAC_ROAD = "NormalTarmacRoad"
+    RIVER = "River"
+    SALT_ROAD = "SaltRoad"
+    SHORT_CUT_FIELD = "ShortCutField"
+    SHORT_CUT_FOREST = "ShortCutForest"
+    SHORT_CUT_LONG = "ShortCutLong"
+    SHORT_CUT_SHORT = "ShortCutShort"
+    SMALL_CIRCUIT_TRACK = "SmallCircuitTrack"
+    SMALL_DIRT_ROAD = "SmallDirtRoad"
+    SMALL_TARMAC_ROAD = "SmallTarmacRoad"
+    SNOWY_DIRT_ROAD = "SnowyDirtRoad"
+
+
+class RoadType:
+    def __init__(self, short_cut, sub_type):
+        self.short_cut = short_cut
+        self.sub_type = sub_type
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return TypeClass(value)
+        short_cut = from_bool(obj.get("short_cut"))
+        sub_type = SubType(obj.get("sub_type"))
+        return RoadType(short_cut, sub_type)
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["short_cut"] = from_bool(self.short_cut)
+        result["sub_type"] = to_enum(SubType, self.sub_type)
         return result
 
 
-class RoadElement:
+class Road:
     def __init__(self, points, type):
         self.points = points
         self.type = type
@@ -3299,17 +3639,17 @@ class RoadElement:
     def from_dict(obj):
         assert isinstance(obj, dict)
         points = from_list(lambda x: from_list(from_float, x), obj.get("points"))
-        type = TypeClass.from_dict(obj.get("type"))
-        return RoadElement(points, type)
+        type = RoadType.from_dict(obj.get("type"))
+        return Road(points, type)
 
     def to_dict(self):
         result = {}
         result["points"] = from_list(lambda x: from_list(to_float, x), self.points)
-        result["type"] = to_class(TypeClass, self.type)
+        result["type"] = to_class(RoadType, self.type)
         return result
 
 
-class Unused5Element:
+class Unused5:
     def __init__(
         self,
         unused0,
@@ -3344,7 +3684,7 @@ class Unused5Element:
         unused6 = from_int(obj.get("unused6"))
         unused7 = from_int(obj.get("unused7"))
         unused8_s = from_list(from_int, obj.get("unused8s"))
-        return Unused5Element(
+        return Unused5(
             unused0,
             unused1,
             unused2,
@@ -3370,7 +3710,7 @@ class Unused5Element:
         return result
 
 
-class GwRoadV1381_67_09PCBody:
+class GwRoadBodyV1381_67_09PC:
     def __init__(
         self,
         gen_road_max,
@@ -3400,12 +3740,12 @@ class GwRoadV1381_67_09PCBody:
         gen_road_min = from_list(from_float, obj.get("gen_road_min"))
         gen_world_name = from_union([from_int, from_str], obj.get("gen_world_name"))
         road_count = from_int(obj.get("road_count"))
-        roads = from_list(RoadElement.from_dict, obj.get("roads"))
+        roads = from_list(Road.from_dict, obj.get("roads"))
         unused5_count = from_int(obj.get("unused5_count"))
         unused5_max = from_list(from_float, obj.get("unused5_max"))
         unused5_min = from_list(from_float, obj.get("unused5_min"))
-        unused5_s = from_list(Unused5Element.from_dict, obj.get("unused5s"))
-        return GwRoadV1381_67_09PCBody(
+        unused5_s = from_list(Unused5.from_dict, obj.get("unused5s"))
+        return GwRoadBodyV1381_67_09PC(
             gen_road_max,
             gen_road_min,
             gen_world_name,
@@ -3423,17 +3763,15 @@ class GwRoadV1381_67_09PCBody:
         result["gen_road_min"] = from_list(to_float, self.gen_road_min)
         result["gen_world_name"] = from_union([from_int, from_str], self.gen_world_name)
         result["road_count"] = from_int(self.road_count)
-        result["roads"] = from_list(lambda x: to_class(RoadElement, x), self.roads)
+        result["roads"] = from_list(lambda x: to_class(Road, x), self.roads)
         result["unused5_count"] = from_int(self.unused5_count)
         result["unused5_max"] = from_list(to_float, self.unused5_max)
         result["unused5_min"] = from_list(to_float, self.unused5_min)
-        result["unused5s"] = from_list(
-            lambda x: to_class(Unused5Element, x), self.unused5_s
-        )
+        result["unused5s"] = from_list(lambda x: to_class(Unused5, x), self.unused5_s)
         return result
 
 
-class GwRoadV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndGwRoadBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -3444,23 +3782,27 @@ class GwRoadV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = GwRoadV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = GwRoadBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return GwRoadV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndGwRoadBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(GwRoadV1381_67_09PCBody, self.body)
+        result["body"] = to_class(GwRoadBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -3473,7 +3815,7 @@ class GwRoad:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        gw_road_v1_381_67_09_pc = GwRoadV1381_67_09_PC.from_dict(
+        gw_road_v1_381_67_09_pc = TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndGwRoadBodyV1381_67_09PC.from_dict(
             obj.get("GwRoadV1_381_67_09PC")
         )
         return GwRoad(gw_road_v1_381_67_09_pc)
@@ -3481,12 +3823,13 @@ class GwRoad:
     def to_dict(self):
         result = {}
         result["GwRoadV1_381_67_09PC"] = to_class(
-            GwRoadV1381_67_09_PC, self.gw_road_v1_381_67_09_pc
+            TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndGwRoadBodyV1381_67_09PC,
+            self.gw_road_v1_381_67_09_pc,
         )
         return result
 
 
-class LightV1291_03_06PCBody:
+class LightBodyV1291_03_06PC:
     def __init__(self, ambient, color, direction, position, rotation):
         self.ambient = ambient
         self.color = color
@@ -3502,7 +3845,7 @@ class LightV1291_03_06PCBody:
         direction = from_list(from_float, obj.get("direction"))
         position = from_list(from_float, obj.get("position"))
         rotation = from_list(from_float, obj.get("rotation"))
-        return LightV1291_03_06PCBody(ambient, color, direction, position, rotation)
+        return LightBodyV1291_03_06PC(ambient, color, direction, position, rotation)
 
     def to_dict(self):
         result = {}
@@ -3514,7 +3857,7 @@ class LightV1291_03_06PCBody:
         return result
 
 
-class LightV1291_03_06_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndLightBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -3525,29 +3868,29 @@ class LightV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = LightV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = LightBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return LightV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV106_63_02PCAndLightBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(LightV1291_03_06PCBody, self.body)
+        result["body"] = to_class(LightBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class LightV1381_67_09PCBody:
+class LightBodyV1381_67_09PC:
     def __init__(self, ambient, color, direction, position, rotation):
         self.ambient = ambient
         self.color = color
@@ -3563,7 +3906,7 @@ class LightV1381_67_09PCBody:
         direction = from_list(from_float, obj.get("direction"))
         position = from_list(from_float, obj.get("position"))
         rotation = from_list(from_float, obj.get("rotation"))
-        return LightV1381_67_09PCBody(ambient, color, direction, position, rotation)
+        return LightBodyV1381_67_09PC(ambient, color, direction, position, rotation)
 
     def to_dict(self):
         result = {}
@@ -3575,7 +3918,7 @@ class LightV1381_67_09PCBody:
         return result
 
 
-class LightV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndLightBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -3586,23 +3929,25 @@ class LightV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = LightV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = LightBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return LightV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV1381_67_09PCAndLightBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(LightV1381_67_09PCBody, self.body)
+        result["body"] = to_class(LightBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -3617,10 +3962,18 @@ class Light:
     def from_dict(obj):
         assert isinstance(obj, dict)
         light_v1_291_03_06_pc = from_union(
-            [LightV1291_03_06_PC.from_dict, from_none], obj.get("LightV1_291_03_06PC")
+            [
+                TrivialClassForObjectLinkHeaderV106_63_02PCAndLightBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
+            obj.get("LightV1_291_03_06PC"),
         )
         light_v1_381_67_09_pc = from_union(
-            [LightV1381_67_09_PC.from_dict, from_none], obj.get("LightV1_381_67_09PC")
+            [
+                TrivialClassForObjectLinkHeaderV1381_67_09PCAndLightBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("LightV1_381_67_09PC"),
         )
         return Light(light_v1_291_03_06_pc, light_v1_381_67_09_pc)
 
@@ -3628,18 +3981,30 @@ class Light:
         result = {}
         if self.light_v1_291_03_06_pc is not None:
             result["LightV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(LightV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV106_63_02PCAndLightBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.light_v1_291_03_06_pc,
             )
         if self.light_v1_381_67_09_pc is not None:
             result["LightV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(LightV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV1381_67_09PCAndLightBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.light_v1_381_67_09_pc,
             )
         return result
 
 
-class PurpleObjectDatas:
+class ObjectDatas:
     def __init__(self, color, unknown):
         self.color = color
         self.unknown = unknown
@@ -3649,7 +4014,7 @@ class PurpleObjectDatas:
         assert isinstance(obj, dict)
         color = from_list(from_float, obj.get("color"))
         unknown = from_float(obj.get("unknown"))
-        return PurpleObjectDatas(color, unknown)
+        return ObjectDatas(color, unknown)
 
     def to_dict(self):
         result = {}
@@ -3658,7 +4023,7 @@ class PurpleObjectDatas:
         return result
 
 
-class LightDataV106_63_02PCBody:
+class LightDataBodyV106_63_02PC:
     def __init__(self, ambient, color, direction, flag, object_datas, padding):
         self.ambient = ambient
         self.color = color
@@ -3674,9 +4039,9 @@ class LightDataV106_63_02PCBody:
         color = from_list(from_float, obj.get("color"))
         direction = from_list(from_float, obj.get("direction"))
         flag = from_int(obj.get("flag"))
-        object_datas = PurpleObjectDatas.from_dict(obj.get("object_datas"))
+        object_datas = ObjectDatas.from_dict(obj.get("object_datas"))
         padding = from_list(from_int, obj.get("padding"))
-        return LightDataV106_63_02PCBody(
+        return LightDataBodyV106_63_02PC(
             ambient, color, direction, flag, object_datas, padding
         )
 
@@ -3686,12 +4051,12 @@ class LightDataV106_63_02PCBody:
         result["color"] = from_list(to_float, self.color)
         result["direction"] = from_list(to_float, self.direction)
         result["flag"] = from_int(self.flag)
-        result["object_datas"] = to_class(PurpleObjectDatas, self.object_datas)
+        result["object_datas"] = to_class(ObjectDatas, self.object_datas)
         result["padding"] = from_list(from_int, self.padding)
         return result
 
 
-class LightDataV106_63_02_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLightDataBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -3702,29 +4067,33 @@ class LightDataV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = LightDataV106_63_02PCBody.from_dict(obj.get("body"))
+        body = LightDataBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return LightDataV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLightDataBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(LightDataV106_63_02PCBody, self.body)
+        result["body"] = to_class(LightDataBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class FluffyObjectDatas:
+class ObjectDatas2:
     def __init__(self, color):
         self.color = color
 
@@ -3732,7 +4101,7 @@ class FluffyObjectDatas:
     def from_dict(obj):
         assert isinstance(obj, dict)
         color = from_list(from_float, obj.get("color"))
-        return FluffyObjectDatas(color)
+        return ObjectDatas2(color)
 
     def to_dict(self):
         result = {}
@@ -3740,7 +4109,7 @@ class FluffyObjectDatas:
         return result
 
 
-class LightDataV1291_03_06PCBody:
+class LightDataBodyV1291_03_06PC:
     def __init__(self, ambient, color, flag, object_datas, padding):
         self.ambient = ambient
         self.color = color
@@ -3754,21 +4123,21 @@ class LightDataV1291_03_06PCBody:
         ambient = from_list(from_float, obj.get("ambient"))
         color = from_list(from_float, obj.get("color"))
         flag = from_int(obj.get("flag"))
-        object_datas = FluffyObjectDatas.from_dict(obj.get("object_datas"))
+        object_datas = ObjectDatas2.from_dict(obj.get("object_datas"))
         padding = from_list(from_int, obj.get("padding"))
-        return LightDataV1291_03_06PCBody(ambient, color, flag, object_datas, padding)
+        return LightDataBodyV1291_03_06PC(ambient, color, flag, object_datas, padding)
 
     def to_dict(self):
         result = {}
         result["ambient"] = from_list(to_float, self.ambient)
         result["color"] = from_list(to_float, self.color)
         result["flag"] = from_int(self.flag)
-        result["object_datas"] = to_class(FluffyObjectDatas, self.object_datas)
+        result["object_datas"] = to_class(ObjectDatas2, self.object_datas)
         result["padding"] = from_list(from_int, self.padding)
         return result
 
 
-class LightDataV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLightDataBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -3779,45 +4148,209 @@ class LightDataV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = LightDataV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = LightDataBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return LightDataV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLightDataBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(LightDataV1291_03_06PCBody, self.body)
+        result["body"] = to_class(LightDataBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class ResourceDatasFlags:
-    def __init__(self, value):
-        self.value = value
+class ObjectDatasFlagsV1381_67_09PC:
+    def __init__(
+        self,
+        cloned,
+        code_control,
+        hide,
+        hide_shadow,
+        morphed,
+        skinned,
+        static_shadow,
+        unknown13,
+        unknown14,
+        unknown15,
+        unknown16,
+        unknown17,
+        unknown18,
+        unknown19,
+        unknown20,
+        unknown21,
+        unknown22,
+        unknown23,
+        unknown24,
+        unknown25,
+        unknown26,
+        unknown27,
+        unknown28,
+        unknown29,
+        unknown30,
+        unknown31,
+        unknown32,
+        vp0_hide,
+        vp1_hide,
+        vp2_hide,
+        vp3_hide,
+        vreflect,
+    ):
+        self.cloned = cloned
+        self.code_control = code_control
+        self.hide = hide
+        self.hide_shadow = hide_shadow
+        self.morphed = morphed
+        self.skinned = skinned
+        self.static_shadow = static_shadow
+        self.unknown13 = unknown13
+        self.unknown14 = unknown14
+        self.unknown15 = unknown15
+        self.unknown16 = unknown16
+        self.unknown17 = unknown17
+        self.unknown18 = unknown18
+        self.unknown19 = unknown19
+        self.unknown20 = unknown20
+        self.unknown21 = unknown21
+        self.unknown22 = unknown22
+        self.unknown23 = unknown23
+        self.unknown24 = unknown24
+        self.unknown25 = unknown25
+        self.unknown26 = unknown26
+        self.unknown27 = unknown27
+        self.unknown28 = unknown28
+        self.unknown29 = unknown29
+        self.unknown30 = unknown30
+        self.unknown31 = unknown31
+        self.unknown32 = unknown32
+        self.vp0_hide = vp0_hide
+        self.vp1_hide = vp1_hide
+        self.vp2_hide = vp2_hide
+        self.vp3_hide = vp3_hide
+        self.vreflect = vreflect
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return ResourceDatasFlags(value)
+        cloned = from_int(obj.get("cloned"))
+        code_control = from_int(obj.get("code_control"))
+        hide = from_int(obj.get("hide"))
+        hide_shadow = from_int(obj.get("hide_shadow"))
+        morphed = from_int(obj.get("morphed"))
+        skinned = from_int(obj.get("skinned"))
+        static_shadow = from_int(obj.get("static_shadow"))
+        unknown13 = from_int(obj.get("unknown13"))
+        unknown14 = from_int(obj.get("unknown14"))
+        unknown15 = from_int(obj.get("unknown15"))
+        unknown16 = from_int(obj.get("unknown16"))
+        unknown17 = from_int(obj.get("unknown17"))
+        unknown18 = from_int(obj.get("unknown18"))
+        unknown19 = from_int(obj.get("unknown19"))
+        unknown20 = from_int(obj.get("unknown20"))
+        unknown21 = from_int(obj.get("unknown21"))
+        unknown22 = from_int(obj.get("unknown22"))
+        unknown23 = from_int(obj.get("unknown23"))
+        unknown24 = from_int(obj.get("unknown24"))
+        unknown25 = from_int(obj.get("unknown25"))
+        unknown26 = from_int(obj.get("unknown26"))
+        unknown27 = from_int(obj.get("unknown27"))
+        unknown28 = from_int(obj.get("unknown28"))
+        unknown29 = from_int(obj.get("unknown29"))
+        unknown30 = from_int(obj.get("unknown30"))
+        unknown31 = from_int(obj.get("unknown31"))
+        unknown32 = from_int(obj.get("unknown32"))
+        vp0_hide = from_int(obj.get("vp0_hide"))
+        vp1_hide = from_int(obj.get("vp1_hide"))
+        vp2_hide = from_int(obj.get("vp2_hide"))
+        vp3_hide = from_int(obj.get("vp3_hide"))
+        vreflect = from_int(obj.get("vreflect"))
+        return ObjectDatasFlagsV1381_67_09PC(
+            cloned,
+            code_control,
+            hide,
+            hide_shadow,
+            morphed,
+            skinned,
+            static_shadow,
+            unknown13,
+            unknown14,
+            unknown15,
+            unknown16,
+            unknown17,
+            unknown18,
+            unknown19,
+            unknown20,
+            unknown21,
+            unknown22,
+            unknown23,
+            unknown24,
+            unknown25,
+            unknown26,
+            unknown27,
+            unknown28,
+            unknown29,
+            unknown30,
+            unknown31,
+            unknown32,
+            vp0_hide,
+            vp1_hide,
+            vp2_hide,
+            vp3_hide,
+            vreflect,
+        )
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["cloned"] = from_int(self.cloned)
+        result["code_control"] = from_int(self.code_control)
+        result["hide"] = from_int(self.hide)
+        result["hide_shadow"] = from_int(self.hide_shadow)
+        result["morphed"] = from_int(self.morphed)
+        result["skinned"] = from_int(self.skinned)
+        result["static_shadow"] = from_int(self.static_shadow)
+        result["unknown13"] = from_int(self.unknown13)
+        result["unknown14"] = from_int(self.unknown14)
+        result["unknown15"] = from_int(self.unknown15)
+        result["unknown16"] = from_int(self.unknown16)
+        result["unknown17"] = from_int(self.unknown17)
+        result["unknown18"] = from_int(self.unknown18)
+        result["unknown19"] = from_int(self.unknown19)
+        result["unknown20"] = from_int(self.unknown20)
+        result["unknown21"] = from_int(self.unknown21)
+        result["unknown22"] = from_int(self.unknown22)
+        result["unknown23"] = from_int(self.unknown23)
+        result["unknown24"] = from_int(self.unknown24)
+        result["unknown25"] = from_int(self.unknown25)
+        result["unknown26"] = from_int(self.unknown26)
+        result["unknown27"] = from_int(self.unknown27)
+        result["unknown28"] = from_int(self.unknown28)
+        result["unknown29"] = from_int(self.unknown29)
+        result["unknown30"] = from_int(self.unknown30)
+        result["unknown31"] = from_int(self.unknown31)
+        result["unknown32"] = from_int(self.unknown32)
+        result["vp0_hide"] = from_int(self.vp0_hide)
+        result["vp1_hide"] = from_int(self.vp1_hide)
+        result["vp2_hide"] = from_int(self.vp2_hide)
+        result["vp3_hide"] = from_int(self.vp3_hide)
+        result["vreflect"] = from_int(self.vreflect)
         return result
 
 
-class LightDataV1381_67_09PCBody:
+class LightDataBodyV1381_67_09PC:
     def __init__(
         self,
         facing,
@@ -3845,11 +4378,11 @@ class LightDataV1381_67_09PCBody:
         local_collision_sphere_facing = from_list(
             from_float, obj.get("local_collision_sphere_facing")
         )
-        resource_datas_flags = ResourceDatasFlags.from_dict(
+        resource_datas_flags = ObjectDatasFlagsV1381_67_09PC.from_dict(
             obj.get("resource_datas_flags")
         )
         unused_vec = from_list(from_int, obj.get("unused_vec"))
-        return LightDataV1381_67_09PCBody(
+        return LightDataBodyV1381_67_09PC(
             facing,
             flags,
             local_collision_sphere,
@@ -3869,13 +4402,13 @@ class LightDataV1381_67_09PCBody:
             to_float, self.local_collision_sphere_facing
         )
         result["resource_datas_flags"] = to_class(
-            ResourceDatasFlags, self.resource_datas_flags
+            ObjectDatasFlagsV1381_67_09PC, self.resource_datas_flags
         )
         result["unused_vec"] = from_list(from_int, self.unused_vec)
         return result
 
 
-class LightDataV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndLightDataBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -3886,23 +4419,27 @@ class LightDataV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = LightDataV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = LightDataBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return LightDataV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndLightDataBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(LightDataV1381_67_09PCBody, self.body)
+        result["body"] = to_class(LightDataBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -3923,15 +4460,24 @@ class LightData:
     def from_dict(obj):
         assert isinstance(obj, dict)
         light_data_v1_06_63_02_pc = from_union(
-            [LightDataV106_63_02_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLightDataBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
             obj.get("LightDataV1_06_63_02PC"),
         )
         light_data_v1_291_03_06_pc = from_union(
-            [LightDataV1291_03_06_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLightDataBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
             obj.get("LightDataV1_291_03_06PC"),
         )
         light_data_v1_381_67_09_pc = from_union(
-            [LightDataV1381_67_09_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndLightDataBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
             obj.get("LightDataV1_381_67_09PC"),
         )
         return LightData(
@@ -3944,23 +4490,41 @@ class LightData:
         result = {}
         if self.light_data_v1_06_63_02_pc is not None:
             result["LightDataV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(LightDataV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLightDataBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.light_data_v1_06_63_02_pc,
             )
         if self.light_data_v1_291_03_06_pc is not None:
             result["LightDataV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(LightDataV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLightDataBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.light_data_v1_291_03_06_pc,
             )
         if self.light_data_v1_381_67_09_pc is not None:
             result["LightDataV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(LightDataV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndLightDataBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.light_data_v1_381_67_09_pc,
             )
         return result
 
 
-class AnimElement:
+class ClassRes:
     def __init__(self, crc32, id):
         self.crc32 = crc32
         self.id = id
@@ -3970,7 +4534,7 @@ class AnimElement:
         assert isinstance(obj, dict)
         crc32 = from_union([from_int, from_str], obj.get("crc32"))
         id = from_int(obj.get("id"))
-        return AnimElement(crc32, id)
+        return ClassRes(crc32, id)
 
     def to_dict(self):
         result = {}
@@ -3979,7 +4543,7 @@ class AnimElement:
         return result
 
 
-class CollisionBoxElement:
+class DynBox:
     def __init__(self, flags, matrix, name):
         self.flags = flags
         self.matrix = matrix
@@ -3991,7 +4555,7 @@ class CollisionBoxElement:
         flags = from_int(obj.get("flags"))
         matrix = from_list(lambda x: from_list(from_float, x), obj.get("matrix"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return CollisionBoxElement(flags, matrix, name)
+        return DynBox(flags, matrix, name)
 
     def to_dict(self):
         result = {}
@@ -4001,7 +4565,7 @@ class CollisionBoxElement:
         return result
 
 
-class Seg:
+class Segment:
     def __init__(self, direction, length, origin, pad):
         self.direction = direction
         self.length = length
@@ -4015,7 +4579,7 @@ class Seg:
         length = from_float(obj.get("length"))
         origin = from_list(from_float, obj.get("origin"))
         pad = from_float(obj.get("pad"))
-        return Seg(direction, length, origin, pad)
+        return Segment(direction, length, origin, pad)
 
     def to_dict(self):
         result = {}
@@ -4035,17 +4599,17 @@ class Cylindre:
     def from_dict(obj):
         assert isinstance(obj, dict)
         radius = from_float(obj.get("radius"))
-        seg = Seg.from_dict(obj.get("seg"))
+        seg = Segment.from_dict(obj.get("seg"))
         return Cylindre(radius, seg)
 
     def to_dict(self):
         result = {}
         result["radius"] = to_float(self.radius)
-        result["seg"] = to_class(Seg, self.seg)
+        result["seg"] = to_class(Segment, self.seg)
         return result
 
 
-class TentacledSchema:
+class CylindreCol:
     def __init__(self, cylindre, flag, name):
         self.cylindre = cylindre
         self.flag = flag
@@ -4057,7 +4621,7 @@ class TentacledSchema:
         cylindre = Cylindre.from_dict(obj.get("cylindre"))
         flag = from_int(obj.get("flag"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return TentacledSchema(cylindre, flag, name)
+        return CylindreCol(cylindre, flag, name)
 
     def to_dict(self):
         result = {}
@@ -4067,7 +4631,7 @@ class TentacledSchema:
         return result
 
 
-class StickySchema:
+class SphereColNode:
     def __init__(self, data):
         self.data = data
 
@@ -4075,7 +4639,7 @@ class StickySchema:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return StickySchema(data)
+        return SphereColNode(data)
 
     def to_dict(self):
         result = {}
@@ -4083,7 +4647,7 @@ class StickySchema:
         return result
 
 
-class SpheresColElement:
+class DynSphere:
     def __init__(self, flags, name, sphere):
         self.flags = flags
         self.name = name
@@ -4094,18 +4658,18 @@ class SpheresColElement:
         assert isinstance(obj, dict)
         flags = from_int(obj.get("flags"))
         name = from_union([from_int, from_str], obj.get("name"))
-        sphere = BSphere.from_dict(obj.get("sphere"))
-        return SpheresColElement(flags, name, sphere)
+        sphere = Sphere.from_dict(obj.get("sphere"))
+        return DynSphere(flags, name, sphere)
 
     def to_dict(self):
         result = {}
         result["flags"] = from_int(self.flags)
         result["name"] = from_union([from_int, from_str], self.name)
-        result["sphere"] = to_class(BSphere, self.sphere)
+        result["sphere"] = to_class(Sphere, self.sphere)
         return result
 
 
-class LodV106_63_02PCBody:
+class LodBodyV106_63_02PC:
     def __init__(
         self,
         anims,
@@ -4135,27 +4699,26 @@ class LodV106_63_02PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        anims = from_list(AnimElement.from_dict, obj.get("anims"))
+        anims = from_union(
+            [from_none, lambda x: from_list(ClassRes.from_dict, x)], obj.get("anims")
+        )
         b_sphere_col_node = from_union(
             [from_int, from_str], obj.get("b_sphere_col_node")
         )
-        box_cols = from_list(CollisionBoxElement.from_dict, obj.get("box_cols"))
+        box_cols = from_list(DynBox.from_dict, obj.get("box_cols"))
         close = from_list(from_float, obj.get("close"))
         component_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("component_names")
         )
-        cylindre_cols = from_list(TentacledSchema.from_dict, obj.get("cylindre_cols"))
+        cylindre_cols = from_list(CylindreCol.from_dict, obj.get("cylindre_cols"))
         shadow_name = from_union([from_int, from_str], obj.get("shadow_name"))
-        sounds = from_union(
-            [from_none, lambda x: from_list(AnimElement.from_dict, x)],
-            obj.get("sounds"),
-        )
+        sounds = from_list(ClassRes.from_dict, obj.get("sounds"))
         sphere_col_node = from_union(
-            [StickySchema.from_dict, from_none], obj.get("sphere_col_node")
+            [SphereColNode.from_dict, from_none], obj.get("sphere_col_node")
         )
-        spheres_cols = from_list(SpheresColElement.from_dict, obj.get("spheres_cols"))
+        spheres_cols = from_list(DynSphere.from_dict, obj.get("spheres_cols"))
         user_define_name = from_union([from_int, from_str], obj.get("user_define_name"))
-        return LodV106_63_02PCBody(
+        return LodBodyV106_63_02PC(
             anims,
             b_sphere_col_node,
             box_cols,
@@ -4171,32 +4734,30 @@ class LodV106_63_02PCBody:
 
     def to_dict(self):
         result = {}
-        result["anims"] = from_list(lambda x: to_class(AnimElement, x), self.anims)
+        if self.anims is not None:
+            result["anims"] = from_union(
+                [from_none, lambda x: from_list(lambda x: to_class(ClassRes, x), x)],
+                self.anims,
+            )
         result["b_sphere_col_node"] = from_union(
             [from_int, from_str], self.b_sphere_col_node
         )
-        result["box_cols"] = from_list(
-            lambda x: to_class(CollisionBoxElement, x), self.box_cols
-        )
+        result["box_cols"] = from_list(lambda x: to_class(DynBox, x), self.box_cols)
         result["close"] = from_list(to_float, self.close)
         result["component_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.component_names
         )
         result["cylindre_cols"] = from_list(
-            lambda x: to_class(TentacledSchema, x), self.cylindre_cols
+            lambda x: to_class(CylindreCol, x), self.cylindre_cols
         )
         result["shadow_name"] = from_union([from_int, from_str], self.shadow_name)
-        if self.sounds is not None:
-            result["sounds"] = from_union(
-                [from_none, lambda x: from_list(lambda x: to_class(AnimElement, x), x)],
-                self.sounds,
-            )
+        result["sounds"] = from_list(lambda x: to_class(ClassRes, x), self.sounds)
         if self.sphere_col_node is not None:
             result["sphere_col_node"] = from_union(
-                [lambda x: to_class(StickySchema, x), from_none], self.sphere_col_node
+                [lambda x: to_class(SphereColNode, x), from_none], self.sphere_col_node
             )
         result["spheres_cols"] = from_list(
-            lambda x: to_class(SpheresColElement, x), self.spheres_cols
+            lambda x: to_class(DynSphere, x), self.spheres_cols
         )
         result["user_define_name"] = from_union(
             [from_int, from_str], self.user_define_name
@@ -4204,7 +4765,7 @@ class LodV106_63_02PCBody:
         return result
 
 
-class LodV106_63_02_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndLodBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -4215,29 +4776,29 @@ class LodV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = LodV106_63_02PCBody.from_dict(obj.get("body"))
+        body = LodBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return LodV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV106_63_02PCAndLodBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(LodV106_63_02PCBody, self.body)
+        result["body"] = to_class(LodBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class InnerElement:
+class ClassRes2:
     def __init__(self, crc32, id):
         self.crc32 = crc32
         self.id = id
@@ -4247,7 +4808,7 @@ class InnerElement:
         assert isinstance(obj, dict)
         crc32 = from_union([from_int, from_str], obj.get("crc32"))
         id = from_int(obj.get("id"))
-        return InnerElement(crc32, id)
+        return ClassRes2(crc32, id)
 
     def to_dict(self):
         result = {}
@@ -4256,7 +4817,7 @@ class InnerElement:
         return result
 
 
-class Anims:
+class BffOptionForArrayOfClassResAndUint8:
     def __init__(self, inner):
         self.inner = inner
 
@@ -4264,25 +4825,21 @@ class Anims:
     def from_dict(obj):
         assert isinstance(obj, dict)
         inner = from_union(
-            [from_none, lambda x: from_list(InnerElement.from_dict, x)],
-            obj.get("inner"),
+            [from_none, lambda x: from_list(ClassRes2.from_dict, x)], obj.get("inner")
         )
-        return Anims(inner)
+        return BffOptionForArrayOfClassResAndUint8(inner)
 
     def to_dict(self):
         result = {}
         if self.inner is not None:
             result["inner"] = from_union(
-                [
-                    from_none,
-                    lambda x: from_list(lambda x: to_class(InnerElement, x), x),
-                ],
+                [from_none, lambda x: from_list(lambda x: to_class(ClassRes2, x), x)],
                 self.inner,
             )
         return result
 
 
-class CylinderColElement:
+class CylindreCol2:
     def __init__(self, cylindre, flag, name):
         self.cylindre = cylindre
         self.flag = flag
@@ -4294,7 +4851,7 @@ class CylinderColElement:
         cylindre = Cylindre.from_dict(obj.get("cylindre"))
         flag = from_int(obj.get("flag"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return CylinderColElement(cylindre, flag, name)
+        return CylindreCol2(cylindre, flag, name)
 
     def to_dict(self):
         result = {}
@@ -4304,7 +4861,7 @@ class CylinderColElement:
         return result
 
 
-class IndigoSchema:
+class SphereColNode2:
     def __init__(self, data):
         self.data = data
 
@@ -4312,7 +4869,7 @@ class IndigoSchema:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return IndigoSchema(data)
+        return SphereColNode2(data)
 
     def to_dict(self):
         result = {}
@@ -4320,7 +4877,7 @@ class IndigoSchema:
         return result
 
 
-class LodV1291_03_06PCBody:
+class LodBodyV1291_03_06PC:
     def __init__(
         self,
         anims,
@@ -4350,26 +4907,29 @@ class LodV1291_03_06PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        anims = from_union([Anims.from_dict, from_none], obj.get("anims"))
+        anims = from_union(
+            [BffOptionForArrayOfClassResAndUint8.from_dict, from_none], obj.get("anims")
+        )
         b_sphere_col_node = from_union(
             [from_int, from_str], obj.get("b_sphere_col_node")
         )
-        box_cols = from_list(CollisionBoxElement.from_dict, obj.get("box_cols"))
+        box_cols = from_list(DynBox.from_dict, obj.get("box_cols"))
         close = from_list(from_float, obj.get("close"))
         component_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("component_names")
         )
-        cylinder_cols = from_list(
-            CylinderColElement.from_dict, obj.get("cylinder_cols")
-        )
+        cylinder_cols = from_list(CylindreCol2.from_dict, obj.get("cylinder_cols"))
         shadow_name = from_union([from_int, from_str], obj.get("shadow_name"))
-        sounds = from_union([Anims.from_dict, from_none], obj.get("sounds"))
-        sphere_col_node = from_union(
-            [IndigoSchema.from_dict, from_none], obj.get("sphere_col_node")
+        sounds = from_union(
+            [BffOptionForArrayOfClassResAndUint8.from_dict, from_none],
+            obj.get("sounds"),
         )
-        sphere_cols = from_list(SpheresColElement.from_dict, obj.get("sphere_cols"))
+        sphere_col_node = from_union(
+            [SphereColNode2.from_dict, from_none], obj.get("sphere_col_node")
+        )
+        sphere_cols = from_list(DynSphere.from_dict, obj.get("sphere_cols"))
         user_define_name = from_union([from_int, from_str], obj.get("user_define_name"))
-        return LodV1291_03_06PCBody(
+        return LodBodyV1291_03_06PC(
             anims,
             b_sphere_col_node,
             box_cols,
@@ -4387,32 +4947,32 @@ class LodV1291_03_06PCBody:
         result = {}
         if self.anims is not None:
             result["anims"] = from_union(
-                [lambda x: to_class(Anims, x), from_none], self.anims
+                [lambda x: to_class(BffOptionForArrayOfClassResAndUint8, x), from_none],
+                self.anims,
             )
         result["b_sphere_col_node"] = from_union(
             [from_int, from_str], self.b_sphere_col_node
         )
-        result["box_cols"] = from_list(
-            lambda x: to_class(CollisionBoxElement, x), self.box_cols
-        )
+        result["box_cols"] = from_list(lambda x: to_class(DynBox, x), self.box_cols)
         result["close"] = from_list(to_float, self.close)
         result["component_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.component_names
         )
         result["cylinder_cols"] = from_list(
-            lambda x: to_class(CylinderColElement, x), self.cylinder_cols
+            lambda x: to_class(CylindreCol2, x), self.cylinder_cols
         )
         result["shadow_name"] = from_union([from_int, from_str], self.shadow_name)
         if self.sounds is not None:
             result["sounds"] = from_union(
-                [lambda x: to_class(Anims, x), from_none], self.sounds
+                [lambda x: to_class(BffOptionForArrayOfClassResAndUint8, x), from_none],
+                self.sounds,
             )
         if self.sphere_col_node is not None:
             result["sphere_col_node"] = from_union(
-                [lambda x: to_class(IndigoSchema, x), from_none], self.sphere_col_node
+                [lambda x: to_class(SphereColNode2, x), from_none], self.sphere_col_node
             )
         result["sphere_cols"] = from_list(
-            lambda x: to_class(SpheresColElement, x), self.sphere_cols
+            lambda x: to_class(DynSphere, x), self.sphere_cols
         )
         result["user_define_name"] = from_union(
             [from_int, from_str], self.user_define_name
@@ -4420,7 +4980,7 @@ class LodV1291_03_06PCBody:
         return result
 
 
-class LodV1291_03_06_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndLodBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -4431,45 +4991,29 @@ class LodV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = LodV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = LodBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return LodV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV106_63_02PCAndLodBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(LodV1291_03_06PCBody, self.body)
+        result["body"] = to_class(LodBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class AnimationEntriesInner:
-    def __init__(
-        self,
-    ):
-        pass
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        return AnimationEntriesInner()
-
-    def to_dict(self):
-        result = {}
-        return result
-
-
-class AnimationEntries:
+class BffOptionForMapOfNameAndUint32:
     def __init__(self, inner):
         self.inner = inner
 
@@ -4477,20 +5021,30 @@ class AnimationEntries:
     def from_dict(obj):
         assert isinstance(obj, dict)
         inner = from_union(
-            [from_none, AnimationEntriesInner.from_dict], obj.get("inner")
+            [
+                from_none,
+                lambda x: from_dict(lambda x: from_union([from_int, from_str], x), x),
+            ],
+            obj.get("inner"),
         )
-        return AnimationEntries(inner)
+        return BffOptionForMapOfNameAndUint32(inner)
 
     def to_dict(self):
         result = {}
         if self.inner is not None:
             result["inner"] = from_union(
-                [from_none, lambda x: to_class(AnimationEntriesInner, x)], self.inner
+                [
+                    from_none,
+                    lambda x: from_dict(
+                        lambda x: from_union([from_int, from_str], x), x
+                    ),
+                ],
+                self.inner,
             )
         return result
 
 
-class PurpleFade:
+class FadeDistances:
     def __init__(self, fade_close, x, y):
         self.fade_close = fade_close
         self.x = x
@@ -4502,7 +5056,7 @@ class PurpleFade:
         fade_close = from_float(obj.get("fade_close"))
         x = from_float(obj.get("x"))
         y = from_float(obj.get("y"))
-        return PurpleFade(fade_close, x, y)
+        return FadeDistances(fade_close, x, y)
 
     def to_dict(self):
         result = {}
@@ -4512,7 +5066,7 @@ class PurpleFade:
         return result
 
 
-class LodV1381_67_09PCBody:
+class LodBodyV1381_67_09PC:
     def __init__(
         self,
         animation_entries,
@@ -4537,25 +5091,23 @@ class LodV1381_67_09PCBody:
     def from_dict(obj):
         assert isinstance(obj, dict)
         animation_entries = from_union(
-            [AnimationEntries.from_dict, from_none], obj.get("animation_entries")
+            [BffOptionForMapOfNameAndUint32.from_dict, from_none],
+            obj.get("animation_entries"),
         )
-        collision_boxes = from_list(
-            CollisionBoxElement.from_dict, obj.get("collision_boxes")
-        )
-        collision_spheres = from_list(
-            SpheresColElement.from_dict, obj.get("collision_spheres")
-        )
-        fade = PurpleFade.from_dict(obj.get("fade"))
+        collision_boxes = from_list(DynBox.from_dict, obj.get("collision_boxes"))
+        collision_spheres = from_list(DynSphere.from_dict, obj.get("collision_spheres"))
+        fade = FadeDistances.from_dict(obj.get("fade"))
         skin_or_mesh_or_particles_names = from_list(
             lambda x: from_union([from_int, from_str], x),
             obj.get("skin_or_mesh_or_particles_names"),
         )
         sound_entries = from_union(
-            [AnimationEntries.from_dict, from_none], obj.get("sound_entries")
+            [BffOptionForMapOfNameAndUint32.from_dict, from_none],
+            obj.get("sound_entries"),
         )
         user_define_name = from_union([from_int, from_str], obj.get("user_define_name"))
         zero = from_int(obj.get("zero"))
-        return LodV1381_67_09PCBody(
+        return LodBodyV1381_67_09PC(
             animation_entries,
             collision_boxes,
             collision_spheres,
@@ -4570,23 +5122,24 @@ class LodV1381_67_09PCBody:
         result = {}
         if self.animation_entries is not None:
             result["animation_entries"] = from_union(
-                [lambda x: to_class(AnimationEntries, x), from_none],
+                [lambda x: to_class(BffOptionForMapOfNameAndUint32, x), from_none],
                 self.animation_entries,
             )
         result["collision_boxes"] = from_list(
-            lambda x: to_class(CollisionBoxElement, x), self.collision_boxes
+            lambda x: to_class(DynBox, x), self.collision_boxes
         )
         result["collision_spheres"] = from_list(
-            lambda x: to_class(SpheresColElement, x), self.collision_spheres
+            lambda x: to_class(DynSphere, x), self.collision_spheres
         )
-        result["fade"] = to_class(PurpleFade, self.fade)
+        result["fade"] = to_class(FadeDistances, self.fade)
         result["skin_or_mesh_or_particles_names"] = from_list(
             lambda x: from_union([from_int, from_str], x),
             self.skin_or_mesh_or_particles_names,
         )
         if self.sound_entries is not None:
             result["sound_entries"] = from_union(
-                [lambda x: to_class(AnimationEntries, x), from_none], self.sound_entries
+                [lambda x: to_class(BffOptionForMapOfNameAndUint32, x), from_none],
+                self.sound_entries,
             )
         result["user_define_name"] = from_union(
             [from_int, from_str], self.user_define_name
@@ -4595,7 +5148,7 @@ class LodV1381_67_09PCBody:
         return result
 
 
-class LodV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndLodBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -4606,23 +5159,25 @@ class LodV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = LodV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = LodBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return LodV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV1381_67_09PCAndLodBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(LodV1381_67_09PCBody, self.body)
+        result["body"] = to_class(LodBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -4638,13 +5193,25 @@ class Lod:
     def from_dict(obj):
         assert isinstance(obj, dict)
         lod_v1_06_63_02_pc = from_union(
-            [LodV106_63_02_PC.from_dict, from_none], obj.get("LodV1_06_63_02PC")
+            [
+                TrivialClassForObjectLinkHeaderV106_63_02PCAndLodBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("LodV1_06_63_02PC"),
         )
         lod_v1_291_03_06_pc = from_union(
-            [LodV1291_03_06_PC.from_dict, from_none], obj.get("LodV1_291_03_06PC")
+            [
+                TrivialClassForObjectLinkHeaderV106_63_02PCAndLodBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
+            obj.get("LodV1_291_03_06PC"),
         )
         lod_v1_381_67_09_pc = from_union(
-            [LodV1381_67_09_PC.from_dict, from_none], obj.get("LodV1_381_67_09PC")
+            [
+                TrivialClassForObjectLinkHeaderV1381_67_09PCAndLodBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("LodV1_381_67_09PC"),
         )
         return Lod(lod_v1_06_63_02_pc, lod_v1_291_03_06_pc, lod_v1_381_67_09_pc)
 
@@ -4652,23 +5219,41 @@ class Lod:
         result = {}
         if self.lod_v1_06_63_02_pc is not None:
             result["LodV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(LodV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV106_63_02PCAndLodBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.lod_v1_06_63_02_pc,
             )
         if self.lod_v1_291_03_06_pc is not None:
             result["LodV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(LodV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV106_63_02PCAndLodBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.lod_v1_291_03_06_pc,
             )
         if self.lod_v1_381_67_09_pc is not None:
             result["LodV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(LodV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV1381_67_09PCAndLodBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.lod_v1_381_67_09_pc,
             )
         return result
 
 
-class UnkStructElement:
+class UnkStruct:
     def __init__(self, unk1_name, unk2_name, unk3_name, unks):
         self.unk1_name = unk1_name
         self.unk2_name = unk2_name
@@ -4682,7 +5267,7 @@ class UnkStructElement:
         unk2_name = from_union([from_int, from_str], obj.get("unk2_name"))
         unk3_name = from_union([from_int, from_str], obj.get("unk3_name"))
         unks = from_list(from_int, obj.get("unks"))
-        return UnkStructElement(unk1_name, unk2_name, unk3_name, unks)
+        return UnkStruct(unk1_name, unk2_name, unk3_name, unks)
 
     def to_dict(self):
         result = {}
@@ -4693,7 +5278,7 @@ class UnkStructElement:
         return result
 
 
-class ActorDataInner:
+class ActorData:
     def __init__(
         self,
         flag,
@@ -4731,10 +5316,10 @@ class ActorDataInner:
         unk_bytes1 = from_list(from_int, obj.get("unk_bytes1"))
         unk_floats1 = from_list(from_float, obj.get("unk_floats1"))
         unk_name = from_union([from_int, from_str], obj.get("unk_name"))
-        unk_structs = from_list(UnkStructElement.from_dict, obj.get("unk_structs"))
+        unk_structs = from_list(UnkStruct.from_dict, obj.get("unk_structs"))
         unk_uints1 = from_list(from_int, obj.get("unk_uints1"))
         zero1 = from_int(obj.get("zero1"))
-        return ActorDataInner(
+        return ActorData(
             flag,
             placeholder1,
             placeholder2,
@@ -4759,33 +5344,33 @@ class ActorDataInner:
         result["unk_floats1"] = from_list(to_float, self.unk_floats1)
         result["unk_name"] = from_union([from_int, from_str], self.unk_name)
         result["unk_structs"] = from_list(
-            lambda x: to_class(UnkStructElement, x), self.unk_structs
+            lambda x: to_class(UnkStruct, x), self.unk_structs
         )
         result["unk_uints1"] = from_list(from_int, self.unk_uints1)
         result["zero1"] = from_int(self.zero1)
         return result
 
 
-class ActorData:
+class BffOptionForActorDataAndUint8:
     def __init__(self, inner):
         self.inner = inner
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        inner = from_union([ActorDataInner.from_dict, from_none], obj.get("inner"))
-        return ActorData(inner)
+        inner = from_union([ActorData.from_dict, from_none], obj.get("inner"))
+        return BffOptionForActorDataAndUint8(inner)
 
     def to_dict(self):
         result = {}
         if self.inner is not None:
             result["inner"] = from_union(
-                [lambda x: to_class(ActorDataInner, x), from_none], self.inner
+                [lambda x: to_class(ActorData, x), from_none], self.inner
             )
         return result
 
 
-class TentacledObjectDatas:
+class ObjectDatas3:
     def __init__(self, color, flags):
         self.color = color
         self.flags = flags
@@ -4795,7 +5380,7 @@ class TentacledObjectDatas:
         assert isinstance(obj, dict)
         color = from_list(from_float, obj.get("color"))
         flags = from_int(obj.get("flags"))
-        return TentacledObjectDatas(color, flags)
+        return ObjectDatas3(color, flags)
 
     def to_dict(self):
         result = {}
@@ -4804,7 +5389,7 @@ class TentacledObjectDatas:
         return result
 
 
-class LodDataV106_63_02PCBody:
+class LodDataBodyV106_63_02PC:
     def __init__(
         self, actor_data, final_skel_name, mesh_data_or_skelcrc32_s, object_datas
     ):
@@ -4816,14 +5401,16 @@ class LodDataV106_63_02PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        actor_data = from_union([ActorData.from_dict, from_none], obj.get("actor_data"))
+        actor_data = from_union(
+            [BffOptionForActorDataAndUint8.from_dict, from_none], obj.get("actor_data")
+        )
         final_skel_name = from_union([from_int, from_str], obj.get("final_skel_name"))
         mesh_data_or_skelcrc32_s = from_list(
             lambda x: from_union([from_int, from_str], x),
             obj.get("mesh_data_or_skelcrc32s"),
         )
-        object_datas = TentacledObjectDatas.from_dict(obj.get("object_datas"))
-        return LodDataV106_63_02PCBody(
+        object_datas = ObjectDatas3.from_dict(obj.get("object_datas"))
+        return LodDataBodyV106_63_02PC(
             actor_data, final_skel_name, mesh_data_or_skelcrc32_s, object_datas
         )
 
@@ -4831,7 +5418,8 @@ class LodDataV106_63_02PCBody:
         result = {}
         if self.actor_data is not None:
             result["actor_data"] = from_union(
-                [lambda x: to_class(ActorData, x), from_none], self.actor_data
+                [lambda x: to_class(BffOptionForActorDataAndUint8, x), from_none],
+                self.actor_data,
             )
         result["final_skel_name"] = from_union(
             [from_int, from_str], self.final_skel_name
@@ -4839,11 +5427,11 @@ class LodDataV106_63_02PCBody:
         result["mesh_data_or_skelcrc32s"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.mesh_data_or_skelcrc32_s
         )
-        result["object_datas"] = to_class(TentacledObjectDatas, self.object_datas)
+        result["object_datas"] = to_class(ObjectDatas3, self.object_datas)
         return result
 
 
-class LodDataV106_63_02_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLodDataBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -4854,29 +5442,33 @@ class LodDataV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = LodDataV106_63_02PCBody.from_dict(obj.get("body"))
+        body = LodDataBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return LodDataV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLodDataBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(LodDataV106_63_02PCBody, self.body)
+        result["body"] = to_class(LodDataBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class IndecentSchema:
+class Extended:
     def __init__(
         self,
         flags,
@@ -4911,7 +5503,7 @@ class IndecentSchema:
         zero1_s = from_list(from_int, obj.get("zero1s"))
         zero2_s = from_list(from_int, obj.get("zero2s"))
         zero3_s = from_list(from_int, obj.get("zero3s"))
-        return IndecentSchema(
+        return Extended(
             flags, padding, scale, unknown0, unknown1, zero0, zero1_s, zero2_s, zero3_s
         )
 
@@ -4929,26 +5521,26 @@ class IndecentSchema:
         return result
 
 
-class PurpleExtended:
+class BffOptionForExtendedAndUint8:
     def __init__(self, inner):
         self.inner = inner
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        inner = from_union([IndecentSchema.from_dict, from_none], obj.get("inner"))
-        return PurpleExtended(inner)
+        inner = from_union([Extended.from_dict, from_none], obj.get("inner"))
+        return BffOptionForExtendedAndUint8(inner)
 
     def to_dict(self):
         result = {}
         if self.inner is not None:
             result["inner"] = from_union(
-                [lambda x: to_class(IndecentSchema, x), from_none], self.inner
+                [lambda x: to_class(Extended, x), from_none], self.inner
             )
         return result
 
 
-class LodDataV1291_03_06PCBody:
+class LodDataBodyV1291_03_06PC:
     def __init__(self, extended, flags, mesh_data_names, zero):
         self.extended = extended
         self.flags = flags
@@ -4959,20 +5551,21 @@ class LodDataV1291_03_06PCBody:
     def from_dict(obj):
         assert isinstance(obj, dict)
         extended = from_union(
-            [PurpleExtended.from_dict, from_none], obj.get("extended")
+            [BffOptionForExtendedAndUint8.from_dict, from_none], obj.get("extended")
         )
         flags = from_int(obj.get("flags"))
         mesh_data_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("mesh_data_names")
         )
         zero = from_int(obj.get("zero"))
-        return LodDataV1291_03_06PCBody(extended, flags, mesh_data_names, zero)
+        return LodDataBodyV1291_03_06PC(extended, flags, mesh_data_names, zero)
 
     def to_dict(self):
         result = {}
         if self.extended is not None:
             result["extended"] = from_union(
-                [lambda x: to_class(PurpleExtended, x), from_none], self.extended
+                [lambda x: to_class(BffOptionForExtendedAndUint8, x), from_none],
+                self.extended,
             )
         result["flags"] = from_int(self.flags)
         result["mesh_data_names"] = from_list(
@@ -4982,7 +5575,7 @@ class LodDataV1291_03_06PCBody:
         return result
 
 
-class LodDataV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLodDataBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -4993,29 +5586,33 @@ class LodDataV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = LodDataV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = LodDataBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return LodDataV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLodDataBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(LodDataV1291_03_06PCBody, self.body)
+        result["body"] = to_class(LodDataBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class HilariousSchema:
+class Extended2:
     def __init__(
         self,
         equals0_x004000000,
@@ -5071,7 +5668,7 @@ class HilariousSchema:
         zero7 = from_int(obj.get("zero7"))
         zero8 = from_int(obj.get("zero8"))
         zero9 = from_int(obj.get("zero9"))
-        return HilariousSchema(
+        return Extended2(
             equals0_x004000000,
             equals0_x004000001,
             flags1,
@@ -5111,26 +5708,26 @@ class HilariousSchema:
         return result
 
 
-class FluffyExtended:
+class BffOptionForExtendedAndUint82:
     def __init__(self, inner):
         self.inner = inner
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        inner = from_union([HilariousSchema.from_dict, from_none], obj.get("inner"))
-        return FluffyExtended(inner)
+        inner = from_union([Extended2.from_dict, from_none], obj.get("inner"))
+        return BffOptionForExtendedAndUint82(inner)
 
     def to_dict(self):
         result = {}
         if self.inner is not None:
             result["inner"] = from_union(
-                [lambda x: to_class(HilariousSchema, x), from_none], self.inner
+                [lambda x: to_class(Extended2, x), from_none], self.inner
             )
         return result
 
 
-class LodDataV1381_67_09PCBody:
+class LodDataBodyV1381_67_09PC:
     def __init__(self, extended, flags, mesh_data_names, zero):
         self.extended = extended
         self.flags = flags
@@ -5141,22 +5738,23 @@ class LodDataV1381_67_09PCBody:
     def from_dict(obj):
         assert isinstance(obj, dict)
         extended = from_union(
-            [FluffyExtended.from_dict, from_none], obj.get("extended")
+            [BffOptionForExtendedAndUint82.from_dict, from_none], obj.get("extended")
         )
-        flags = ResourceDatasFlags.from_dict(obj.get("flags"))
+        flags = ObjectDatasFlagsV1381_67_09PC.from_dict(obj.get("flags"))
         mesh_data_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("mesh_data_names")
         )
         zero = from_int(obj.get("zero"))
-        return LodDataV1381_67_09PCBody(extended, flags, mesh_data_names, zero)
+        return LodDataBodyV1381_67_09PC(extended, flags, mesh_data_names, zero)
 
     def to_dict(self):
         result = {}
         if self.extended is not None:
             result["extended"] = from_union(
-                [lambda x: to_class(FluffyExtended, x), from_none], self.extended
+                [lambda x: to_class(BffOptionForExtendedAndUint82, x), from_none],
+                self.extended,
             )
-        result["flags"] = to_class(ResourceDatasFlags, self.flags)
+        result["flags"] = to_class(ObjectDatasFlagsV1381_67_09PC, self.flags)
         result["mesh_data_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.mesh_data_names
         )
@@ -5164,7 +5762,7 @@ class LodDataV1381_67_09PCBody:
         return result
 
 
-class LodDataV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndLodDataBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -5175,23 +5773,27 @@ class LodDataV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = LodDataV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = LodDataBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return LodDataV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndLodDataBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(LodDataV1381_67_09PCBody, self.body)
+        result["body"] = to_class(LodDataBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -5212,14 +5814,24 @@ class LodData:
     def from_dict(obj):
         assert isinstance(obj, dict)
         lod_data_v1_06_63_02_pc = from_union(
-            [LodDataV106_63_02_PC.from_dict, from_none], obj.get("LodDataV1_06_63_02PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLodDataBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("LodDataV1_06_63_02PC"),
         )
         lod_data_v1_291_03_06_pc = from_union(
-            [LodDataV1291_03_06_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLodDataBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
             obj.get("LodDataV1_291_03_06PC"),
         )
         lod_data_v1_381_67_09_pc = from_union(
-            [LodDataV1381_67_09_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndLodDataBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
             obj.get("LodDataV1_381_67_09PC"),
         )
         return LodData(
@@ -5230,23 +5842,41 @@ class LodData:
         result = {}
         if self.lod_data_v1_06_63_02_pc is not None:
             result["LodDataV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(LodDataV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLodDataBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.lod_data_v1_06_63_02_pc,
             )
         if self.lod_data_v1_291_03_06_pc is not None:
             result["LodDataV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(LodDataV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndLodDataBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.lod_data_v1_291_03_06_pc,
             )
         if self.lod_data_v1_381_67_09_pc is not None:
             result["LodDataV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(LodDataV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndLodDataBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.lod_data_v1_381_67_09_pc,
             )
         return result
 
 
-class MaterialV106_63_02PCBody:
+class MaterialBodyV106_63_02PC:
     def __init__(
         self,
         cdcdcdcd,
@@ -5303,7 +5933,7 @@ class MaterialV106_63_02PCBody:
         uv_transform_matrix = from_list(
             lambda x: from_list(from_float, x), obj.get("uv_transform_matrix")
         )
-        return MaterialV106_63_02PCBody(
+        return MaterialBodyV106_63_02PC(
             cdcdcdcd,
             collision_flag,
             diffuse,
@@ -5345,7 +5975,7 @@ class MaterialV106_63_02PCBody:
         return result
 
 
-class MaterialV106_63_02_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -5356,30 +5986,49 @@ class MaterialV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = MaterialV106_63_02PCBody.from_dict(obj.get("body"))
+        body = MaterialBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return MaterialV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(MaterialV106_63_02PCBody, self.body)
+        result["body"] = to_class(MaterialBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class MaterialV1291_03_06PCBody:
-    def __init__(self, cdcdcdcd, diffuse, diffuse_rotation, diffuse_scale, diffuse_translation, emission, flags, params, specular, specular_pow, texture_flag, textures, uv_transform_matrix):
+class MaterialBodyV1291_03_06PC:
+    def __init__(
+        self,
+        cdcdcdcd,
+        diffuse,
+        diffuse_rotation,
+        diffuse_scale,
+        diffuse_translation,
+        emission,
+        flags,
+        params,
+        specular,
+        specular_pow,
+        texture_flag,
+        textures,
+        uv_transform_matrix,
+    ):
         self.cdcdcdcd = cdcdcdcd
         self.diffuse = diffuse
         self.diffuse_rotation = diffuse_rotation
@@ -5408,9 +6057,27 @@ class MaterialV1291_03_06PCBody:
         specular = from_list(from_float, obj.get("specular"))
         specular_pow = from_float(obj.get("specular_pow"))
         texture_flag = from_int(obj.get("texture_flag"))
-        textures = from_list(lambda x: from_union([from_int, from_str], x), obj.get("textures"))
-        uv_transform_matrix = from_list(lambda x: from_list(from_float, x), obj.get("uv_transform_matrix"))
-        return MaterialV1291_03_06PCBody(cdcdcdcd, diffuse, diffuse_rotation, diffuse_scale, diffuse_translation, emission, flags, params, specular, specular_pow, texture_flag, textures, uv_transform_matrix)
+        textures = from_list(
+            lambda x: from_union([from_int, from_str], x), obj.get("textures")
+        )
+        uv_transform_matrix = from_list(
+            lambda x: from_list(from_float, x), obj.get("uv_transform_matrix")
+        )
+        return MaterialBodyV1291_03_06PC(
+            cdcdcdcd,
+            diffuse,
+            diffuse_rotation,
+            diffuse_scale,
+            diffuse_translation,
+            emission,
+            flags,
+            params,
+            specular,
+            specular_pow,
+            texture_flag,
+            textures,
+            uv_transform_matrix,
+        )
 
     def to_dict(self):
         result = {}
@@ -5421,16 +6088,20 @@ class MaterialV1291_03_06PCBody:
         result["diffuse_translation"] = from_list(to_float, self.diffuse_translation)
         result["emission"] = from_list(to_float, self.emission)
         result["flags"] = from_list(from_int, self.flags)
-        result["params"] = from_list(to_float, self.params)
+        result["params"] = from_list(from_int, self.params)
         result["specular"] = from_list(to_float, self.specular)
         result["specular_pow"] = to_float(self.specular_pow)
         result["texture_flag"] = from_int(self.texture_flag)
-        result["textures"] = from_list(lambda x: from_union([from_int, from_str], x), self.textures)
-        result["uv_transform_matrix"] = from_list(lambda x: from_list(to_float, x), self.uv_transform_matrix)
+        result["textures"] = from_list(
+            lambda x: from_union([from_int, from_str], x), self.textures
+        )
+        result["uv_transform_matrix"] = from_list(
+            lambda x: from_list(to_float, x), self.uv_transform_matrix
+        )
         return result
 
 
-class MaterialV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -5441,61 +6112,116 @@ class MaterialV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = MaterialV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = MaterialBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return MaterialV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(MaterialV1291_03_06PCBody, self.body)
+        result["body"] = to_class(MaterialBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class EnabledBitmaps:
-    def __init__(self, value):
-        self.value = value
+class MaterialEnabledBitmaps:
+    def __init__(
+        self,
+        add_normal_local,
+        diffuse,
+        dirt,
+        normal,
+        normal_local,
+        occlusion,
+        specular,
+        unused0,
+        unused1,
+    ):
+        self.add_normal_local = add_normal_local
+        self.diffuse = diffuse
+        self.dirt = dirt
+        self.normal = normal
+        self.normal_local = normal_local
+        self.occlusion = occlusion
+        self.specular = specular
+        self.unused0 = unused0
+        self.unused1 = unused1
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return EnabledBitmaps(value)
+        add_normal_local = from_int(obj.get("add_normal_local"))
+        diffuse = from_int(obj.get("diffuse"))
+        dirt = from_int(obj.get("dirt"))
+        normal = from_int(obj.get("normal"))
+        normal_local = from_int(obj.get("normal_local"))
+        occlusion = from_int(obj.get("occlusion"))
+        specular = from_int(obj.get("specular"))
+        unused0 = from_int(obj.get("unused0"))
+        unused1 = from_int(obj.get("unused1"))
+        return MaterialEnabledBitmaps(
+            add_normal_local,
+            diffuse,
+            dirt,
+            normal,
+            normal_local,
+            occlusion,
+            specular,
+            unused0,
+            unused1,
+        )
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["add_normal_local"] = from_int(self.add_normal_local)
+        result["diffuse"] = from_int(self.diffuse)
+        result["dirt"] = from_int(self.dirt)
+        result["normal"] = from_int(self.normal)
+        result["normal_local"] = from_int(self.normal_local)
+        result["occlusion"] = from_int(self.occlusion)
+        result["specular"] = from_int(self.specular)
+        result["unused0"] = from_int(self.unused0)
+        result["unused1"] = from_int(self.unused1)
         return result
 
 
-class RdrFlag:
-    def __init__(self, value):
-        self.value = value
+class MaterialRdrFlags:
+    def __init__(self, padding0, padding1, transparency):
+        self.padding0 = padding0
+        self.padding1 = padding1
+        self.transparency = transparency
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return RdrFlag(value)
+        padding0 = from_int(obj.get("padding0"))
+        padding1 = from_int(obj.get("padding1"))
+        transparency = from_int(obj.get("transparency"))
+        return MaterialRdrFlags(padding0, padding1, transparency)
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["padding0"] = from_int(self.padding0)
+        result["padding1"] = from_int(self.padding1)
+        result["transparency"] = from_int(self.transparency)
         return result
 
 
-class MaterialV1381_67_09PCBody:
+class MaterialBodyV1381_67_09PC:
     def __init__(
         self,
         alpha_ref,
@@ -5567,11 +6293,11 @@ class MaterialV1381_67_09PCBody:
         bump_map_factor = from_float(obj.get("bump_map_factor"))
         diffuse = from_list(from_float, obj.get("diffuse"))
         emission = from_list(from_float, obj.get("emission"))
-        enabled_bitmaps = EnabledBitmaps.from_dict(obj.get("enabled_bitmaps"))
+        enabled_bitmaps = MaterialEnabledBitmaps.from_dict(obj.get("enabled_bitmaps"))
         env_map_factor = from_float(obj.get("env_map_factor"))
         flags1 = from_int(obj.get("flags1"))
         param4 = from_float(obj.get("param4"))
-        rdr_flag = RdrFlag.from_dict(obj.get("rdr_flag"))
+        rdr_flag = MaterialRdrFlags.from_dict(obj.get("rdr_flag"))
         s_add_normal_local_bitmap_name1 = from_union(
             [from_int, from_str], obj.get("s_add_normal_local_bitmap_name1")
         )
@@ -5613,7 +6339,7 @@ class MaterialV1381_67_09PCBody:
         unused_bitmap_name1 = from_union(
             [from_int, from_str], obj.get("unused_bitmap_name1")
         )
-        return MaterialV1381_67_09PCBody(
+        return MaterialBodyV1381_67_09PC(
             alpha_ref,
             bump_map_factor,
             diffuse,
@@ -5652,11 +6378,13 @@ class MaterialV1381_67_09PCBody:
         result["bump_map_factor"] = to_float(self.bump_map_factor)
         result["diffuse"] = from_list(to_float, self.diffuse)
         result["emission"] = from_list(to_float, self.emission)
-        result["enabled_bitmaps"] = to_class(EnabledBitmaps, self.enabled_bitmaps)
+        result["enabled_bitmaps"] = to_class(
+            MaterialEnabledBitmaps, self.enabled_bitmaps
+        )
         result["env_map_factor"] = to_float(self.env_map_factor)
         result["flags1"] = from_int(self.flags1)
         result["param4"] = to_float(self.param4)
-        result["rdr_flag"] = to_class(RdrFlag, self.rdr_flag)
+        result["rdr_flag"] = to_class(MaterialRdrFlags, self.rdr_flag)
         result["s_add_normal_local_bitmap_name1"] = from_union(
             [from_int, from_str], self.s_add_normal_local_bitmap_name1
         )
@@ -5703,7 +6431,7 @@ class MaterialV1381_67_09PCBody:
         return result
 
 
-class MaterialV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -5714,23 +6442,27 @@ class MaterialV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = MaterialV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = MaterialBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return MaterialV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(MaterialV1381_67_09PCBody, self.body)
+        result["body"] = to_class(MaterialBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -5751,15 +6483,24 @@ class Material:
     def from_dict(obj):
         assert isinstance(obj, dict)
         material_v1_06_63_02_pc = from_union(
-            [MaterialV106_63_02_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
             obj.get("MaterialV1_06_63_02PC"),
         )
         material_v1_291_03_06_pc = from_union(
-            [MaterialV1291_03_06_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
             obj.get("MaterialV1_291_03_06PC"),
         )
         material_v1_381_67_09_pc = from_union(
-            [MaterialV1381_67_09_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
             obj.get("MaterialV1_381_67_09PC"),
         )
         return Material(
@@ -5770,23 +6511,41 @@ class Material:
         result = {}
         if self.material_v1_06_63_02_pc is not None:
             result["MaterialV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(MaterialV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.material_v1_06_63_02_pc,
             )
         if self.material_v1_291_03_06_pc is not None:
             result["MaterialV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(MaterialV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.material_v1_291_03_06_pc,
             )
         if self.material_v1_381_67_09_pc is not None:
             result["MaterialV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(MaterialV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.material_v1_381_67_09_pc,
             )
         return result
 
 
-class AlphaKeyframerKeyframe:
+class KeyLinearTplForInt16:
     def __init__(self, time, value):
         self.time = time
         self.value = value
@@ -5796,7 +6555,7 @@ class AlphaKeyframerKeyframe:
         assert isinstance(obj, dict)
         time = from_float(obj.get("time"))
         value = from_int(obj.get("value"))
-        return AlphaKeyframerKeyframe(time, value)
+        return KeyLinearTplForInt16(time, value)
 
     def to_dict(self):
         result = {}
@@ -5805,7 +6564,7 @@ class AlphaKeyframerKeyframe:
         return result
 
 
-class AlphaKeyframer:
+class KeyframerTplForKeyLinearTplForInt16:
     def __init__(self, interpolation_type, keyframes):
         self.interpolation_type = interpolation_type
         self.keyframes = keyframes
@@ -5813,22 +6572,22 @@ class AlphaKeyframer:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        interpolation_type = InterpolationType(obj.get("interpolation_type"))
-        keyframes = from_list(AlphaKeyframerKeyframe.from_dict, obj.get("keyframes"))
-        return AlphaKeyframer(interpolation_type, keyframes)
+        interpolation_type = KeyframerInterpolationType(obj.get("interpolation_type"))
+        keyframes = from_list(KeyLinearTplForInt16.from_dict, obj.get("keyframes"))
+        return KeyframerTplForKeyLinearTplForInt16(interpolation_type, keyframes)
 
     def to_dict(self):
         result = {}
         result["interpolation_type"] = to_enum(
-            InterpolationType, self.interpolation_type
+            KeyframerInterpolationType, self.interpolation_type
         )
         result["keyframes"] = from_list(
-            lambda x: to_class(AlphaKeyframerKeyframe, x), self.keyframes
+            lambda x: to_class(KeyLinearTplForInt16, x), self.keyframes
         )
         return result
 
 
-class BitmapNameKeyframerKeyframe:
+class KeyLinearTplForName:
     def __init__(self, time, value):
         self.time = time
         self.value = value
@@ -5838,7 +6597,7 @@ class BitmapNameKeyframerKeyframe:
         assert isinstance(obj, dict)
         time = from_float(obj.get("time"))
         value = from_union([from_int, from_str], obj.get("value"))
-        return BitmapNameKeyframerKeyframe(time, value)
+        return KeyLinearTplForName(time, value)
 
     def to_dict(self):
         result = {}
@@ -5847,27 +6606,62 @@ class BitmapNameKeyframerKeyframe:
         return result
 
 
-class BitmapNameKeyframer:
+class KeyframerNoFlagsTplForKeyLinearTplForName:
     def __init__(self, keyframes):
         self.keyframes = keyframes
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        keyframes = from_list(
-            BitmapNameKeyframerKeyframe.from_dict, obj.get("keyframes")
-        )
-        return BitmapNameKeyframer(keyframes)
+        keyframes = from_list(KeyLinearTplForName.from_dict, obj.get("keyframes"))
+        return KeyframerNoFlagsTplForKeyLinearTplForName(keyframes)
 
     def to_dict(self):
         result = {}
         result["keyframes"] = from_list(
-            lambda x: to_class(BitmapNameKeyframerKeyframe, x), self.keyframes
+            lambda x: to_class(KeyLinearTplForName, x), self.keyframes
         )
         return result
 
 
-class DiffuseKeyframerKeyframe:
+class KeyLinearTplForUint32:
+    def __init__(self, time, value):
+        self.time = time
+        self.value = value
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        time = from_float(obj.get("time"))
+        value = from_int(obj.get("value"))
+        return KeyLinearTplForUint32(time, value)
+
+    def to_dict(self):
+        result = {}
+        result["time"] = to_float(self.time)
+        result["value"] = from_int(self.value)
+        return result
+
+
+class KeyframerNoFlagsTplForKeyLinearTplForUint32:
+    def __init__(self, keyframes):
+        self.keyframes = keyframes
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        keyframes = from_list(KeyLinearTplForUint32.from_dict, obj.get("keyframes"))
+        return KeyframerNoFlagsTplForKeyLinearTplForUint32(keyframes)
+
+    def to_dict(self):
+        result = {}
+        result["keyframes"] = from_list(
+            lambda x: to_class(KeyLinearTplForUint32, x), self.keyframes
+        )
+        return result
+
+
+class KeyLinearTplForArraySize3_OfFloat:
     def __init__(self, time, value):
         self.time = time
         self.value = value
@@ -5877,7 +6671,7 @@ class DiffuseKeyframerKeyframe:
         assert isinstance(obj, dict)
         time = from_float(obj.get("time"))
         value = from_list(from_float, obj.get("value"))
-        return DiffuseKeyframerKeyframe(time, value)
+        return KeyLinearTplForArraySize3_OfFloat(time, value)
 
     def to_dict(self):
         result = {}
@@ -5886,7 +6680,7 @@ class DiffuseKeyframerKeyframe:
         return result
 
 
-class DiffuseKeyframer:
+class KeyframerTplForKeyLinearTplForArraySize3_OfFloat:
     def __init__(self, interpolation_type, keyframes):
         self.interpolation_type = interpolation_type
         self.keyframes = keyframes
@@ -5894,22 +6688,26 @@ class DiffuseKeyframer:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        interpolation_type = InterpolationType(obj.get("interpolation_type"))
-        keyframes = from_list(DiffuseKeyframerKeyframe.from_dict, obj.get("keyframes"))
-        return DiffuseKeyframer(interpolation_type, keyframes)
+        interpolation_type = KeyframerInterpolationType(obj.get("interpolation_type"))
+        keyframes = from_list(
+            KeyLinearTplForArraySize3_OfFloat.from_dict, obj.get("keyframes")
+        )
+        return KeyframerTplForKeyLinearTplForArraySize3_OfFloat(
+            interpolation_type, keyframes
+        )
 
     def to_dict(self):
         result = {}
         result["interpolation_type"] = to_enum(
-            InterpolationType, self.interpolation_type
+            KeyframerInterpolationType, self.interpolation_type
         )
         result["keyframes"] = from_list(
-            lambda x: to_class(DiffuseKeyframerKeyframe, x), self.keyframes
+            lambda x: to_class(KeyLinearTplForArraySize3_OfFloat, x), self.keyframes
         )
         return result
 
 
-class BodyFlags:
+class MaterialAnimFlags:
     def __init__(self, value):
         self.value = value
 
@@ -5917,7 +6715,7 @@ class BodyFlags:
     def from_dict(obj):
         assert isinstance(obj, dict)
         value = from_int(obj.get("value"))
-        return BodyFlags(value)
+        return MaterialAnimFlags(value)
 
     def to_dict(self):
         result = {}
@@ -5925,7 +6723,7 @@ class BodyFlags:
         return result
 
 
-class ParamsKeyframer:
+class KeyframerTplForKeyLinearTplForArraySize4_OfFloat:
     def __init__(self, interpolation_type, keyframes):
         self.interpolation_type = interpolation_type
         self.keyframes = keyframes
@@ -5933,61 +6731,26 @@ class ParamsKeyframer:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        interpolation_type = InterpolationType(obj.get("interpolation_type"))
-        keyframes = from_list(KeyframerRotKeyframe.from_dict, obj.get("keyframes"))
-        return ParamsKeyframer(interpolation_type, keyframes)
+        interpolation_type = KeyframerInterpolationType(obj.get("interpolation_type"))
+        keyframes = from_list(
+            KeyLinearTplForArraySize4_OfFloat.from_dict, obj.get("keyframes")
+        )
+        return KeyframerTplForKeyLinearTplForArraySize4_OfFloat(
+            interpolation_type, keyframes
+        )
 
     def to_dict(self):
         result = {}
         result["interpolation_type"] = to_enum(
-            InterpolationType, self.interpolation_type
+            KeyframerInterpolationType, self.interpolation_type
         )
         result["keyframes"] = from_list(
-            lambda x: to_class(KeyframerRotKeyframe, x), self.keyframes
+            lambda x: to_class(KeyLinearTplForArraySize4_OfFloat, x), self.keyframes
         )
         return result
 
 
-class RenderFlagKeyframerKeyframe:
-    def __init__(self, time, value):
-        self.time = time
-        self.value = value
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        time = from_float(obj.get("time"))
-        value = from_int(obj.get("value"))
-        return RenderFlagKeyframerKeyframe(time, value)
-
-    def to_dict(self):
-        result = {}
-        result["time"] = to_float(self.time)
-        result["value"] = from_int(self.value)
-        return result
-
-
-class RenderFlagKeyframer:
-    def __init__(self, keyframes):
-        self.keyframes = keyframes
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        keyframes = from_list(
-            RenderFlagKeyframerKeyframe.from_dict, obj.get("keyframes")
-        )
-        return RenderFlagKeyframer(keyframes)
-
-    def to_dict(self):
-        result = {}
-        result["keyframes"] = from_list(
-            lambda x: to_class(RenderFlagKeyframerKeyframe, x), self.keyframes
-        )
-        return result
-
-
-class ScaleKeyframerKeyframe:
+class KeyLinearTplForArraySize2_OfFloat:
     def __init__(self, time, value):
         self.time = time
         self.value = value
@@ -5997,7 +6760,7 @@ class ScaleKeyframerKeyframe:
         assert isinstance(obj, dict)
         time = from_float(obj.get("time"))
         value = from_list(from_float, obj.get("value"))
-        return ScaleKeyframerKeyframe(time, value)
+        return KeyLinearTplForArraySize2_OfFloat(time, value)
 
     def to_dict(self):
         result = {}
@@ -6006,7 +6769,7 @@ class ScaleKeyframerKeyframe:
         return result
 
 
-class ScaleKeyframer:
+class KeyframerTplForKeyLinearTplForArraySize2_OfFloat:
     def __init__(self, interpolation_type, keyframes):
         self.interpolation_type = interpolation_type
         self.keyframes = keyframes
@@ -6014,22 +6777,268 @@ class ScaleKeyframer:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        interpolation_type = InterpolationType(obj.get("interpolation_type"))
-        keyframes = from_list(ScaleKeyframerKeyframe.from_dict, obj.get("keyframes"))
-        return ScaleKeyframer(interpolation_type, keyframes)
+        interpolation_type = KeyframerInterpolationType(obj.get("interpolation_type"))
+        keyframes = from_list(
+            KeyLinearTplForArraySize2_OfFloat.from_dict, obj.get("keyframes")
+        )
+        return KeyframerTplForKeyLinearTplForArraySize2_OfFloat(
+            interpolation_type, keyframes
+        )
 
     def to_dict(self):
         result = {}
         result["interpolation_type"] = to_enum(
-            InterpolationType, self.interpolation_type
+            KeyframerInterpolationType, self.interpolation_type
         )
         result["keyframes"] = from_list(
-            lambda x: to_class(ScaleKeyframerKeyframe, x), self.keyframes
+            lambda x: to_class(KeyLinearTplForArraySize2_OfFloat, x), self.keyframes
         )
         return result
 
 
-class MaterialAnimV1381_67_09PCBody:
+class MaterialAnimBodyV106_63_02PC:
+    def __init__(
+        self,
+        alpha_keyframer,
+        bitmap_name_keyframer,
+        collision_flag_keyframer,
+        diffuse_color_keyframer,
+        duration,
+        emissive_color_keyframer,
+        flags,
+        material_name,
+        object_flag_keyframer,
+        params_keyframer,
+        render_flag_keyframer,
+        rotation_keyframer,
+        scale_keyframer,
+        specular_keyframer,
+        translation_keyframer,
+    ):
+        self.alpha_keyframer = alpha_keyframer
+        self.bitmap_name_keyframer = bitmap_name_keyframer
+        self.collision_flag_keyframer = collision_flag_keyframer
+        self.diffuse_color_keyframer = diffuse_color_keyframer
+        self.duration = duration
+        self.emissive_color_keyframer = emissive_color_keyframer
+        self.flags = flags
+        self.material_name = material_name
+        self.object_flag_keyframer = object_flag_keyframer
+        self.params_keyframer = params_keyframer
+        self.render_flag_keyframer = render_flag_keyframer
+        self.rotation_keyframer = rotation_keyframer
+        self.scale_keyframer = scale_keyframer
+        self.specular_keyframer = specular_keyframer
+        self.translation_keyframer = translation_keyframer
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        alpha_keyframer = KeyframerTplForKeyLinearTplForInt16.from_dict(
+            obj.get("alpha_keyframer")
+        )
+        bitmap_name_keyframer = KeyframerNoFlagsTplForKeyLinearTplForName.from_dict(
+            obj.get("bitmap_name_keyframer")
+        )
+        collision_flag_keyframer = (
+            KeyframerNoFlagsTplForKeyLinearTplForUint32.from_dict(
+                obj.get("collision_flag_keyframer")
+            )
+        )
+        diffuse_color_keyframer = (
+            KeyframerTplForKeyLinearTplForArraySize3_OfFloat.from_dict(
+                obj.get("diffuse_color_keyframer")
+            )
+        )
+        duration = from_float(obj.get("duration"))
+        emissive_color_keyframer = (
+            KeyframerTplForKeyLinearTplForArraySize3_OfFloat.from_dict(
+                obj.get("emissive_color_keyframer")
+            )
+        )
+        flags = MaterialAnimFlags.from_dict(obj.get("flags"))
+        material_name = from_union([from_int, from_str], obj.get("material_name"))
+        object_flag_keyframer = KeyframerNoFlagsTplForKeyLinearTplForUint32.from_dict(
+            obj.get("object_flag_keyframer")
+        )
+        params_keyframer = KeyframerTplForKeyLinearTplForArraySize4_OfFloat.from_dict(
+            obj.get("params_keyframer")
+        )
+        render_flag_keyframer = KeyframerNoFlagsTplForKeyLinearTplForUint32.from_dict(
+            obj.get("render_flag_keyframer")
+        )
+        rotation_keyframer = KeyframerTplForKeyLinearTplForInt16.from_dict(
+            obj.get("rotation_keyframer")
+        )
+        scale_keyframer = KeyframerTplForKeyLinearTplForArraySize2_OfFloat.from_dict(
+            obj.get("scale_keyframer")
+        )
+        specular_keyframer = KeyframerTplForKeyLinearTplForArraySize4_OfFloat.from_dict(
+            obj.get("specular_keyframer")
+        )
+        translation_keyframer = (
+            KeyframerTplForKeyLinearTplForArraySize2_OfFloat.from_dict(
+                obj.get("translation_keyframer")
+            )
+        )
+        return MaterialAnimBodyV106_63_02PC(
+            alpha_keyframer,
+            bitmap_name_keyframer,
+            collision_flag_keyframer,
+            diffuse_color_keyframer,
+            duration,
+            emissive_color_keyframer,
+            flags,
+            material_name,
+            object_flag_keyframer,
+            params_keyframer,
+            render_flag_keyframer,
+            rotation_keyframer,
+            scale_keyframer,
+            specular_keyframer,
+            translation_keyframer,
+        )
+
+    def to_dict(self):
+        result = {}
+        result["alpha_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForInt16, self.alpha_keyframer
+        )
+        result["bitmap_name_keyframer"] = to_class(
+            KeyframerNoFlagsTplForKeyLinearTplForName, self.bitmap_name_keyframer
+        )
+        result["collision_flag_keyframer"] = to_class(
+            KeyframerNoFlagsTplForKeyLinearTplForUint32, self.collision_flag_keyframer
+        )
+        result["diffuse_color_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize3_OfFloat,
+            self.diffuse_color_keyframer,
+        )
+        result["duration"] = to_float(self.duration)
+        result["emissive_color_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize3_OfFloat,
+            self.emissive_color_keyframer,
+        )
+        result["flags"] = to_class(MaterialAnimFlags, self.flags)
+        result["material_name"] = from_union([from_int, from_str], self.material_name)
+        result["object_flag_keyframer"] = to_class(
+            KeyframerNoFlagsTplForKeyLinearTplForUint32, self.object_flag_keyframer
+        )
+        result["params_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize4_OfFloat, self.params_keyframer
+        )
+        result["render_flag_keyframer"] = to_class(
+            KeyframerNoFlagsTplForKeyLinearTplForUint32, self.render_flag_keyframer
+        )
+        result["rotation_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForInt16, self.rotation_keyframer
+        )
+        result["scale_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize2_OfFloat, self.scale_keyframer
+        )
+        result["specular_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize4_OfFloat, self.specular_keyframer
+        )
+        result["translation_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize2_OfFloat, self.translation_keyframer
+        )
+        return result
+
+
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialAnimBodyV106_63_02PC:
+    def __init__(self, body, class_name, link_header, link_name, name):
+        self.body = body
+        self.class_name = class_name
+        self.link_header = link_header
+        self.link_name = link_name
+        self.name = name
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        body = MaterialAnimBodyV106_63_02PC.from_dict(obj.get("body"))
+        class_name = from_union([from_int, from_str], obj.get("class_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
+        name = from_union([from_int, from_str], obj.get("name"))
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialAnimBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
+
+    def to_dict(self):
+        result = {}
+        result["body"] = to_class(MaterialAnimBodyV106_63_02PC, self.body)
+        result["class_name"] = from_union([from_int, from_str], self.class_name)
+        result["link_header"] = to_class(
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
+        )
+        if self.link_name is not None:
+            result["link_name"] = from_union(
+                [from_int, from_none, from_str], self.link_name
+            )
+        result["name"] = from_union([from_int, from_str], self.name)
+        return result
+
+
+class MaterialAnimFlags2:
+    def __init__(
+        self,
+        fl_mat_autostart,
+        fl_mat_neveragain,
+        fl_mat_play,
+        fl_mat_played,
+        fl_mat_playonce,
+        flag_5,
+        flag_6,
+        flag_7,
+    ):
+        self.fl_mat_autostart = fl_mat_autostart
+        self.fl_mat_neveragain = fl_mat_neveragain
+        self.fl_mat_play = fl_mat_play
+        self.fl_mat_played = fl_mat_played
+        self.fl_mat_playonce = fl_mat_playonce
+        self.flag_5 = flag_5
+        self.flag_6 = flag_6
+        self.flag_7 = flag_7
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        fl_mat_autostart = from_int(obj.get("fl_mat_autostart"))
+        fl_mat_neveragain = from_int(obj.get("fl_mat_neveragain"))
+        fl_mat_play = from_int(obj.get("fl_mat_play"))
+        fl_mat_played = from_int(obj.get("fl_mat_played"))
+        fl_mat_playonce = from_int(obj.get("fl_mat_playonce"))
+        flag_5 = from_int(obj.get("flag_5"))
+        flag_6 = from_int(obj.get("flag_6"))
+        flag_7 = from_int(obj.get("flag_7"))
+        return MaterialAnimFlags2(
+            fl_mat_autostart,
+            fl_mat_neveragain,
+            fl_mat_play,
+            fl_mat_played,
+            fl_mat_playonce,
+            flag_5,
+            flag_6,
+            flag_7,
+        )
+
+    def to_dict(self):
+        result = {}
+        result["fl_mat_autostart"] = from_int(self.fl_mat_autostart)
+        result["fl_mat_neveragain"] = from_int(self.fl_mat_neveragain)
+        result["fl_mat_play"] = from_int(self.fl_mat_play)
+        result["fl_mat_played"] = from_int(self.fl_mat_played)
+        result["fl_mat_playonce"] = from_int(self.fl_mat_playonce)
+        result["flag_5"] = from_int(self.flag_5)
+        result["flag_6"] = from_int(self.flag_6)
+        result["flag_7"] = from_int(self.flag_7)
+        return result
+
+
+class MaterialAnimBodyV1381_67_09PC:
     def __init__(
         self,
         alpha_keyframer,
@@ -6065,29 +7074,45 @@ class MaterialAnimV1381_67_09PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        alpha_keyframer = AlphaKeyframer.from_dict(obj.get("alpha_keyframer"))
+        alpha_keyframer = KeyframerTplForKeyLinearTplForInt16.from_dict(
+            obj.get("alpha_keyframer")
+        )
         base_material_name = from_union(
             [from_int, from_str], obj.get("base_material_name")
         )
-        bitmap_name_keyframer = BitmapNameKeyframer.from_dict(
+        bitmap_name_keyframer = KeyframerNoFlagsTplForKeyLinearTplForName.from_dict(
             obj.get("bitmap_name_keyframer")
         )
-        diffuse_keyframer = DiffuseKeyframer.from_dict(obj.get("diffuse_keyframer"))
+        diffuse_keyframer = KeyframerTplForKeyLinearTplForArraySize3_OfFloat.from_dict(
+            obj.get("diffuse_keyframer")
+        )
         duration = from_float(obj.get("duration"))
-        emission_keyframer = DiffuseKeyframer.from_dict(obj.get("emission_keyframer"))
-        flags = BodyFlags.from_dict(obj.get("flags"))
-        params_keyframer = ParamsKeyframer.from_dict(obj.get("params_keyframer"))
-        render_flag_keyframer = RenderFlagKeyframer.from_dict(
+        emission_keyframer = KeyframerTplForKeyLinearTplForArraySize3_OfFloat.from_dict(
+            obj.get("emission_keyframer")
+        )
+        flags = MaterialAnimFlags2.from_dict(obj.get("flags"))
+        params_keyframer = KeyframerTplForKeyLinearTplForArraySize4_OfFloat.from_dict(
+            obj.get("params_keyframer")
+        )
+        render_flag_keyframer = KeyframerNoFlagsTplForKeyLinearTplForUint32.from_dict(
             obj.get("render_flag_keyframer")
         )
-        resource_flag_keyframer = RenderFlagKeyframer.from_dict(
+        resource_flag_keyframer = KeyframerNoFlagsTplForKeyLinearTplForUint32.from_dict(
             obj.get("resource_flag_keyframer")
         )
-        rotation_keyframer = AlphaKeyframer.from_dict(obj.get("rotation_keyframer"))
-        scale_keyframer = ScaleKeyframer.from_dict(obj.get("scale_keyframer"))
-        scroll_keyframer = ScaleKeyframer.from_dict(obj.get("scroll_keyframer"))
-        vec4_f_keyframer0 = ParamsKeyframer.from_dict(obj.get("vec4f_keyframer0"))
-        return MaterialAnimV1381_67_09PCBody(
+        rotation_keyframer = KeyframerTplForKeyLinearTplForInt16.from_dict(
+            obj.get("rotation_keyframer")
+        )
+        scale_keyframer = KeyframerTplForKeyLinearTplForArraySize2_OfFloat.from_dict(
+            obj.get("scale_keyframer")
+        )
+        scroll_keyframer = KeyframerTplForKeyLinearTplForArraySize2_OfFloat.from_dict(
+            obj.get("scroll_keyframer")
+        )
+        vec4_f_keyframer0 = KeyframerTplForKeyLinearTplForArraySize4_OfFloat.from_dict(
+            obj.get("vec4f_keyframer0")
+        )
+        return MaterialAnimBodyV1381_67_09PC(
             alpha_keyframer,
             base_material_name,
             bitmap_name_keyframer,
@@ -6106,34 +7131,48 @@ class MaterialAnimV1381_67_09PCBody:
 
     def to_dict(self):
         result = {}
-        result["alpha_keyframer"] = to_class(AlphaKeyframer, self.alpha_keyframer)
+        result["alpha_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForInt16, self.alpha_keyframer
+        )
         result["base_material_name"] = from_union(
             [from_int, from_str], self.base_material_name
         )
         result["bitmap_name_keyframer"] = to_class(
-            BitmapNameKeyframer, self.bitmap_name_keyframer
+            KeyframerNoFlagsTplForKeyLinearTplForName, self.bitmap_name_keyframer
         )
-        result["diffuse_keyframer"] = to_class(DiffuseKeyframer, self.diffuse_keyframer)
+        result["diffuse_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize3_OfFloat, self.diffuse_keyframer
+        )
         result["duration"] = to_float(self.duration)
         result["emission_keyframer"] = to_class(
-            DiffuseKeyframer, self.emission_keyframer
+            KeyframerTplForKeyLinearTplForArraySize3_OfFloat, self.emission_keyframer
         )
-        result["flags"] = to_class(BodyFlags, self.flags)
-        result["params_keyframer"] = to_class(ParamsKeyframer, self.params_keyframer)
+        result["flags"] = to_class(MaterialAnimFlags2, self.flags)
+        result["params_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize4_OfFloat, self.params_keyframer
+        )
         result["render_flag_keyframer"] = to_class(
-            RenderFlagKeyframer, self.render_flag_keyframer
+            KeyframerNoFlagsTplForKeyLinearTplForUint32, self.render_flag_keyframer
         )
         result["resource_flag_keyframer"] = to_class(
-            RenderFlagKeyframer, self.resource_flag_keyframer
+            KeyframerNoFlagsTplForKeyLinearTplForUint32, self.resource_flag_keyframer
         )
-        result["rotation_keyframer"] = to_class(AlphaKeyframer, self.rotation_keyframer)
-        result["scale_keyframer"] = to_class(ScaleKeyframer, self.scale_keyframer)
-        result["scroll_keyframer"] = to_class(ScaleKeyframer, self.scroll_keyframer)
-        result["vec4f_keyframer0"] = to_class(ParamsKeyframer, self.vec4_f_keyframer0)
+        result["rotation_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForInt16, self.rotation_keyframer
+        )
+        result["scale_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize2_OfFloat, self.scale_keyframer
+        )
+        result["scroll_keyframer"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize2_OfFloat, self.scroll_keyframer
+        )
+        result["vec4f_keyframer0"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize4_OfFloat, self.vec4_f_keyframer0
+        )
         return result
 
 
-class MaterialAnimV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialAnimBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -6144,73 +7183,125 @@ class MaterialAnimV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = MaterialAnimV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = MaterialAnimBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return MaterialAnimV1381_67_09_PC(
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialAnimBodyV1381_67_09PC(
             body, class_name, link_header, link_name, name
         )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(MaterialAnimV1381_67_09PCBody, self.body)
+        result["body"] = to_class(MaterialAnimBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
 class MaterialAnim:
-    def __init__(self, material_anim_v1_381_67_09_pc):
+    def __init__(self, material_anim_v1_06_63_02_pc, material_anim_v1_381_67_09_pc):
+        self.material_anim_v1_06_63_02_pc = material_anim_v1_06_63_02_pc
         self.material_anim_v1_381_67_09_pc = material_anim_v1_381_67_09_pc
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        material_anim_v1_381_67_09_pc = MaterialAnimV1381_67_09_PC.from_dict(
-            obj.get("MaterialAnimV1_381_67_09PC")
+        material_anim_v1_06_63_02_pc = from_union(
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialAnimBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("MaterialAnimV1_06_63_02PC"),
         )
-        return MaterialAnim(material_anim_v1_381_67_09_pc)
+        material_anim_v1_381_67_09_pc = from_union(
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialAnimBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("MaterialAnimV1_381_67_09PC"),
+        )
+        return MaterialAnim(material_anim_v1_06_63_02_pc, material_anim_v1_381_67_09_pc)
 
     def to_dict(self):
         result = {}
-        result["MaterialAnimV1_381_67_09PC"] = to_class(
-            MaterialAnimV1381_67_09_PC, self.material_anim_v1_381_67_09_pc
+        if self.material_anim_v1_06_63_02_pc is not None:
+            result["MaterialAnimV1_06_63_02PC"] = from_union(
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialAnimBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
+                self.material_anim_v1_06_63_02_pc,
+            )
+        if self.material_anim_v1_381_67_09_pc is not None:
+            result["MaterialAnimV1_381_67_09PC"] = from_union(
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialAnimBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
+                self.material_anim_v1_381_67_09_pc,
+            )
+        return result
+
+
+class MaterialObjEntryV1381_67_09PC:
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        key = from_union([from_int, from_str], obj.get("key"))
+        value = from_list(
+            lambda x: from_union([from_int, from_str], x), obj.get("value")
+        )
+        return MaterialObjEntryV1381_67_09PC(key, value)
+
+    def to_dict(self):
+        result = {}
+        result["key"] = from_union([from_int, from_str], self.key)
+        result["value"] = from_list(
+            lambda x: from_union([from_int, from_str], x), self.value
         )
         return result
 
 
-class MaterialObjV1381_67_09PCBody:
+class MaterialObjBodyV1381_67_09PC:
     def __init__(self, entries):
         self.entries = entries
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        entries = from_dict(
-            lambda x: from_list(lambda x: from_union([from_int, from_str], x), x),
-            obj.get("entries"),
-        )
-        return MaterialObjV1381_67_09PCBody(entries)
+        entries = from_list(MaterialObjEntryV1381_67_09PC.from_dict, obj.get("entries"))
+        return MaterialObjBodyV1381_67_09PC(entries)
 
     def to_dict(self):
         result = {}
-        result["entries"] = from_dict(
-            lambda x: from_list(lambda x: from_union([from_int, from_str], x), x),
-            self.entries,
+        result["entries"] = from_list(
+            lambda x: to_class(MaterialObjEntryV1381_67_09PC, x), self.entries
         )
         return result
 
 
-class MaterialObjV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialObjBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -6221,23 +7312,27 @@ class MaterialObjV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = MaterialObjV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = MaterialObjBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return MaterialObjV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialObjBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(MaterialObjV1381_67_09PCBody, self.body)
+        result["body"] = to_class(MaterialObjBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -6250,7 +7345,7 @@ class MaterialObj:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        material_obj_v1_381_67_09_pc = MaterialObjV1381_67_09_PC.from_dict(
+        material_obj_v1_381_67_09_pc = TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialObjBodyV1381_67_09PC.from_dict(
             obj.get("MaterialObjV1_381_67_09PC")
         )
         return MaterialObj(material_obj_v1_381_67_09_pc)
@@ -6258,12 +7353,13 @@ class MaterialObj:
     def to_dict(self):
         result = {}
         result["MaterialObjV1_381_67_09PC"] = to_class(
-            MaterialObjV1381_67_09_PC, self.material_obj_v1_381_67_09_pc
+            TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMaterialObjBodyV1381_67_09PC,
+            self.material_obj_v1_381_67_09_pc,
         )
         return result
 
 
-class RangeInner:
+class RangeOfUint16:
     def __init__(self, end, start):
         self.end = end
         self.start = start
@@ -6273,7 +7369,7 @@ class RangeInner:
         assert isinstance(obj, dict)
         end = from_int(obj.get("end"))
         start = from_int(obj.get("start"))
-        return RangeInner(end, start)
+        return RangeOfUint16(end, start)
 
     def to_dict(self):
         result = {}
@@ -6289,12 +7385,12 @@ class Range:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        inner = RangeInner.from_dict(obj.get("inner"))
+        inner = RangeOfUint16.from_dict(obj.get("inner"))
         return Range(inner)
 
     def to_dict(self):
         result = {}
-        result["inner"] = to_class(RangeInner, self.inner)
+        result["inner"] = to_class(RangeOfUint16, self.inner)
         return result
 
 
@@ -6321,7 +7417,7 @@ class CollisionFacesRange:
         return result
 
 
-class CollisionAABBElement:
+class AABBNode:
     def __init__(self, collision_aabb_children, collision_faces_range, max, min):
         self.collision_aabb_children = collision_aabb_children
         self.collision_faces_range = collision_faces_range
@@ -6332,7 +7428,7 @@ class CollisionAABBElement:
     def from_dict(obj):
         assert isinstance(obj, dict)
         collision_aabb_children = from_union(
-            [from_none, lambda x: from_list(lambda x: x, x)],
+            [from_none, lambda x: from_list(from_int, x)],
             obj.get("collision_aabb_children"),
         )
         collision_faces_range = CollisionFacesRange.from_dict(
@@ -6340,15 +7436,13 @@ class CollisionAABBElement:
         )
         max = from_list(from_float, obj.get("max"))
         min = from_list(from_float, obj.get("min"))
-        return CollisionAABBElement(
-            collision_aabb_children, collision_faces_range, max, min
-        )
+        return AABBNode(collision_aabb_children, collision_faces_range, max, min)
 
     def to_dict(self):
         result = {}
         if self.collision_aabb_children is not None:
             result["collision_aabb_children"] = from_union(
-                [from_none, lambda x: from_list(lambda x: x, x)],
+                [from_none, lambda x: from_list(from_int, x)],
                 self.collision_aabb_children,
             )
         result["collision_faces_range"] = to_class(
@@ -6359,7 +7453,7 @@ class CollisionAABBElement:
         return result
 
 
-class AABBColCollisionFace:
+class FaceCol:
     def __init__(
         self, first_vertex_id, material_index, second_vertex_id, third_vertex_id
     ):
@@ -6375,7 +7469,7 @@ class AABBColCollisionFace:
         material_index = from_int(obj.get("material_index"))
         second_vertex_id = from_int(obj.get("second_vertex_id"))
         third_vertex_id = from_int(obj.get("third_vertex_id"))
-        return AABBColCollisionFace(
+        return FaceCol(
             first_vertex_id, material_index, second_vertex_id, third_vertex_id
         )
 
@@ -6397,25 +7491,23 @@ class AABBCol:
     def from_dict(obj):
         assert isinstance(obj, dict)
         collision_aabb_nodes = from_list(
-            CollisionAABBElement.from_dict, obj.get("collision_aabb_nodes")
+            AABBNode.from_dict, obj.get("collision_aabb_nodes")
         )
-        collision_faces = from_list(
-            AABBColCollisionFace.from_dict, obj.get("collision_faces")
-        )
+        collision_faces = from_list(FaceCol.from_dict, obj.get("collision_faces"))
         return AABBCol(collision_aabb_nodes, collision_faces)
 
     def to_dict(self):
         result = {}
         result["collision_aabb_nodes"] = from_list(
-            lambda x: to_class(CollisionAABBElement, x), self.collision_aabb_nodes
+            lambda x: to_class(AABBNode, x), self.collision_aabb_nodes
         )
         result["collision_faces"] = from_list(
-            lambda x: to_class(AABBColCollisionFace, x), self.collision_faces
+            lambda x: to_class(FaceCol, x), self.collision_faces
         )
         return result
 
 
-class AmbitiousSchema:
+class BoxCol:
     def __init__(self, col_box, flag, name):
         self.col_box = col_box
         self.flag = flag
@@ -6424,20 +7516,20 @@ class AmbitiousSchema:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        col_box = ColBoxClass.from_dict(obj.get("col_box"))
+        col_box = BffBox.from_dict(obj.get("col_box"))
         flag = from_int(obj.get("flag"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return AmbitiousSchema(col_box, flag, name)
+        return BoxCol(col_box, flag, name)
 
     def to_dict(self):
         result = {}
-        result["col_box"] = to_class(ColBoxClass, self.col_box)
+        result["col_box"] = to_class(BffBox, self.col_box)
         result["flag"] = from_int(self.flag)
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class CunningSchema:
+class CylindreCol3:
     def __init__(self, col_cylindre, flag, name):
         self.col_cylindre = col_cylindre
         self.flag = flag
@@ -6449,7 +7541,7 @@ class CunningSchema:
         col_cylindre = Cylindre.from_dict(obj.get("col_cylindre"))
         flag = from_int(obj.get("flag"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return CunningSchema(col_cylindre, flag, name)
+        return CylindreCol3(col_cylindre, flag, name)
 
     def to_dict(self):
         result = {}
@@ -6459,7 +7551,7 @@ class CunningSchema:
         return result
 
 
-class MagentaSchema:
+class IndexBufferEXT:
     def __init__(self, tris):
         self.tris = tris
 
@@ -6467,7 +7559,7 @@ class MagentaSchema:
     def from_dict(obj):
         assert isinstance(obj, dict)
         tris = from_list(lambda x: from_list(from_int, x), obj.get("tris"))
-        return MagentaSchema(tris)
+        return IndexBufferEXT(tris)
 
     def to_dict(self):
         result = {}
@@ -6475,7 +7567,7 @@ class MagentaSchema:
         return result
 
 
-class PrimInfoElement:
+class PrimitiveInfo:
     def __init__(
         self,
         face_count,
@@ -6518,7 +7610,7 @@ class PrimInfoElement:
         vertex_buffer_range_begin = from_int(obj.get("vertex_buffer_range_begin"))
         vertex_count = from_int(obj.get("vertex_count"))
         vertex_size = from_int(obj.get("vertex_size"))
-        return PrimInfoElement(
+        return PrimitiveInfo(
             face_count,
             index_buffer_offset_in_shorts,
             placeholder_pointers,
@@ -6550,7 +7642,7 @@ class PrimInfoElement:
         return result
 
 
-class Layout1BlendElement:
+class Layout1Blend:
     def __init__(
         self,
         blend_index,
@@ -6585,7 +7677,7 @@ class Layout1BlendElement:
         tangent = from_list(from_int, obj.get("tangent"))
         tangent_w = from_int(obj.get("tangent_w"))
         uv = from_list(from_float, obj.get("uv"))
-        return Layout1BlendElement(
+        return Layout1Blend(
             blend_index,
             blend_weight,
             normal,
@@ -6611,7 +7703,7 @@ class Layout1BlendElement:
         return result
 
 
-class Layout4BlendElement:
+class Layout4Blend:
     def __init__(
         self,
         blend_indices,
@@ -6643,7 +7735,7 @@ class Layout4BlendElement:
         tangent = from_list(from_int, obj.get("tangent"))
         tangent_w = from_int(obj.get("tangent_w"))
         uv = from_list(from_float, obj.get("uv"))
-        return Layout4BlendElement(
+        return Layout4Blend(
             blend_indices,
             blend_weights,
             normal,
@@ -6667,7 +7759,7 @@ class Layout4BlendElement:
         return result
 
 
-class LayoutNoBlendElement:
+class LayoutNoBlend:
     def __init__(self, luv, normal, normal_w, position, tangent, tangent_w, uv):
         self.luv = luv
         self.normal = normal
@@ -6687,9 +7779,7 @@ class LayoutNoBlendElement:
         tangent = from_list(from_int, obj.get("tangent"))
         tangent_w = from_int(obj.get("tangent_w"))
         uv = from_list(from_float, obj.get("uv"))
-        return LayoutNoBlendElement(
-            luv, normal, normal_w, position, tangent, tangent_w, uv
-        )
+        return LayoutNoBlend(luv, normal, normal_w, position, tangent, tangent_w, uv)
 
     def to_dict(self):
         result = {}
@@ -6703,7 +7793,7 @@ class LayoutNoBlendElement:
         return result
 
 
-class LayoutPositionElement:
+class LayoutPosition:
     def __init__(self, position):
         self.position = position
 
@@ -6711,7 +7801,7 @@ class LayoutPositionElement:
     def from_dict(obj):
         assert isinstance(obj, dict)
         position = from_list(from_float, obj.get("position"))
-        return LayoutPositionElement(position)
+        return LayoutPosition(position)
 
     def to_dict(self):
         result = {}
@@ -6719,7 +7809,7 @@ class LayoutPositionElement:
         return result
 
 
-class LayoutPositionUVElement:
+class LayoutPositionUV:
     def __init__(self, position, unknown, uv):
         self.position = position
         self.unknown = unknown
@@ -6731,7 +7821,7 @@ class LayoutPositionUVElement:
         position = from_list(from_float, obj.get("position"))
         unknown = from_float(obj.get("unknown"))
         uv = from_list(from_float, obj.get("uv"))
-        return LayoutPositionUVElement(position, unknown, uv)
+        return LayoutPositionUV(position, unknown, uv)
 
     def to_dict(self):
         result = {}
@@ -6781,23 +7871,23 @@ class Vertices:
     def from_dict(obj):
         assert isinstance(obj, dict)
         layout_position = from_union(
-            [lambda x: from_list(LayoutPositionElement.from_dict, x), from_none],
+            [lambda x: from_list(LayoutPosition.from_dict, x), from_none],
             obj.get("LayoutPosition"),
         )
         layout_position_uv = from_union(
-            [lambda x: from_list(LayoutPositionUVElement.from_dict, x), from_none],
+            [lambda x: from_list(LayoutPositionUV.from_dict, x), from_none],
             obj.get("LayoutPositionUV"),
         )
         layout_no_blend = from_union(
-            [lambda x: from_list(LayoutNoBlendElement.from_dict, x), from_none],
+            [lambda x: from_list(LayoutNoBlend.from_dict, x), from_none],
             obj.get("LayoutNoBlend"),
         )
         layout1_blend = from_union(
-            [lambda x: from_list(Layout1BlendElement.from_dict, x), from_none],
+            [lambda x: from_list(Layout1Blend.from_dict, x), from_none],
             obj.get("Layout1Blend"),
         )
         layout4_blend = from_union(
-            [lambda x: from_list(Layout4BlendElement.from_dict, x), from_none],
+            [lambda x: from_list(Layout4Blend.from_dict, x), from_none],
             obj.get("Layout4Blend"),
         )
         layout_unknown = from_union(
@@ -6817,9 +7907,7 @@ class Vertices:
         if self.layout_position is not None:
             result["LayoutPosition"] = from_union(
                 [
-                    lambda x: from_list(
-                        lambda x: to_class(LayoutPositionElement, x), x
-                    ),
+                    lambda x: from_list(lambda x: to_class(LayoutPosition, x), x),
                     from_none,
                 ],
                 self.layout_position,
@@ -6827,9 +7915,7 @@ class Vertices:
         if self.layout_position_uv is not None:
             result["LayoutPositionUV"] = from_union(
                 [
-                    lambda x: from_list(
-                        lambda x: to_class(LayoutPositionUVElement, x), x
-                    ),
+                    lambda x: from_list(lambda x: to_class(LayoutPositionUV, x), x),
                     from_none,
                 ],
                 self.layout_position_uv,
@@ -6837,7 +7923,7 @@ class Vertices:
         if self.layout_no_blend is not None:
             result["LayoutNoBlend"] = from_union(
                 [
-                    lambda x: from_list(lambda x: to_class(LayoutNoBlendElement, x), x),
+                    lambda x: from_list(lambda x: to_class(LayoutNoBlend, x), x),
                     from_none,
                 ],
                 self.layout_no_blend,
@@ -6845,7 +7931,7 @@ class Vertices:
         if self.layout1_blend is not None:
             result["Layout1Blend"] = from_union(
                 [
-                    lambda x: from_list(lambda x: to_class(Layout1BlendElement, x), x),
+                    lambda x: from_list(lambda x: to_class(Layout1Blend, x), x),
                     from_none,
                 ],
                 self.layout1_blend,
@@ -6853,7 +7939,7 @@ class Vertices:
         if self.layout4_blend is not None:
             result["Layout4Blend"] = from_union(
                 [
-                    lambda x: from_list(lambda x: to_class(Layout4BlendElement, x), x),
+                    lambda x: from_list(lambda x: to_class(Layout4Blend, x), x),
                     from_none,
                 ],
                 self.layout4_blend,
@@ -6865,7 +7951,7 @@ class Vertices:
         return result
 
 
-class FriskySchema:
+class VertexBufferEXT:
     def __init__(self, vertices):
         self.vertices = vertices
 
@@ -6873,7 +7959,7 @@ class FriskySchema:
     def from_dict(obj):
         assert isinstance(obj, dict)
         vertices = Vertices.from_dict(obj.get("vertices"))
-        return FriskySchema(vertices)
+        return VertexBufferEXT(vertices)
 
     def to_dict(self):
         result = {}
@@ -6881,7 +7967,7 @@ class FriskySchema:
         return result
 
 
-class PurpleMeshBuffers:
+class MeshBuffers:
     def __init__(self, index_buffers, prim_infos, vertex_buffers):
         self.index_buffers = index_buffers
         self.prim_infos = prim_infos
@@ -6890,26 +7976,26 @@ class PurpleMeshBuffers:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        index_buffers = from_list(MagentaSchema.from_dict, obj.get("index_buffers"))
-        prim_infos = from_list(PrimInfoElement.from_dict, obj.get("prim_infos"))
-        vertex_buffers = from_list(FriskySchema.from_dict, obj.get("vertex_buffers"))
-        return PurpleMeshBuffers(index_buffers, prim_infos, vertex_buffers)
+        index_buffers = from_list(IndexBufferEXT.from_dict, obj.get("index_buffers"))
+        prim_infos = from_list(PrimitiveInfo.from_dict, obj.get("prim_infos"))
+        vertex_buffers = from_list(VertexBufferEXT.from_dict, obj.get("vertex_buffers"))
+        return MeshBuffers(index_buffers, prim_infos, vertex_buffers)
 
     def to_dict(self):
         result = {}
         result["index_buffers"] = from_list(
-            lambda x: to_class(MagentaSchema, x), self.index_buffers
+            lambda x: to_class(IndexBufferEXT, x), self.index_buffers
         )
         result["prim_infos"] = from_list(
-            lambda x: to_class(PrimInfoElement, x), self.prim_infos
+            lambda x: to_class(PrimitiveInfo, x), self.prim_infos
         )
         result["vertex_buffers"] = from_list(
-            lambda x: to_class(FriskySchema, x), self.vertex_buffers
+            lambda x: to_class(VertexBufferEXT, x), self.vertex_buffers
         )
         return result
 
 
-class BraggadociousSchema:
+class MorphTargetDescRelated:
     def __init__(self, data):
         self.data = data
 
@@ -6917,7 +8003,7 @@ class BraggadociousSchema:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return BraggadociousSchema(data)
+        return MorphTargetDescRelated(data)
 
     def to_dict(self):
         result = {}
@@ -6925,7 +8011,7 @@ class BraggadociousSchema:
         return result
 
 
-class MischievousSchema:
+class MorphTargetDesc:
     def __init__(self, morph_target_desc_relateds, name):
         self.morph_target_desc_relateds = morph_target_desc_relateds
         self.name = name
@@ -6934,21 +8020,22 @@ class MischievousSchema:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morph_target_desc_relateds = from_list(
-            BraggadociousSchema.from_dict, obj.get("morph_target_desc_relateds")
+            MorphTargetDescRelated.from_dict, obj.get("morph_target_desc_relateds")
         )
         name = from_union([from_int, from_str], obj.get("name"))
-        return MischievousSchema(morph_target_desc_relateds, name)
+        return MorphTargetDesc(morph_target_desc_relateds, name)
 
     def to_dict(self):
         result = {}
         result["morph_target_desc_relateds"] = from_list(
-            lambda x: to_class(BraggadociousSchema, x), self.morph_target_desc_relateds
+            lambda x: to_class(MorphTargetDescRelated, x),
+            self.morph_target_desc_relateds,
         )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class Schema1:
+class MorpherRelated:
     def __init__(self, data):
         self.data = data
 
@@ -6956,7 +8043,7 @@ class Schema1:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema1(data)
+        return MorpherRelated(data)
 
     def to_dict(self):
         result = {}
@@ -6964,7 +8051,7 @@ class Schema1:
         return result
 
 
-class PurpleMorpher:
+class Morpher:
     def __init__(self, morph_target_descs, morpher_relateds):
         self.morph_target_descs = morph_target_descs
         self.morpher_relateds = morpher_relateds
@@ -6973,23 +8060,25 @@ class PurpleMorpher:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morph_target_descs = from_list(
-            MischievousSchema.from_dict, obj.get("morph_target_descs")
+            MorphTargetDesc.from_dict, obj.get("morph_target_descs")
         )
-        morpher_relateds = from_list(Schema1.from_dict, obj.get("morpher_relateds"))
-        return PurpleMorpher(morph_target_descs, morpher_relateds)
+        morpher_relateds = from_list(
+            MorpherRelated.from_dict, obj.get("morpher_relateds")
+        )
+        return Morpher(morph_target_descs, morpher_relateds)
 
     def to_dict(self):
         result = {}
         result["morph_target_descs"] = from_list(
-            lambda x: to_class(MischievousSchema, x), self.morph_target_descs
+            lambda x: to_class(MorphTargetDesc, x), self.morph_target_descs
         )
         result["morpher_relateds"] = from_list(
-            lambda x: to_class(Schema1, x), self.morpher_relateds
+            lambda x: to_class(MorpherRelated, x), self.morpher_relateds
         )
         return result
 
 
-class TBVtxElement:
+class TBVtx:
     def __init__(self, unk_vec_1, unk_vec_2):
         self.unk_vec_1 = unk_vec_1
         self.unk_vec_2 = unk_vec_2
@@ -6999,7 +8088,7 @@ class TBVtxElement:
         assert isinstance(obj, dict)
         unk_vec_1 = from_list(from_float, obj.get("unk_vec_1"))
         unk_vec_2 = from_list(from_float, obj.get("unk_vec_2"))
-        return TBVtxElement(unk_vec_1, unk_vec_2)
+        return TBVtx(unk_vec_1, unk_vec_2)
 
     def to_dict(self):
         result = {}
@@ -7008,7 +8097,7 @@ class TBVtxElement:
         return result
 
 
-class PurplePoints:
+class Points:
     def __init__(self, morpher, positions, tb_vtxs):
         self.morpher = morpher
         self.positions = positions
@@ -7017,22 +8106,22 @@ class PurplePoints:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        morpher = PurpleMorpher.from_dict(obj.get("morpher"))
+        morpher = Morpher.from_dict(obj.get("morpher"))
         positions = from_list(lambda x: from_list(from_float, x), obj.get("positions"))
-        tb_vtxs = from_list(TBVtxElement.from_dict, obj.get("tb_vtxs"))
-        return PurplePoints(morpher, positions, tb_vtxs)
+        tb_vtxs = from_list(TBVtx.from_dict, obj.get("tb_vtxs"))
+        return Points(morpher, positions, tb_vtxs)
 
     def to_dict(self):
         result = {}
-        result["morpher"] = to_class(PurpleMorpher, self.morpher)
+        result["morpher"] = to_class(Morpher, self.morpher)
         result["positions"] = from_list(
             lambda x: from_list(to_float, x), self.positions
         )
-        result["tb_vtxs"] = from_list(lambda x: to_class(TBVtxElement, x), self.tb_vtxs)
+        result["tb_vtxs"] = from_list(lambda x: to_class(TBVtx, x), self.tb_vtxs)
         return result
 
 
-class Schema2:
+class SphereCol:
     def __init__(self, col_sph, flag, name):
         self.col_sph = col_sph
         self.flag = flag
@@ -7041,20 +8130,20 @@ class Schema2:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        col_sph = BSphere.from_dict(obj.get("col_sph"))
+        col_sph = Sphere.from_dict(obj.get("col_sph"))
         flag = from_int(obj.get("flag"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return Schema2(col_sph, flag, name)
+        return SphereCol(col_sph, flag, name)
 
     def to_dict(self):
         result = {}
-        result["col_sph"] = to_class(BSphere, self.col_sph)
+        result["col_sph"] = to_class(Sphere, self.col_sph)
         result["flag"] = from_int(self.flag)
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class StripElement:
+class Strip:
     def __init__(self, material_name, strip_vertices_indices, tri_order):
         self.material_name = material_name
         self.strip_vertices_indices = strip_vertices_indices
@@ -7066,7 +8155,7 @@ class StripElement:
         material_name = from_union([from_int, from_str], obj.get("material_name"))
         strip_vertices_indices = from_list(from_int, obj.get("strip_vertices_indices"))
         tri_order = from_int(obj.get("tri_order"))
-        return StripElement(material_name, strip_vertices_indices, tri_order)
+        return Strip(material_name, strip_vertices_indices, tri_order)
 
     def to_dict(self):
         result = {}
@@ -7078,7 +8167,7 @@ class StripElement:
         return result
 
 
-class Schema4:
+class Unused00:
     def __init__(self, unused0, unused1):
         self.unused0 = unused0
         self.unused1 = unused1
@@ -7088,7 +8177,7 @@ class Schema4:
         assert isinstance(obj, dict)
         unused0 = from_int(obj.get("unused0"))
         unused1 = from_int(obj.get("unused1"))
-        return Schema4(unused0, unused1)
+        return Unused00(unused0, unused1)
 
     def to_dict(self):
         result = {}
@@ -7097,23 +8186,23 @@ class Schema4:
         return result
 
 
-class Schema3:
+class Unused4:
     def __init__(self, unused0_s):
         self.unused0_s = unused0_s
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        unused0_s = from_list(Schema4.from_dict, obj.get("unused0s"))
-        return Schema3(unused0_s)
+        unused0_s = from_list(Unused00.from_dict, obj.get("unused0s"))
+        return Unused4(unused0_s)
 
     def to_dict(self):
         result = {}
-        result["unused0s"] = from_list(lambda x: to_class(Schema4, x), self.unused0_s)
+        result["unused0s"] = from_list(lambda x: to_class(Unused00, x), self.unused0_s)
         return result
 
 
-class MeshV106_63_02PCBody:
+class MeshBodyV106_63_02PC:
     def __init__(
         self,
         aabb_col,
@@ -7167,30 +8256,30 @@ class MeshV106_63_02PCBody:
         aabb_vertices = from_list(
             lambda x: from_list(from_int, x), obj.get("aabb_vertices")
         )
-        box_cols = from_list(AmbitiousSchema.from_dict, obj.get("box_cols"))
-        cylindre_cols = from_list(CunningSchema.from_dict, obj.get("cylindre_cols"))
+        box_cols = from_list(BoxCol.from_dict, obj.get("box_cols"))
+        cylindre_cols = from_list(CylindreCol3.from_dict, obj.get("cylindre_cols"))
         drawing_cutoff_distance = from_float(obj.get("drawing_cutoff_distance"))
         drawing_start_distance = from_float(obj.get("drawing_start_distance"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
         )
-        mesh_buffers = PurpleMeshBuffers.from_dict(obj.get("mesh_buffers"))
+        mesh_buffers = MeshBuffers.from_dict(obj.get("mesh_buffers"))
         normal_count = from_int(obj.get("normal_count"))
         normals = from_list(lambda x: from_list(from_float, x), obj.get("normals"))
-        points = PurplePoints.from_dict(obj.get("points"))
+        points = Points.from_dict(obj.get("points"))
         related_to_counts = from_list(from_int, obj.get("related_to_counts"))
         shadow_related = from_int(obj.get("shadow_related"))
-        sphere_cols = from_list(Schema2.from_dict, obj.get("sphere_cols"))
-        strips = from_list(StripElement.from_dict, obj.get("strips"))
+        sphere_cols = from_list(SphereCol.from_dict, obj.get("sphere_cols"))
+        strips = from_list(Strip.from_dict, obj.get("strips"))
         unk6 = from_union(
             [from_none, lambda x: from_list(from_int, x)], obj.get("unk6")
         )
         unk_uints = from_list(from_int, obj.get("unk_uints"))
-        unused4_s = from_list(Schema3.from_dict, obj.get("unused4s"))
+        unused4_s = from_list(Unused4.from_dict, obj.get("unused4s"))
         uv_count = from_int(obj.get("uv_count"))
         uvs = from_list(lambda x: from_list(from_float, x), obj.get("uvs"))
         zero2 = from_int(obj.get("zero2"))
-        return MeshV106_63_02PCBody(
+        return MeshBodyV106_63_02PC(
             aabb_col,
             aabb_vertices,
             box_cols,
@@ -7220,40 +8309,38 @@ class MeshV106_63_02PCBody:
         result["aabb_vertices"] = from_list(
             lambda x: from_list(from_int, x), self.aabb_vertices
         )
-        result["box_cols"] = from_list(
-            lambda x: to_class(AmbitiousSchema, x), self.box_cols
-        )
+        result["box_cols"] = from_list(lambda x: to_class(BoxCol, x), self.box_cols)
         result["cylindre_cols"] = from_list(
-            lambda x: to_class(CunningSchema, x), self.cylindre_cols
+            lambda x: to_class(CylindreCol3, x), self.cylindre_cols
         )
         result["drawing_cutoff_distance"] = to_float(self.drawing_cutoff_distance)
         result["drawing_start_distance"] = to_float(self.drawing_start_distance)
         result["material_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.material_names
         )
-        result["mesh_buffers"] = to_class(PurpleMeshBuffers, self.mesh_buffers)
+        result["mesh_buffers"] = to_class(MeshBuffers, self.mesh_buffers)
         result["normal_count"] = from_int(self.normal_count)
         result["normals"] = from_list(lambda x: from_list(to_float, x), self.normals)
-        result["points"] = to_class(PurplePoints, self.points)
+        result["points"] = to_class(Points, self.points)
         result["related_to_counts"] = from_list(from_int, self.related_to_counts)
         result["shadow_related"] = from_int(self.shadow_related)
         result["sphere_cols"] = from_list(
-            lambda x: to_class(Schema2, x), self.sphere_cols
+            lambda x: to_class(SphereCol, x), self.sphere_cols
         )
-        result["strips"] = from_list(lambda x: to_class(StripElement, x), self.strips)
+        result["strips"] = from_list(lambda x: to_class(Strip, x), self.strips)
         if self.unk6 is not None:
             result["unk6"] = from_union(
                 [from_none, lambda x: from_list(from_int, x)], self.unk6
             )
         result["unk_uints"] = from_list(from_int, self.unk_uints)
-        result["unused4s"] = from_list(lambda x: to_class(Schema3, x), self.unused4_s)
+        result["unused4s"] = from_list(lambda x: to_class(Unused4, x), self.unused4_s)
         result["uv_count"] = from_int(self.uv_count)
         result["uvs"] = from_list(lambda x: from_list(to_float, x), self.uvs)
         result["zero2"] = from_int(self.zero2)
         return result
 
 
-class MeshV106_63_02_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -7264,29 +8351,51 @@ class MeshV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = MeshV106_63_02PCBody.from_dict(obj.get("body"))
+        body = MeshBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return MeshV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(MeshV106_63_02PCBody, self.body)
+        result["body"] = to_class(MeshBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class CollisionAABBTriElement:
+class BoxCol2:
+    def __init__(self, col_box, flag, name):
+        self.col_box = col_box
+        self.flag = flag
+        self.name = name
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        col_box = BffBox.from_dict(obj.get("col_box"))
+        flag = from_int(obj.get("flag"))
+        name = from_union([from_int, from_str], obj.get("name"))
+        return BoxCol2(col_box, flag, name)
+
+    def to_dict(self):
+        result = {}
+        result["col_box"] = to_class(BffBox, self.col_box)
+        result["flag"] = from_int(self.flag)
+        result["name"] = from_union([from_int, from_str], self.name)
+        return result
+
+
+class AABBColTri:
     def __init__(
         self, first_vertex_id, material_index, second_vertex_id, third_vertex_id
     ):
@@ -7302,7 +8411,7 @@ class CollisionAABBTriElement:
         material_index = from_int(obj.get("material_index"))
         second_vertex_id = from_int(obj.get("second_vertex_id"))
         third_vertex_id = from_int(obj.get("third_vertex_id"))
-        return CollisionAABBTriElement(
+        return AABBColTri(
             first_vertex_id, material_index, second_vertex_id, third_vertex_id
         )
 
@@ -7315,7 +8424,29 @@ class CollisionAABBTriElement:
         return result
 
 
-class Schema7:
+class CylindreCol4:
+    def __init__(self, col_cylindre, flag, name):
+        self.col_cylindre = col_cylindre
+        self.flag = flag
+        self.name = name
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        col_cylindre = Cylindre.from_dict(obj.get("col_cylindre"))
+        flag = from_int(obj.get("flag"))
+        name = from_union([from_int, from_str], obj.get("name"))
+        return CylindreCol4(col_cylindre, flag, name)
+
+    def to_dict(self):
+        result = {}
+        result["col_cylindre"] = to_class(Cylindre, self.col_cylindre)
+        result["flag"] = from_int(self.flag)
+        result["name"] = from_union([from_int, from_str], self.name)
+        return result
+
+
+class IndexBuffer:
     def __init__(self, flags, tris):
         self.flags = flags
         self.tris = tris
@@ -7325,7 +8456,7 @@ class Schema7:
         assert isinstance(obj, dict)
         flags = from_int(obj.get("flags"))
         tris = from_list(lambda x: from_list(from_int, x), obj.get("tris"))
-        return Schema7(flags, tris)
+        return IndexBuffer(flags, tris)
 
     def to_dict(self):
         result = {}
@@ -7334,7 +8465,7 @@ class Schema7:
         return result
 
 
-class MorpherDescMorphTargetDescRelated:
+class MorphTargetDescRelated2:
     def __init__(self, data):
         self.data = data
 
@@ -7342,7 +8473,7 @@ class MorpherDescMorphTargetDescRelated:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return MorpherDescMorphTargetDescRelated(data)
+        return MorphTargetDescRelated2(data)
 
     def to_dict(self):
         result = {}
@@ -7350,7 +8481,7 @@ class MorpherDescMorphTargetDescRelated:
         return result
 
 
-class MorpherDescElement:
+class MorpherTargetDesc:
     def __init__(self, morph_target_desc_relateds, name):
         self.morph_target_desc_relateds = morph_target_desc_relateds
         self.name = name
@@ -7359,23 +8490,22 @@ class MorpherDescElement:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morph_target_desc_relateds = from_list(
-            MorpherDescMorphTargetDescRelated.from_dict,
-            obj.get("morph_target_desc_relateds"),
+            MorphTargetDescRelated2.from_dict, obj.get("morph_target_desc_relateds")
         )
         name = from_union([from_int, from_str], obj.get("name"))
-        return MorpherDescElement(morph_target_desc_relateds, name)
+        return MorpherTargetDesc(morph_target_desc_relateds, name)
 
     def to_dict(self):
         result = {}
         result["morph_target_desc_relateds"] = from_list(
-            lambda x: to_class(MorpherDescMorphTargetDescRelated, x),
+            lambda x: to_class(MorphTargetDescRelated2, x),
             self.morph_target_desc_relateds,
         )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class Schema8:
+class MorpherRelated2:
     def __init__(self, data):
         self.data = data
 
@@ -7383,7 +8513,7 @@ class Schema8:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema8(data)
+        return MorpherRelated2(data)
 
     def to_dict(self):
         result = {}
@@ -7391,7 +8521,7 @@ class Schema8:
         return result
 
 
-class FluffyMorpher:
+class Morpher2:
     def __init__(self, morpher_descs, morpher_relateds):
         self.morpher_descs = morpher_descs
         self.morpher_relateds = morpher_relateds
@@ -7399,24 +8529,24 @@ class FluffyMorpher:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        morpher_descs = from_list(
-            MorpherDescElement.from_dict, obj.get("morpher_descs")
+        morpher_descs = from_list(MorpherTargetDesc.from_dict, obj.get("morpher_descs"))
+        morpher_relateds = from_list(
+            MorpherRelated2.from_dict, obj.get("morpher_relateds")
         )
-        morpher_relateds = from_list(Schema8.from_dict, obj.get("morpher_relateds"))
-        return FluffyMorpher(morpher_descs, morpher_relateds)
+        return Morpher2(morpher_descs, morpher_relateds)
 
     def to_dict(self):
         result = {}
         result["morpher_descs"] = from_list(
-            lambda x: to_class(MorpherDescElement, x), self.morpher_descs
+            lambda x: to_class(MorpherTargetDesc, x), self.morpher_descs
         )
         result["morpher_relateds"] = from_list(
-            lambda x: to_class(Schema8, x), self.morpher_relateds
+            lambda x: to_class(MorpherRelated2, x), self.morpher_relateds
         )
         return result
 
 
-class UnknownElement:
+class Unknown7:
     def __init__(self, data1, data2):
         self.data1 = data1
         self.data2 = data2
@@ -7426,7 +8556,7 @@ class UnknownElement:
         assert isinstance(obj, dict)
         data1 = from_list(from_int, obj.get("data1"))
         data2 = from_list(from_int, obj.get("data2"))
-        return UnknownElement(data1, data2)
+        return Unknown7(data1, data2)
 
     def to_dict(self):
         result = {}
@@ -7435,7 +8565,7 @@ class UnknownElement:
         return result
 
 
-class Schema9:
+class VertexBuffer:
     def __init__(self, flags, vertices):
         self.flags = flags
         self.vertices = vertices
@@ -7445,7 +8575,7 @@ class Schema9:
         assert isinstance(obj, dict)
         flags = from_int(obj.get("flags"))
         vertices = Vertices.from_dict(obj.get("vertices"))
-        return Schema9(flags, vertices)
+        return VertexBuffer(flags, vertices)
 
     def to_dict(self):
         result = {}
@@ -7456,42 +8586,43 @@ class Schema9:
 
 class VertexGroupFlags:
     def __init__(
-        self, visible, padding0, unknown0, unknown1, unknown2, morph, padding1
+        self, morph, padding0, padding1, unknown0, unknown1, unknown2, visible
     ):
-        self.visible = visible
+        self.morph = morph
         self.padding0 = padding0
+        self.padding1 = padding1
         self.unknown0 = unknown0
         self.unknown1 = unknown1
         self.unknown2 = unknown2
-        self.morph = morph
-        self.padding1 = padding1
+        self.visible = visible
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        visible = from_int(obj.get("visible"))
+        morph = from_int(obj.get("morph"))
         padding0 = from_int(obj.get("padding0"))
+        padding1 = from_int(obj.get("padding1"))
         unknown0 = from_int(obj.get("unknown0"))
         unknown1 = from_int(obj.get("unknown1"))
         unknown2 = from_int(obj.get("unknown2"))
-        morph = from_int(obj.get("morph"))
-        padding1 = from_int(obj.get("padding1"))
+        visible = from_int(obj.get("visible"))
         return VertexGroupFlags(
-            visible, padding0, unknown0, unknown1, unknown2, morph, padding1
+            morph, padding0, padding1, unknown0, unknown1, unknown2, visible
         )
 
     def to_dict(self):
         result = {}
-        result["visible"] = from_int(self.visible)
+        result["morph"] = from_int(self.morph)
         result["padding0"] = from_int(self.padding0)
+        result["padding1"] = from_int(self.padding1)
         result["unknown0"] = from_int(self.unknown0)
         result["unknown1"] = from_int(self.unknown1)
         result["unknown2"] = from_int(self.unknown2)
-        result["morph"] = from_int(self.morph)
-        result["padding1"] = from_int(self.padding1)
+        result["visible"] = from_int(self.visible)
         return result
 
-class Schema10:
+
+class VertexGroup:
     def __init__(
         self,
         face_count,
@@ -7532,7 +8663,7 @@ class Schema10:
         vertex_offset_in_groups = from_int(obj.get("vertex_offset_in_groups"))
         zero = from_int(obj.get("zero"))
         zeroes = from_list(from_int, obj.get("zeroes"))
-        return Schema10(
+        return VertexGroup(
             face_count,
             flags,
             index_buffer_index_begin,
@@ -7562,7 +8693,7 @@ class Schema10:
         return result
 
 
-class FluffyMeshBuffers:
+class MeshBuffers2:
     def __init__(self, index_buffers, morpher, unknowns, vertex_buffers, vertex_groups):
         self.index_buffers = index_buffers
         self.morpher = morpher
@@ -7573,34 +8704,32 @@ class FluffyMeshBuffers:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        index_buffers = from_list(Schema7.from_dict, obj.get("index_buffers"))
-        morpher = FluffyMorpher.from_dict(obj.get("morpher"))
-        unknowns = from_list(UnknownElement.from_dict, obj.get("unknowns"))
-        vertex_buffers = from_list(Schema9.from_dict, obj.get("vertex_buffers"))
-        vertex_groups = from_list(Schema10.from_dict, obj.get("vertex_groups"))
-        return FluffyMeshBuffers(
+        index_buffers = from_list(IndexBuffer.from_dict, obj.get("index_buffers"))
+        morpher = Morpher2.from_dict(obj.get("morpher"))
+        unknowns = from_list(Unknown7.from_dict, obj.get("unknowns"))
+        vertex_buffers = from_list(VertexBuffer.from_dict, obj.get("vertex_buffers"))
+        vertex_groups = from_list(VertexGroup.from_dict, obj.get("vertex_groups"))
+        return MeshBuffers2(
             index_buffers, morpher, unknowns, vertex_buffers, vertex_groups
         )
 
     def to_dict(self):
         result = {}
         result["index_buffers"] = from_list(
-            lambda x: to_class(Schema7, x), self.index_buffers
+            lambda x: to_class(IndexBuffer, x), self.index_buffers
         )
-        result["morpher"] = to_class(FluffyMorpher, self.morpher)
-        result["unknowns"] = from_list(
-            lambda x: to_class(UnknownElement, x), self.unknowns
-        )
+        result["morpher"] = to_class(Morpher2, self.morpher)
+        result["unknowns"] = from_list(lambda x: to_class(Unknown7, x), self.unknowns)
         result["vertex_buffers"] = from_list(
-            lambda x: to_class(Schema9, x), self.vertex_buffers
+            lambda x: to_class(VertexBuffer, x), self.vertex_buffers
         )
         result["vertex_groups"] = from_list(
-            lambda x: to_class(Schema10, x), self.vertex_groups
+            lambda x: to_class(VertexGroup, x), self.vertex_groups
         )
         return result
 
 
-class Schema11:
+class PointsRelated0:
     def __init__(self, data):
         self.data = data
 
@@ -7608,7 +8737,7 @@ class Schema11:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema11(data)
+        return PointsRelated0(data)
 
     def to_dict(self):
         result = {}
@@ -7616,7 +8745,7 @@ class Schema11:
         return result
 
 
-class Schema12:
+class PointsRelated1:
     def __init__(self, data):
         self.data = data
 
@@ -7624,7 +8753,7 @@ class Schema12:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema12(data)
+        return PointsRelated1(data)
 
     def to_dict(self):
         result = {}
@@ -7632,7 +8761,7 @@ class Schema12:
         return result
 
 
-class PointsRelated2Element:
+class PointsRelated2:
     def __init__(self, data):
         self.data = data
 
@@ -7640,7 +8769,7 @@ class PointsRelated2Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return PointsRelated2Element(data)
+        return PointsRelated2(data)
 
     def to_dict(self):
         result = {}
@@ -7648,7 +8777,7 @@ class PointsRelated2Element:
         return result
 
 
-class FluffyPoints:
+class Points2:
     def __init__(self, points_related0, points_related1, points_related2):
         self.points_related0 = points_related0
         self.points_related1 = points_related1
@@ -7657,28 +8786,54 @@ class FluffyPoints:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        points_related0 = from_list(Schema11.from_dict, obj.get("points_related0"))
-        points_related1 = from_list(Schema12.from_dict, obj.get("points_related1"))
-        points_related2 = from_list(
-            PointsRelated2Element.from_dict, obj.get("points_related2")
+        points_related0 = from_list(
+            PointsRelated0.from_dict, obj.get("points_related0")
         )
-        return FluffyPoints(points_related0, points_related1, points_related2)
+        points_related1 = from_list(
+            PointsRelated1.from_dict, obj.get("points_related1")
+        )
+        points_related2 = from_list(
+            PointsRelated2.from_dict, obj.get("points_related2")
+        )
+        return Points2(points_related0, points_related1, points_related2)
 
     def to_dict(self):
         result = {}
         result["points_related0"] = from_list(
-            lambda x: to_class(Schema11, x), self.points_related0
+            lambda x: to_class(PointsRelated0, x), self.points_related0
         )
         result["points_related1"] = from_list(
-            lambda x: to_class(Schema12, x), self.points_related1
+            lambda x: to_class(PointsRelated1, x), self.points_related1
         )
         result["points_related2"] = from_list(
-            lambda x: to_class(PointsRelated2Element, x), self.points_related2
+            lambda x: to_class(PointsRelated2, x), self.points_related2
         )
         return result
 
 
-class Schema14:
+class SphereCol2:
+    def __init__(self, col_sph, flag, name):
+        self.col_sph = col_sph
+        self.flag = flag
+        self.name = name
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        col_sph = Sphere.from_dict(obj.get("col_sph"))
+        flag = from_int(obj.get("flag"))
+        name = from_union([from_int, from_str], obj.get("name"))
+        return SphereCol2(col_sph, flag, name)
+
+    def to_dict(self):
+        result = {}
+        result["col_sph"] = to_class(Sphere, self.col_sph)
+        result["flag"] = from_int(self.flag)
+        result["name"] = from_union([from_int, from_str], self.name)
+        return result
+
+
+class Unknown5:
     def __init__(self, unknown8, unknown8_count):
         self.unknown8 = unknown8
         self.unknown8_count = unknown8_count
@@ -7688,7 +8843,7 @@ class Schema14:
         assert isinstance(obj, dict)
         unknown8 = from_list(from_int, obj.get("unknown8"))
         unknown8_count = from_int(obj.get("unknown8_count"))
-        return Schema14(unknown8, unknown8_count)
+        return Unknown5(unknown8, unknown8_count)
 
     def to_dict(self):
         result = {}
@@ -7697,7 +8852,7 @@ class Schema14:
         return result
 
 
-class Unknown6Element:
+class Unknown6:
     def __init__(self, unknowns):
         self.unknowns = unknowns
 
@@ -7705,7 +8860,7 @@ class Unknown6Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         unknowns = from_list(from_int, obj.get("unknowns"))
-        return Unknown6Element(unknowns)
+        return Unknown6(unknowns)
 
     def to_dict(self):
         result = {}
@@ -7713,7 +8868,7 @@ class Unknown6Element:
         return result
 
 
-class Schema15:
+class Unknown8:
     def __init__(self, data):
         self.data = data
 
@@ -7721,7 +8876,7 @@ class Schema15:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema15(data)
+        return Unknown8(data)
 
     def to_dict(self):
         result = {}
@@ -7729,7 +8884,7 @@ class Schema15:
         return result
 
 
-class MeshV1291_03_06PCBody:
+class MeshBodyV1291_03_06PC:
     def __init__(
         self,
         box_cols,
@@ -7777,35 +8932,33 @@ class MeshV1291_03_06PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        box_cols = from_list(AmbitiousSchema.from_dict, obj.get("box_cols"))
+        box_cols = from_list(BoxCol2.from_dict, obj.get("box_cols"))
         collision_aabb_tris = from_list(
-            CollisionAABBTriElement.from_dict, obj.get("collision_aabb_tris")
+            AABBColTri.from_dict, obj.get("collision_aabb_tris")
         )
-        collision_aabbs = from_list(
-            CollisionAABBElement.from_dict, obj.get("collision_aabbs")
-        )
-        cylindre_cols = from_list(CunningSchema.from_dict, obj.get("cylindre_cols"))
+        collision_aabbs = from_list(AABBNode.from_dict, obj.get("collision_aabbs"))
+        cylindre_cols = from_list(CylindreCol4.from_dict, obj.get("cylindre_cols"))
         drawing_cutoff_distance = from_float(obj.get("drawing_cutoff_distance"))
         drawing_start_distance = from_float(obj.get("drawing_start_distance"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
         )
-        mesh_buffers = FluffyMeshBuffers.from_dict(obj.get("mesh_buffers"))
+        mesh_buffers = MeshBuffers2.from_dict(obj.get("mesh_buffers"))
         normals = from_list(lambda x: from_list(from_float, x), obj.get("normals"))
-        points = FluffyPoints.from_dict(obj.get("points"))
+        points = Points2.from_dict(obj.get("points"))
         related_to_counts = from_list(from_int, obj.get("related_to_counts"))
         shadow_related = from_int(obj.get("shadow_related"))
-        sphere_cols = from_list(Schema2.from_dict, obj.get("sphere_cols"))
-        strips = from_list(StripElement.from_dict, obj.get("strips"))
+        sphere_cols = from_list(SphereCol2.from_dict, obj.get("sphere_cols"))
+        strips = from_list(Strip.from_dict, obj.get("strips"))
         texcoords = from_list(lambda x: from_list(from_float, x), obj.get("texcoords"))
         unknown4_s = from_union(
             [from_none, lambda x: from_list(from_int, x)], obj.get("unknown4s")
         )
-        unknown5_s = from_list(Schema14.from_dict, obj.get("unknown5s"))
-        unknown6_s = from_list(Unknown6Element.from_dict, obj.get("unknown6s"))
-        unknown8_s = from_list(Schema15.from_dict, obj.get("unknown8s"))
+        unknown5_s = from_list(Unknown5.from_dict, obj.get("unknown5s"))
+        unknown6_s = from_list(Unknown6.from_dict, obj.get("unknown6s"))
+        unknown8_s = from_list(Unknown8.from_dict, obj.get("unknown8s"))
         vertices = from_list(lambda x: from_list(from_int, x), obj.get("vertices"))
-        return MeshV1291_03_06PCBody(
+        return MeshBodyV1291_03_06PC(
             box_cols,
             collision_aabb_tris,
             collision_aabbs,
@@ -7830,30 +8983,30 @@ class MeshV1291_03_06PCBody:
 
     def to_dict(self):
         result = {}
-        result["box_cols"] = from_list(lambda x: to_class(AmbitiousSchema, x), self.box_cols)
+        result["box_cols"] = from_list(lambda x: to_class(BoxCol2, x), self.box_cols)
         result["collision_aabb_tris"] = from_list(
-            lambda x: to_class(CollisionAABBTriElement, x), self.collision_aabb_tris
+            lambda x: to_class(AABBColTri, x), self.collision_aabb_tris
         )
         result["collision_aabbs"] = from_list(
-            lambda x: to_class(CollisionAABBElement, x), self.collision_aabbs
+            lambda x: to_class(AABBNode, x), self.collision_aabbs
         )
         result["cylindre_cols"] = from_list(
-            lambda x: to_class(CunningSchema, x), self.cylindre_cols
+            lambda x: to_class(CylindreCol4, x), self.cylindre_cols
         )
         result["drawing_cutoff_distance"] = to_float(self.drawing_cutoff_distance)
         result["drawing_start_distance"] = to_float(self.drawing_start_distance)
         result["material_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.material_names
         )
-        result["mesh_buffers"] = to_class(FluffyMeshBuffers, self.mesh_buffers)
+        result["mesh_buffers"] = to_class(MeshBuffers2, self.mesh_buffers)
         result["normals"] = from_list(lambda x: from_list(to_float, x), self.normals)
-        result["points"] = to_class(FluffyPoints, self.points)
+        result["points"] = to_class(Points2, self.points)
         result["related_to_counts"] = from_list(from_int, self.related_to_counts)
         result["shadow_related"] = from_int(self.shadow_related)
         result["sphere_cols"] = from_list(
-            lambda x: to_class(Schema2, x), self.sphere_cols
+            lambda x: to_class(SphereCol2, x), self.sphere_cols
         )
-        result["strips"] = from_list(lambda x: to_class(StripElement, x), self.strips)
+        result["strips"] = from_list(lambda x: to_class(Strip, x), self.strips)
         result["texcoords"] = from_list(
             lambda x: from_list(to_float, x), self.texcoords
         )
@@ -7862,19 +9015,19 @@ class MeshV1291_03_06PCBody:
                 [from_none, lambda x: from_list(from_int, x)], self.unknown4_s
             )
         result["unknown5s"] = from_list(
-            lambda x: to_class(Schema14, x), self.unknown5_s
+            lambda x: to_class(Unknown5, x), self.unknown5_s
         )
         result["unknown6s"] = from_list(
-            lambda x: to_class(Unknown6Element, x), self.unknown6_s
+            lambda x: to_class(Unknown6, x), self.unknown6_s
         )
         result["unknown8s"] = from_list(
-            lambda x: to_class(Schema15, x), self.unknown8_s
+            lambda x: to_class(Unknown8, x), self.unknown8_s
         )
         result["vertices"] = from_list(lambda x: from_list(from_int, x), self.vertices)
         return result
 
 
-class MeshV1291_03_06_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -7885,29 +9038,29 @@ class MeshV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = MeshV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = MeshBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return MeshV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(MeshV1291_03_06PCBody, self.body)
+        result["body"] = to_class(MeshBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class BodyCollisionFace:
+class CollisionFace:
     def __init__(self, short_vec_weirds_indices, surface_type):
         self.short_vec_weirds_indices = short_vec_weirds_indices
         self.surface_type = surface_type
@@ -7919,7 +9072,7 @@ class BodyCollisionFace:
             from_int, obj.get("short_vec_weirds_indices")
         )
         surface_type = from_int(obj.get("surface_type"))
-        return BodyCollisionFace(short_vec_weirds_indices, surface_type)
+        return CollisionFace(short_vec_weirds_indices, surface_type)
 
     def to_dict(self):
         result = {}
@@ -7930,23 +9083,68 @@ class BodyCollisionFace:
         return result
 
 
-class IndexBufferFlags:
-    def __init__(self, value):
-        self.value = value
+class D3DFlags:
+    def __init__(
+        self,
+        d3_d_pool_default,
+        d3_d_pool_managed,
+        d3_d_pool_scratch,
+        d3_d_pool_systemmem,
+        d3_d_usage_dynamic,
+        d3_d_usage_writeonly,
+        padding0,
+        padding1,
+        unknown,
+    ):
+        self.d3_d_pool_default = d3_d_pool_default
+        self.d3_d_pool_managed = d3_d_pool_managed
+        self.d3_d_pool_scratch = d3_d_pool_scratch
+        self.d3_d_pool_systemmem = d3_d_pool_systemmem
+        self.d3_d_usage_dynamic = d3_d_usage_dynamic
+        self.d3_d_usage_writeonly = d3_d_usage_writeonly
+        self.padding0 = padding0
+        self.padding1 = padding1
+        self.unknown = unknown
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return IndexBufferFlags(value)
+        d3_d_pool_default = from_int(obj.get("d3d_pool_default"))
+        d3_d_pool_managed = from_int(obj.get("d3d_pool_managed"))
+        d3_d_pool_scratch = from_int(obj.get("d3d_pool_scratch"))
+        d3_d_pool_systemmem = from_int(obj.get("d3d_pool_systemmem"))
+        d3_d_usage_dynamic = from_int(obj.get("d3d_usage_dynamic"))
+        d3_d_usage_writeonly = from_int(obj.get("d3d_usage_writeonly"))
+        padding0 = from_int(obj.get("padding0"))
+        padding1 = from_int(obj.get("padding1"))
+        unknown = from_int(obj.get("unknown"))
+        return D3DFlags(
+            d3_d_pool_default,
+            d3_d_pool_managed,
+            d3_d_pool_scratch,
+            d3_d_pool_systemmem,
+            d3_d_usage_dynamic,
+            d3_d_usage_writeonly,
+            padding0,
+            padding1,
+            unknown,
+        )
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["d3d_pool_default"] = from_int(self.d3_d_pool_default)
+        result["d3d_pool_managed"] = from_int(self.d3_d_pool_managed)
+        result["d3d_pool_scratch"] = from_int(self.d3_d_pool_scratch)
+        result["d3d_pool_systemmem"] = from_int(self.d3_d_pool_systemmem)
+        result["d3d_usage_dynamic"] = from_int(self.d3_d_usage_dynamic)
+        result["d3d_usage_writeonly"] = from_int(self.d3_d_usage_writeonly)
+        result["padding0"] = from_int(self.padding0)
+        result["padding1"] = from_int(self.padding1)
+        result["unknown"] = from_int(self.unknown)
         return result
 
 
-class Schema16:
+class IndexBufferExt2:
     def __init__(self, flags, tris):
         self.flags = flags
         self.tris = tris
@@ -7954,34 +9152,34 @@ class Schema16:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        flags = IndexBufferFlags.from_dict(obj.get("flags"))
+        flags = D3DFlags.from_dict(obj.get("flags"))
         tris = from_list(lambda x: from_list(from_int, x), obj.get("tris"))
-        return Schema16(flags, tris)
+        return IndexBufferExt2(flags, tris)
 
     def to_dict(self):
         result = {}
-        result["flags"] = to_class(IndexBufferFlags, self.flags)
+        result["flags"] = to_class(D3DFlags, self.flags)
         result["tris"] = from_list(lambda x: from_list(from_int, x), self.tris)
         return result
 
 
-class AABBMorphTriggersRange:
+class RangeInclusive:
     def __init__(self, inner):
         self.inner = inner
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        inner = RangeInner.from_dict(obj.get("inner"))
-        return AABBMorphTriggersRange(inner)
+        inner = RangeOfUint16.from_dict(obj.get("inner"))
+        return RangeInclusive(inner)
 
     def to_dict(self):
         result = {}
-        result["inner"] = to_class(RangeInner, self.inner)
+        result["inner"] = to_class(RangeOfUint16, self.inner)
         return result
 
 
-class AABBMorphTriggerElement:
+class AABBMorphTrigger:
     def __init__(self, aabb_morph_triggers_range, map_index_range, max, min):
         self.aabb_morph_triggers_range = aabb_morph_triggers_range
         self.map_index_range = map_index_range
@@ -7991,20 +9189,18 @@ class AABBMorphTriggerElement:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        aabb_morph_triggers_range = AABBMorphTriggersRange.from_dict(
+        aabb_morph_triggers_range = RangeInclusive.from_dict(
             obj.get("aabb_morph_triggers_range")
         )
         map_index_range = Range.from_dict(obj.get("map_index_range"))
         max = from_list(from_float, obj.get("max"))
         min = from_list(from_float, obj.get("min"))
-        return AABBMorphTriggerElement(
-            aabb_morph_triggers_range, map_index_range, max, min
-        )
+        return AABBMorphTrigger(aabb_morph_triggers_range, map_index_range, max, min)
 
     def to_dict(self):
         result = {}
         result["aabb_morph_triggers_range"] = to_class(
-            AABBMorphTriggersRange, self.aabb_morph_triggers_range
+            RangeInclusive, self.aabb_morph_triggers_range
         )
         result["map_index_range"] = to_class(Range, self.map_index_range)
         result["max"] = from_list(to_float, self.max)
@@ -8012,23 +9208,7 @@ class AABBMorphTriggerElement:
         return result
 
 
-class Map:
-    def __init__(
-        self,
-    ):
-        pass
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        return Map()
-
-    def to_dict(self):
-        result = {}
-        return result
-
-
-class DisplacementVectorElement:
+class DisplacementVector:
     def __init__(self, displacement, displacement_vectors_self_index):
         self.displacement = displacement
         self.displacement_vectors_self_index = displacement_vectors_self_index
@@ -8040,7 +9220,7 @@ class DisplacementVectorElement:
         displacement_vectors_self_index = from_int(
             obj.get("displacement_vectors_self_index")
         )
-        return DisplacementVectorElement(displacement, displacement_vectors_self_index)
+        return DisplacementVector(displacement, displacement_vectors_self_index)
 
     def to_dict(self):
         result = {}
@@ -8051,7 +9231,7 @@ class DisplacementVectorElement:
         return result
 
 
-class MorphElement:
+class MorphTargetDesc2:
     def __init__(
         self,
         base_vertex_buffer_id,
@@ -8071,7 +9251,7 @@ class MorphElement:
         assert isinstance(obj, dict)
         base_vertex_buffer_id = from_int(obj.get("base_vertex_buffer_id"))
         displacement_vectors = from_list(
-            DisplacementVectorElement.from_dict, obj.get("displacement_vectors")
+            DisplacementVector.from_dict, obj.get("displacement_vectors")
         )
         displacement_vectors_indicies = from_list(
             from_int, obj.get("displacement_vectors_indicies")
@@ -8080,7 +9260,7 @@ class MorphElement:
             obj.get("displacement_vertex_buffer_index")
         )
         name = from_str(obj.get("name"))
-        return MorphElement(
+        return MorphTargetDesc2(
             base_vertex_buffer_id,
             displacement_vectors,
             displacement_vectors_indicies,
@@ -8092,7 +9272,7 @@ class MorphElement:
         result = {}
         result["base_vertex_buffer_id"] = from_int(self.base_vertex_buffer_id)
         result["displacement_vectors"] = from_list(
-            lambda x: to_class(DisplacementVectorElement, x), self.displacement_vectors
+            lambda x: to_class(DisplacementVector, x), self.displacement_vectors
         )
         result["displacement_vectors_indicies"] = from_list(
             from_int, self.displacement_vectors_indicies
@@ -8104,7 +9284,7 @@ class MorphElement:
         return result
 
 
-class TentacledMorpher:
+class Morpher3:
     def __init__(self, aabb_morph_triggers, displacement_vectors_indices, map, morphs):
         self.aabb_morph_triggers = aabb_morph_triggers
         self.displacement_vectors_indices = displacement_vectors_indices
@@ -8115,31 +9295,31 @@ class TentacledMorpher:
     def from_dict(obj):
         assert isinstance(obj, dict)
         aabb_morph_triggers = from_list(
-            AABBMorphTriggerElement.from_dict, obj.get("aabb_morph_triggers")
+            AABBMorphTrigger.from_dict, obj.get("aabb_morph_triggers")
         )
         displacement_vectors_indices = from_list(
             from_int, obj.get("displacement_vectors_indices")
         )
-        map = Map.from_dict(obj.get("map"))
-        morphs = from_list(MorphElement.from_dict, obj.get("morphs"))
-        return TentacledMorpher(
-            aabb_morph_triggers, displacement_vectors_indices, map, morphs
-        )
+        map = from_dict(from_int, obj.get("map"))
+        morphs = from_list(MorphTargetDesc2.from_dict, obj.get("morphs"))
+        return Morpher3(aabb_morph_triggers, displacement_vectors_indices, map, morphs)
 
     def to_dict(self):
         result = {}
         result["aabb_morph_triggers"] = from_list(
-            lambda x: to_class(AABBMorphTriggerElement, x), self.aabb_morph_triggers
+            lambda x: to_class(AABBMorphTrigger, x), self.aabb_morph_triggers
         )
         result["displacement_vectors_indices"] = from_list(
             from_int, self.displacement_vectors_indices
         )
-        result["map"] = to_class(Map, self.map)
-        result["morphs"] = from_list(lambda x: to_class(MorphElement, x), self.morphs)
+        result["map"] = from_dict(from_int, self.map)
+        result["morphs"] = from_list(
+            lambda x: to_class(MorphTargetDesc2, x), self.morphs
+        )
         return result
 
 
-class QuadElement:
+class Quad:
     def __init__(self, normal, vertices):
         self.normal = normal
         self.vertices = vertices
@@ -8149,7 +9329,7 @@ class QuadElement:
         assert isinstance(obj, dict)
         normal = from_list(from_float, obj.get("normal"))
         vertices = from_list(lambda x: from_list(from_float, x), obj.get("vertices"))
-        return QuadElement(normal, vertices)
+        return Quad(normal, vertices)
 
     def to_dict(self):
         result = {}
@@ -8158,7 +9338,7 @@ class QuadElement:
         return result
 
 
-class Schema17:
+class VertexBufferExt2:
     def __init__(self, flags, vertices):
         self.flags = flags
         self.vertices = vertices
@@ -8166,53 +9346,18 @@ class Schema17:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        flags = IndexBufferFlags.from_dict(obj.get("flags"))
+        flags = D3DFlags.from_dict(obj.get("flags"))
         vertices = Vertices.from_dict(obj.get("vertices"))
-        return Schema17(flags, vertices)
+        return VertexBufferExt2(flags, vertices)
 
     def to_dict(self):
         result = {}
-        result["flags"] = to_class(IndexBufferFlags, self.flags)
+        result["flags"] = to_class(D3DFlags, self.flags)
         result["vertices"] = to_class(Vertices, self.vertices)
         return result
 
 
-class QuadRangeInner:
-    def __init__(self, end, start):
-        self.end = end
-        self.start = start
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        end = from_int(obj.get("end"))
-        start = from_int(obj.get("start"))
-        return QuadRangeInner(end, start)
-
-    def to_dict(self):
-        result = {}
-        result["end"] = from_int(self.end)
-        result["start"] = from_int(self.start)
-        return result
-
-
-class QuadRange:
-    def __init__(self, inner):
-        self.inner = inner
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        inner = QuadRangeInner.from_dict(obj.get("inner"))
-        return QuadRange(inner)
-
-    def to_dict(self):
-        result = {}
-        result["inner"] = to_class(QuadRangeInner, self.inner)
-        return result
-
-
-class Unused1Element:
+class Unused1:
     def __init__(self, unused0, unused1, unused2, unused3, unused4, unused5, unused6):
         self.unused0 = unused0
         self.unused1 = unused1
@@ -8232,9 +9377,7 @@ class Unused1Element:
         unused4 = from_int(obj.get("unused4"))
         unused5 = from_int(obj.get("unused5"))
         unused6 = from_int(obj.get("unused6"))
-        return Unused1Element(
-            unused0, unused1, unused2, unused3, unused4, unused5, unused6
-        )
+        return Unused1(unused0, unused1, unused2, unused3, unused4, unused5, unused6)
 
     def to_dict(self):
         result = {}
@@ -8248,7 +9391,7 @@ class Unused1Element:
         return result
 
 
-class Schema18:
+class VertexGroup2:
     def __init__(
         self,
         face_count,
@@ -8287,19 +9430,17 @@ class Schema18:
         index_buffer_index = from_int(obj.get("index_buffer_index"))
         index_buffer_index_begin = from_int(obj.get("index_buffer_index_begin"))
         material_index = from_int(obj.get("material_index"))
-        quad_range = QuadRange.from_dict(obj.get("quad_range"))
-        unused1_s = from_list(Unused1Element.from_dict, obj.get("unused1s"))
+        quad_range = Range.from_dict(obj.get("quad_range"))
+        unused1_s = from_list(Unused1.from_dict, obj.get("unused1s"))
         vertex_buffer_index = from_int(obj.get("vertex_buffer_index"))
-        vertex_buffer_range = AABBMorphTriggersRange.from_dict(
-            obj.get("vertex_buffer_range")
-        )
+        vertex_buffer_range = RangeInclusive.from_dict(obj.get("vertex_buffer_range"))
         vertex_buffer_range_begin_or_zero = from_int(
             obj.get("vertex_buffer_range_begin_or_zero")
         )
         vertex_count = from_int(obj.get("vertex_count"))
         vertex_layout = from_int(obj.get("vertex_layout"))
         zero = from_int(obj.get("zero"))
-        return Schema18(
+        return VertexGroup2(
             face_count,
             flags,
             index_buffer_index,
@@ -8322,13 +9463,11 @@ class Schema18:
         result["index_buffer_index"] = from_int(self.index_buffer_index)
         result["index_buffer_index_begin"] = from_int(self.index_buffer_index_begin)
         result["material_index"] = from_int(self.material_index)
-        result["quad_range"] = to_class(QuadRange, self.quad_range)
-        result["unused1s"] = from_list(
-            lambda x: to_class(Unused1Element, x), self.unused1_s
-        )
+        result["quad_range"] = to_class(Range, self.quad_range)
+        result["unused1s"] = from_list(lambda x: to_class(Unused1, x), self.unused1_s)
         result["vertex_buffer_index"] = from_int(self.vertex_buffer_index)
         result["vertex_buffer_range"] = to_class(
-            AABBMorphTriggersRange, self.vertex_buffer_range
+            RangeInclusive, self.vertex_buffer_range
         )
         result["vertex_buffer_range_begin_or_zero"] = from_int(
             self.vertex_buffer_range_begin_or_zero
@@ -8339,7 +9478,7 @@ class Schema18:
         return result
 
 
-class TentacledMeshBuffers:
+class MeshBuffers3:
     def __init__(self, index_buffers, morpher, quads, vertex_buffers, vertex_groups):
         self.index_buffers = index_buffers
         self.morpher = morpher
@@ -8350,32 +9489,34 @@ class TentacledMeshBuffers:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        index_buffers = from_list(Schema16.from_dict, obj.get("index_buffers"))
-        morpher = TentacledMorpher.from_dict(obj.get("morpher"))
-        quads = from_list(QuadElement.from_dict, obj.get("quads"))
-        vertex_buffers = from_list(Schema17.from_dict, obj.get("vertex_buffers"))
-        vertex_groups = from_list(Schema18.from_dict, obj.get("vertex_groups"))
-        return TentacledMeshBuffers(
+        index_buffers = from_list(IndexBufferExt2.from_dict, obj.get("index_buffers"))
+        morpher = Morpher3.from_dict(obj.get("morpher"))
+        quads = from_list(Quad.from_dict, obj.get("quads"))
+        vertex_buffers = from_list(
+            VertexBufferExt2.from_dict, obj.get("vertex_buffers")
+        )
+        vertex_groups = from_list(VertexGroup2.from_dict, obj.get("vertex_groups"))
+        return MeshBuffers3(
             index_buffers, morpher, quads, vertex_buffers, vertex_groups
         )
 
     def to_dict(self):
         result = {}
         result["index_buffers"] = from_list(
-            lambda x: to_class(Schema16, x), self.index_buffers
+            lambda x: to_class(IndexBufferExt2, x), self.index_buffers
         )
-        result["morpher"] = to_class(TentacledMorpher, self.morpher)
-        result["quads"] = from_list(lambda x: to_class(QuadElement, x), self.quads)
+        result["morpher"] = to_class(Morpher3, self.morpher)
+        result["quads"] = from_list(lambda x: to_class(Quad, x), self.quads)
         result["vertex_buffers"] = from_list(
-            lambda x: to_class(Schema17, x), self.vertex_buffers
+            lambda x: to_class(VertexBufferExt2, x), self.vertex_buffers
         )
         result["vertex_groups"] = from_list(
-            lambda x: to_class(Schema18, x), self.vertex_groups
+            lambda x: to_class(VertexGroup2, x), self.vertex_groups
         )
         return result
 
 
-class BodyUnused0:
+class Unused0:
     def __init__(self, unknown0, unknown1, unknown2, unknown3):
         self.unknown0 = unknown0
         self.unknown1 = unknown1
@@ -8389,7 +9530,7 @@ class BodyUnused0:
         unknown1 = from_int(obj.get("unknown1"))
         unknown2 = from_int(obj.get("unknown2"))
         unknown3 = from_int(obj.get("unknown3"))
-        return BodyUnused0(unknown0, unknown1, unknown2, unknown3)
+        return Unused0(unknown0, unknown1, unknown2, unknown3)
 
     def to_dict(self):
         result = {}
@@ -8400,7 +9541,7 @@ class BodyUnused0:
         return result
 
 
-class Schema20:
+class Unused002:
     def __init__(self, unused0, unused1):
         self.unused0 = unused0
         self.unused1 = unused1
@@ -8410,7 +9551,7 @@ class Schema20:
         assert isinstance(obj, dict)
         unused0 = from_int(obj.get("unused0"))
         unused1 = from_int(obj.get("unused1"))
-        return Schema20(unused0, unused1)
+        return Unused002(unused0, unused1)
 
     def to_dict(self):
         result = {}
@@ -8419,23 +9560,23 @@ class Schema20:
         return result
 
 
-class Schema19:
+class Unused42:
     def __init__(self, unused0_s):
         self.unused0_s = unused0_s
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        unused0_s = from_list(Schema20.from_dict, obj.get("unused0s"))
-        return Schema19(unused0_s)
+        unused0_s = from_list(Unused002.from_dict, obj.get("unused0s"))
+        return Unused42(unused0_s)
 
     def to_dict(self):
         result = {}
-        result["unused0s"] = from_list(lambda x: to_class(Schema20, x), self.unused0_s)
+        result["unused0s"] = from_list(lambda x: to_class(Unused002, x), self.unused0_s)
         return result
 
 
-class Unused8Element:
+class Unused8:
     def __init__(self, unuseds):
         self.unuseds = unuseds
 
@@ -8443,7 +9584,7 @@ class Unused8Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         unuseds = from_list(from_int, obj.get("unuseds"))
-        return Unused8Element(unuseds)
+        return Unused8(unuseds)
 
     def to_dict(self):
         result = {}
@@ -8451,7 +9592,7 @@ class Unused8Element:
         return result
 
 
-class MeshV1381_67_09PCBody:
+class MeshBodyV1381_67_09PC:
     def __init__(
         self,
         collision_aabbs,
@@ -8483,16 +9624,12 @@ class MeshV1381_67_09PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        collision_aabbs = from_list(
-            CollisionAABBElement.from_dict, obj.get("collision_aabbs")
-        )
-        collision_faces = from_list(
-            BodyCollisionFace.from_dict, obj.get("collision_faces")
-        )
+        collision_aabbs = from_list(AABBNode.from_dict, obj.get("collision_aabbs"))
+        collision_faces = from_list(CollisionFace.from_dict, obj.get("collision_faces"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
         )
-        mesh_buffers = TentacledMeshBuffers.from_dict(obj.get("mesh_buffers"))
+        mesh_buffers = MeshBuffers3.from_dict(obj.get("mesh_buffers"))
         normals = from_list(lambda x: from_list(from_float, x), obj.get("normals"))
         short_vec_weirds = from_list(
             lambda x: from_list(from_float, x), obj.get("short_vec_weirds")
@@ -8500,12 +9637,12 @@ class MeshV1381_67_09PCBody:
         strip_vertices = from_list(
             lambda x: from_list(from_float, x), obj.get("strip_vertices")
         )
-        strips = from_list(StripElement.from_dict, obj.get("strips"))
+        strips = from_list(Strip.from_dict, obj.get("strips"))
         texcoords = from_list(lambda x: from_list(from_float, x), obj.get("texcoords"))
-        unused0_s = from_list(BodyUnused0.from_dict, obj.get("unused0s"))
-        unused4_s = from_list(Schema19.from_dict, obj.get("unused4s"))
-        unused8_s = from_list(Unused8Element.from_dict, obj.get("unused8s"))
-        return MeshV1381_67_09PCBody(
+        unused0_s = from_list(Unused0.from_dict, obj.get("unused0s"))
+        unused4_s = from_list(Unused42.from_dict, obj.get("unused4s"))
+        unused8_s = from_list(Unused8.from_dict, obj.get("unused8s"))
+        return MeshBodyV1381_67_09PC(
             collision_aabbs,
             collision_faces,
             material_names,
@@ -8523,15 +9660,15 @@ class MeshV1381_67_09PCBody:
     def to_dict(self):
         result = {}
         result["collision_aabbs"] = from_list(
-            lambda x: to_class(CollisionAABBElement, x), self.collision_aabbs
+            lambda x: to_class(AABBNode, x), self.collision_aabbs
         )
         result["collision_faces"] = from_list(
-            lambda x: to_class(BodyCollisionFace, x), self.collision_faces
+            lambda x: to_class(CollisionFace, x), self.collision_faces
         )
         result["material_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.material_names
         )
-        result["mesh_buffers"] = to_class(TentacledMeshBuffers, self.mesh_buffers)
+        result["mesh_buffers"] = to_class(MeshBuffers3, self.mesh_buffers)
         result["normals"] = from_list(lambda x: from_list(to_float, x), self.normals)
         result["short_vec_weirds"] = from_list(
             lambda x: from_list(to_float, x), self.short_vec_weirds
@@ -8539,21 +9676,17 @@ class MeshV1381_67_09PCBody:
         result["strip_vertices"] = from_list(
             lambda x: from_list(to_float, x), self.strip_vertices
         )
-        result["strips"] = from_list(lambda x: to_class(StripElement, x), self.strips)
+        result["strips"] = from_list(lambda x: to_class(Strip, x), self.strips)
         result["texcoords"] = from_list(
             lambda x: from_list(to_float, x), self.texcoords
         )
-        result["unused0s"] = from_list(
-            lambda x: to_class(BodyUnused0, x), self.unused0_s
-        )
-        result["unused4s"] = from_list(lambda x: to_class(Schema19, x), self.unused4_s)
-        result["unused8s"] = from_list(
-            lambda x: to_class(Unused8Element, x), self.unused8_s
-        )
+        result["unused0s"] = from_list(lambda x: to_class(Unused0, x), self.unused0_s)
+        result["unused4s"] = from_list(lambda x: to_class(Unused42, x), self.unused4_s)
+        result["unused8s"] = from_list(lambda x: to_class(Unused8, x), self.unused8_s)
         return result
 
 
-class LinkHeaderFade:
+class FadeDistances2:
     def __init__(self, fade_close, x, y):
         self.fade_close = fade_close
         self.x = x
@@ -8565,7 +9698,7 @@ class LinkHeaderFade:
         fade_close = from_float(obj.get("fade_close"))
         x = from_float(obj.get("x"))
         y = from_float(obj.get("y"))
-        return LinkHeaderFade(fade_close, x, y)
+        return FadeDistances2(fade_close, x, y)
 
     def to_dict(self):
         result = {}
@@ -8575,7 +9708,7 @@ class LinkHeaderFade:
         return result
 
 
-class MeshV1381_67_09PCLinkHeader:
+class LinkHeader2:
     def __init__(self, dyn_boxes, dyn_spheres, fade, names, resource_link_header):
         self.dyn_boxes = dyn_boxes
         self.dyn_spheres = dyn_spheres
@@ -8586,38 +9719,34 @@ class MeshV1381_67_09PCLinkHeader:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        dyn_boxes = from_list(CollisionBoxElement.from_dict, obj.get("dyn_boxes"))
-        dyn_spheres = from_list(SpheresColElement.from_dict, obj.get("dyn_spheres"))
-        fade = LinkHeaderFade.from_dict(obj.get("fade"))
+        dyn_boxes = from_list(DynBox.from_dict, obj.get("dyn_boxes"))
+        dyn_spheres = from_list(DynSphere.from_dict, obj.get("dyn_spheres"))
+        fade = FadeDistances2.from_dict(obj.get("fade"))
         names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("names")
         )
-        resource_link_header = CameraV1381_67_09PCLinkHeader.from_dict(
+        resource_link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(
             obj.get("resource_link_header")
         )
-        return MeshV1381_67_09PCLinkHeader(
-            dyn_boxes, dyn_spheres, fade, names, resource_link_header
-        )
+        return LinkHeader2(dyn_boxes, dyn_spheres, fade, names, resource_link_header)
 
     def to_dict(self):
         result = {}
-        result["dyn_boxes"] = from_list(
-            lambda x: to_class(CollisionBoxElement, x), self.dyn_boxes
-        )
+        result["dyn_boxes"] = from_list(lambda x: to_class(DynBox, x), self.dyn_boxes)
         result["dyn_spheres"] = from_list(
-            lambda x: to_class(SpheresColElement, x), self.dyn_spheres
+            lambda x: to_class(DynSphere, x), self.dyn_spheres
         )
-        result["fade"] = to_class(LinkHeaderFade, self.fade)
+        result["fade"] = to_class(FadeDistances2, self.fade)
         result["names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.names
         )
         result["resource_link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.resource_link_header
+            ObjectLinkHeaderV1381_67_09PC, self.resource_link_header
         )
         return result
 
 
-class MeshV1381_67_09_PC:
+class TrivialClassForLinkHeaderAndMeshBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -8628,21 +9757,23 @@ class MeshV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = MeshV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = MeshBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = MeshV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = LinkHeader2.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return MeshV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForLinkHeaderAndMeshBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(MeshV1381_67_09PCBody, self.body)
+        result["body"] = to_class(MeshBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(MeshV1381_67_09PCLinkHeader, self.link_header)
+        result["link_header"] = to_class(LinkHeader2, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -8658,13 +9789,22 @@ class Mesh:
     def from_dict(obj):
         assert isinstance(obj, dict)
         mesh_v1_06_63_02_pc = from_union(
-            [MeshV106_63_02_PC.from_dict, from_none], obj.get("MeshV1_06_63_02PC")
+            [
+                TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("MeshV1_06_63_02PC"),
         )
         mesh_v1_291_03_06_pc = from_union(
-            [MeshV1291_03_06_PC.from_dict, from_none], obj.get("MeshV1_291_03_06PC")
+            [
+                TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
+            obj.get("MeshV1_291_03_06PC"),
         )
         mesh_v1_381_67_09_pc = from_union(
-            [MeshV1381_67_09_PC.from_dict, from_none], obj.get("MeshV1_381_67_09PC")
+            [TrivialClassForLinkHeaderAndMeshBodyV1381_67_09PC.from_dict, from_none],
+            obj.get("MeshV1_381_67_09PC"),
         )
         return Mesh(mesh_v1_06_63_02_pc, mesh_v1_291_03_06_pc, mesh_v1_381_67_09_pc)
 
@@ -8672,23 +9812,40 @@ class Mesh:
         result = {}
         if self.mesh_v1_06_63_02_pc is not None:
             result["MeshV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(MeshV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.mesh_v1_06_63_02_pc,
             )
         if self.mesh_v1_291_03_06_pc is not None:
             result["MeshV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(MeshV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.mesh_v1_291_03_06_pc,
             )
         if self.mesh_v1_381_67_09_pc is not None:
             result["MeshV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(MeshV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForLinkHeaderAndMeshBodyV1381_67_09PC, x
+                    ),
+                    from_none,
+                ],
                 self.mesh_v1_381_67_09_pc,
             )
         return result
 
 
-class UnkStruct1Element:
+class UnkStruct1:
     def __init__(self, data):
         self.data = data
 
@@ -8696,7 +9853,7 @@ class UnkStruct1Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return UnkStruct1Element(data)
+        return UnkStruct1(data)
 
     def to_dict(self):
         result = {}
@@ -8704,7 +9861,7 @@ class UnkStruct1Element:
         return result
 
 
-class UnkStruct2Element:
+class UnkStruct2:
     def __init__(self, data):
         self.data = data
 
@@ -8712,7 +9869,7 @@ class UnkStruct2Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return UnkStruct2Element(data)
+        return UnkStruct2(data)
 
     def to_dict(self):
         result = {}
@@ -8720,7 +9877,7 @@ class UnkStruct2Element:
         return result
 
 
-class UnkStruct3Element:
+class UnkStruct3:
     def __init__(self, data):
         self.data = data
 
@@ -8728,7 +9885,7 @@ class UnkStruct3Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return UnkStruct3Element(data)
+        return UnkStruct3(data)
 
     def to_dict(self):
         result = {}
@@ -8736,7 +9893,7 @@ class UnkStruct3Element:
         return result
 
 
-class UnkStruct4Element:
+class UnkStruct4:
     def __init__(self, data):
         self.data = data
 
@@ -8744,7 +9901,7 @@ class UnkStruct4Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return UnkStruct4Element(data)
+        return UnkStruct4(data)
 
     def to_dict(self):
         result = {}
@@ -8762,30 +9919,30 @@ class MeshVolume:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        unk_struct1_s = from_list(UnkStruct1Element.from_dict, obj.get("unk_struct1s"))
-        unk_struct2_s = from_list(UnkStruct2Element.from_dict, obj.get("unk_struct2s"))
-        unk_struct3_s = from_list(UnkStruct3Element.from_dict, obj.get("unk_struct3s"))
-        unk_struct4_s = from_list(UnkStruct4Element.from_dict, obj.get("unk_struct4s"))
+        unk_struct1_s = from_list(UnkStruct1.from_dict, obj.get("unk_struct1s"))
+        unk_struct2_s = from_list(UnkStruct2.from_dict, obj.get("unk_struct2s"))
+        unk_struct3_s = from_list(UnkStruct3.from_dict, obj.get("unk_struct3s"))
+        unk_struct4_s = from_list(UnkStruct4.from_dict, obj.get("unk_struct4s"))
         return MeshVolume(unk_struct1_s, unk_struct2_s, unk_struct3_s, unk_struct4_s)
 
     def to_dict(self):
         result = {}
         result["unk_struct1s"] = from_list(
-            lambda x: to_class(UnkStruct1Element, x), self.unk_struct1_s
+            lambda x: to_class(UnkStruct1, x), self.unk_struct1_s
         )
         result["unk_struct2s"] = from_list(
-            lambda x: to_class(UnkStruct2Element, x), self.unk_struct2_s
+            lambda x: to_class(UnkStruct2, x), self.unk_struct2_s
         )
         result["unk_struct3s"] = from_list(
-            lambda x: to_class(UnkStruct3Element, x), self.unk_struct3_s
+            lambda x: to_class(UnkStruct3, x), self.unk_struct3_s
         )
         result["unk_struct4s"] = from_list(
-            lambda x: to_class(UnkStruct4Element, x), self.unk_struct4_s
+            lambda x: to_class(UnkStruct4, x), self.unk_struct4_s
         )
         return result
 
 
-class StickyObjectDatas:
+class ObjectDatas4:
     def __init__(self, color, unknown):
         self.color = color
         self.unknown = unknown
@@ -8795,7 +9952,7 @@ class StickyObjectDatas:
         assert isinstance(obj, dict)
         color = from_list(from_float, obj.get("color"))
         unknown = from_float(obj.get("unknown"))
-        return StickyObjectDatas(color, unknown)
+        return ObjectDatas4(color, unknown)
 
     def to_dict(self):
         result = {}
@@ -8804,7 +9961,7 @@ class StickyObjectDatas:
         return result
 
 
-class MeshDataV106_63_02PCBody:
+class MeshDataBodyV106_63_02PC:
     def __init__(self, mesh_volume, object_datas):
         self.mesh_volume = mesh_volume
         self.object_datas = object_datas
@@ -8813,17 +9970,17 @@ class MeshDataV106_63_02PCBody:
     def from_dict(obj):
         assert isinstance(obj, dict)
         mesh_volume = MeshVolume.from_dict(obj.get("mesh_volume"))
-        object_datas = StickyObjectDatas.from_dict(obj.get("object_datas"))
-        return MeshDataV106_63_02PCBody(mesh_volume, object_datas)
+        object_datas = ObjectDatas4.from_dict(obj.get("object_datas"))
+        return MeshDataBodyV106_63_02PC(mesh_volume, object_datas)
 
     def to_dict(self):
         result = {}
         result["mesh_volume"] = to_class(MeshVolume, self.mesh_volume)
-        result["object_datas"] = to_class(StickyObjectDatas, self.object_datas)
+        result["object_datas"] = to_class(ObjectDatas4, self.object_datas)
         return result
 
 
-class MeshDataV106_63_02_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMeshDataBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -8834,29 +9991,33 @@ class MeshDataV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = MeshDataV106_63_02PCBody.from_dict(obj.get("body"))
+        body = MeshDataBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return MeshDataV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMeshDataBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(MeshDataV106_63_02PCBody, self.body)
+        result["body"] = to_class(MeshDataBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class IndigoObjectDatas:
+class ObjectDatas5:
     def __init__(self, color, unknown_float):
         self.color = color
         self.unknown_float = unknown_float
@@ -8866,7 +10027,7 @@ class IndigoObjectDatas:
         assert isinstance(obj, dict)
         color = from_list(from_float, obj.get("color"))
         unknown_float = from_float(obj.get("unknown_float"))
-        return IndigoObjectDatas(color, unknown_float)
+        return ObjectDatas5(color, unknown_float)
 
     def to_dict(self):
         result = {}
@@ -8875,23 +10036,23 @@ class IndigoObjectDatas:
         return result
 
 
-class MeshDataV1291_03_06PCBody:
+class MeshDataBodyV1291_03_06PC:
     def __init__(self, object_datas):
         self.object_datas = object_datas
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        object_datas = IndigoObjectDatas.from_dict(obj.get("object_datas"))
-        return MeshDataV1291_03_06PCBody(object_datas)
+        object_datas = ObjectDatas5.from_dict(obj.get("object_datas"))
+        return MeshDataBodyV1291_03_06PC(object_datas)
 
     def to_dict(self):
         result = {}
-        result["object_datas"] = to_class(IndigoObjectDatas, self.object_datas)
+        result["object_datas"] = to_class(ObjectDatas5, self.object_datas)
         return result
 
 
-class MeshDataV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMeshDataBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -8902,29 +10063,33 @@ class MeshDataV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = MeshDataV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = MeshDataBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return MeshDataV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMeshDataBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(MeshDataV1291_03_06PCBody, self.body)
+        result["body"] = to_class(MeshDataBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class MeshDataV1381_67_09PCBody:
+class MeshDataBodyV1381_67_09PC:
     def __init__(self, flags, zeroes):
         self.flags = flags
         self.zeroes = zeroes
@@ -8932,18 +10097,18 @@ class MeshDataV1381_67_09PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        flags = ResourceDatasFlags.from_dict(obj.get("flags"))
+        flags = ObjectDatasFlagsV1381_67_09PC.from_dict(obj.get("flags"))
         zeroes = from_list(from_int, obj.get("zeroes"))
-        return MeshDataV1381_67_09PCBody(flags, zeroes)
+        return MeshDataBodyV1381_67_09PC(flags, zeroes)
 
     def to_dict(self):
         result = {}
-        result["flags"] = to_class(ResourceDatasFlags, self.flags)
+        result["flags"] = to_class(ObjectDatasFlagsV1381_67_09PC, self.flags)
         result["zeroes"] = from_list(from_int, self.zeroes)
         return result
 
 
-class MeshDataV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMeshDataBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -8954,23 +10119,27 @@ class MeshDataV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = MeshDataV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = MeshDataBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return MeshDataV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMeshDataBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(MeshDataV1381_67_09PCBody, self.body)
+        result["body"] = to_class(MeshDataBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -8991,15 +10160,24 @@ class MeshData:
     def from_dict(obj):
         assert isinstance(obj, dict)
         mesh_data_v1_06_63_02_pc = from_union(
-            [MeshDataV106_63_02_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMeshDataBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
             obj.get("MeshDataV1_06_63_02PC"),
         )
         mesh_data_v1_291_03_06_pc = from_union(
-            [MeshDataV1291_03_06_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMeshDataBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
             obj.get("MeshDataV1_291_03_06PC"),
         )
         mesh_data_v1_381_67_09_pc = from_union(
-            [MeshDataV1381_67_09_PC.from_dict, from_none],
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMeshDataBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
             obj.get("MeshDataV1_381_67_09PC"),
         )
         return MeshData(
@@ -9012,23 +10190,41 @@ class MeshData:
         result = {}
         if self.mesh_data_v1_06_63_02_pc is not None:
             result["MeshDataV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(MeshDataV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMeshDataBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.mesh_data_v1_06_63_02_pc,
             )
         if self.mesh_data_v1_291_03_06_pc is not None:
             result["MeshDataV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(MeshDataV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMeshDataBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.mesh_data_v1_291_03_06_pc,
             )
         if self.mesh_data_v1_381_67_09_pc is not None:
             result["MeshDataV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(MeshDataV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndMeshDataBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.mesh_data_v1_381_67_09_pc,
             )
         return result
 
 
-class PurpleCollideSeadsRect:
+class RectForUint16:
     def __init__(self, bottom_right, top_left):
         self.bottom_right = bottom_right
         self.top_left = top_left
@@ -9038,7 +10234,7 @@ class PurpleCollideSeadsRect:
         assert isinstance(obj, dict)
         bottom_right = from_list(from_int, obj.get("bottom_right"))
         top_left = from_list(from_int, obj.get("top_left"))
-        return PurpleCollideSeadsRect(bottom_right, top_left)
+        return RectForUint16(bottom_right, top_left)
 
     def to_dict(self):
         result = {}
@@ -9047,7 +10243,7 @@ class PurpleCollideSeadsRect:
         return result
 
 
-class NodeV106_63_02PCBody:
+class NodeBodyV106_63_02PC:
     def __init__(
         self,
         b_sphere,
@@ -9121,19 +10317,15 @@ class NodeV106_63_02PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_sphere = BSphere.from_dict(obj.get("b_sphere"))
+        b_sphere = Sphere.from_dict(obj.get("b_sphere"))
         bitmap_name = from_union([from_int, from_str], obj.get("bitmap_name"))
         collide_seads_id1 = from_int(obj.get("collide_seads_id1"))
         collide_seads_id2 = from_int(obj.get("collide_seads_id2"))
-        collide_seads_rect = PurpleCollideSeadsRect.from_dict(
-            obj.get("collide_seads_rect")
-        )
+        collide_seads_rect = RectForUint16.from_dict(obj.get("collide_seads_rect"))
         colors = from_list(from_float, obj.get("colors"))
         display_seads_id1 = from_int(obj.get("display_seads_id1"))
         display_seads_id2 = from_int(obj.get("display_seads_id2"))
-        display_seads_rect = PurpleCollideSeadsRect.from_dict(
-            obj.get("display_seads_rect")
-        )
+        display_seads_rect = RectForUint16.from_dict(obj.get("display_seads_rect"))
         flags = from_int(obj.get("flags"))
         head_child_name = from_union([from_int, from_str], obj.get("head_child_name"))
         inverse_world_transform = from_list(
@@ -9162,7 +10354,7 @@ class NodeV106_63_02PCBody:
         world_transform = from_list(
             lambda x: from_list(from_float, x), obj.get("world_transform")
         )
-        return NodeV106_63_02PCBody(
+        return NodeBodyV106_63_02PC(
             b_sphere,
             bitmap_name,
             collide_seads_id1,
@@ -9200,19 +10392,15 @@ class NodeV106_63_02PCBody:
 
     def to_dict(self):
         result = {}
-        result["b_sphere"] = to_class(BSphere, self.b_sphere)
+        result["b_sphere"] = to_class(Sphere, self.b_sphere)
         result["bitmap_name"] = from_union([from_int, from_str], self.bitmap_name)
         result["collide_seads_id1"] = from_int(self.collide_seads_id1)
         result["collide_seads_id2"] = from_int(self.collide_seads_id2)
-        result["collide_seads_rect"] = to_class(
-            PurpleCollideSeadsRect, self.collide_seads_rect
-        )
+        result["collide_seads_rect"] = to_class(RectForUint16, self.collide_seads_rect)
         result["colors"] = from_list(to_float, self.colors)
         result["display_seads_id1"] = from_int(self.display_seads_id1)
         result["display_seads_id2"] = from_int(self.display_seads_id2)
-        result["display_seads_rect"] = to_class(
-            PurpleCollideSeadsRect, self.display_seads_rect
-        )
+        result["display_seads_rect"] = to_class(RectForUint16, self.display_seads_rect)
         result["flags"] = from_int(self.flags)
         result["head_child_name"] = from_union(
             [from_int, from_str], self.head_child_name
@@ -9250,7 +10438,7 @@ class NodeV106_63_02PCBody:
         return result
 
 
-class NodeV106_63_02_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndNodeBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -9261,29 +10449,35 @@ class NodeV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = NodeV106_63_02PCBody.from_dict(obj.get("body"))
+        body = NodeBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return NodeV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return (
+            TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndNodeBodyV106_63_02PC(
+                body, class_name, link_header, link_name, name
+            )
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(NodeV106_63_02PCBody, self.body)
+        result["body"] = to_class(NodeBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class FluffyCollideSeadsRect:
+class RectForInt32:
     def __init__(self, bottom_right, top_left):
         self.bottom_right = bottom_right
         self.top_left = top_left
@@ -9293,7 +10487,7 @@ class FluffyCollideSeadsRect:
         assert isinstance(obj, dict)
         bottom_right = from_list(from_int, obj.get("bottom_right"))
         top_left = from_list(from_int, obj.get("top_left"))
-        return FluffyCollideSeadsRect(bottom_right, top_left)
+        return RectForInt32(bottom_right, top_left)
 
     def to_dict(self):
         result = {}
@@ -9302,7 +10496,7 @@ class FluffyCollideSeadsRect:
         return result
 
 
-class NodeV1291_03_06PCBody:
+class NodeBodyV1291_03_06PC:
     def __init__(
         self,
         b_sphere,
@@ -9376,7 +10570,7 @@ class NodeV1291_03_06PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_sphere = BSphere.from_dict(obj.get("b_sphere"))
+        b_sphere = Sphere.from_dict(obj.get("b_sphere"))
         bitmap_name = from_union([from_int, from_str], obj.get("bitmap_name"))
         collide_seads_id1 = from_union(
             [from_int, from_str], obj.get("collide_seads_id1")
@@ -9384,9 +10578,7 @@ class NodeV1291_03_06PCBody:
         collide_seads_id2 = from_union(
             [from_int, from_str], obj.get("collide_seads_id2")
         )
-        collide_seads_rect = FluffyCollideSeadsRect.from_dict(
-            obj.get("collide_seads_rect")
-        )
+        collide_seads_rect = RectForInt32.from_dict(obj.get("collide_seads_rect"))
         color = from_list(from_float, obj.get("color"))
         display_seads_id1 = from_union(
             [from_int, from_str], obj.get("display_seads_id1")
@@ -9394,9 +10586,7 @@ class NodeV1291_03_06PCBody:
         display_seads_id2 = from_union(
             [from_int, from_str], obj.get("display_seads_id2")
         )
-        display_seads_rect = FluffyCollideSeadsRect.from_dict(
-            obj.get("display_seads_rect")
-        )
+        display_seads_rect = RectForInt32.from_dict(obj.get("display_seads_rect"))
         flags = from_int(obj.get("flags"))
         head_child_name = from_union([from_int, from_str], obj.get("head_child_name"))
         inverse_world_transform = from_list(
@@ -9429,7 +10619,7 @@ class NodeV1291_03_06PCBody:
         world_transform = from_list(
             lambda x: from_list(from_float, x), obj.get("world_transform")
         )
-        return NodeV1291_03_06PCBody(
+        return NodeBodyV1291_03_06PC(
             b_sphere,
             bitmap_name,
             collide_seads_id1,
@@ -9467,7 +10657,7 @@ class NodeV1291_03_06PCBody:
 
     def to_dict(self):
         result = {}
-        result["b_sphere"] = to_class(BSphere, self.b_sphere)
+        result["b_sphere"] = to_class(Sphere, self.b_sphere)
         result["bitmap_name"] = from_union([from_int, from_str], self.bitmap_name)
         result["collide_seads_id1"] = from_union(
             [from_int, from_str], self.collide_seads_id1
@@ -9475,9 +10665,7 @@ class NodeV1291_03_06PCBody:
         result["collide_seads_id2"] = from_union(
             [from_int, from_str], self.collide_seads_id2
         )
-        result["collide_seads_rect"] = to_class(
-            FluffyCollideSeadsRect, self.collide_seads_rect
-        )
+        result["collide_seads_rect"] = to_class(RectForInt32, self.collide_seads_rect)
         result["color"] = from_list(to_float, self.color)
         result["display_seads_id1"] = from_union(
             [from_int, from_str], self.display_seads_id1
@@ -9485,9 +10673,7 @@ class NodeV1291_03_06PCBody:
         result["display_seads_id2"] = from_union(
             [from_int, from_str], self.display_seads_id2
         )
-        result["display_seads_rect"] = to_class(
-            FluffyCollideSeadsRect, self.display_seads_rect
-        )
+        result["display_seads_rect"] = to_class(RectForInt32, self.display_seads_rect)
         result["flags"] = from_int(self.flags)
         result["head_child_name"] = from_union(
             [from_int, from_str], self.head_child_name
@@ -9531,7 +10717,7 @@ class NodeV1291_03_06PCBody:
         return result
 
 
-class NodeV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndNodeBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -9542,29 +10728,35 @@ class NodeV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = NodeV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = NodeBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return NodeV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return (
+            TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndNodeBodyV1291_03_06PC(
+                body, class_name, link_header, link_name, name
+            )
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(NodeV1291_03_06PCBody, self.body)
+        result["body"] = to_class(NodeBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class NodeV1381_67_09PCBody:
+class NodeBodyV1381_67_09PC:
     def __init__(
         self,
         bitmap_name,
@@ -9621,13 +10813,9 @@ class NodeV1381_67_09PCBody:
     def from_dict(obj):
         assert isinstance(obj, dict)
         bitmap_name = from_union([from_int, from_str], obj.get("bitmap_name"))
-        collide_seads_rect = FluffyCollideSeadsRect.from_dict(
-            obj.get("collide_seads_rect")
-        )
+        collide_seads_rect = RectForInt32.from_dict(obj.get("collide_seads_rect"))
         color = from_list(from_float, obj.get("color"))
-        display_seads_rect = FluffyCollideSeadsRect.from_dict(
-            obj.get("display_seads_rect")
-        )
+        display_seads_rect = RectForInt32.from_dict(obj.get("display_seads_rect"))
         flags = from_int(obj.get("flags"))
         head_child_name = from_union([from_int, from_str], obj.get("head_child_name"))
         light_data_name = from_union([from_int, from_str], obj.get("light_data_name"))
@@ -9646,7 +10834,7 @@ class NodeV1381_67_09PCBody:
         rotation2 = from_list(from_float, obj.get("rotation2"))
         scale = from_float(obj.get("scale"))
         scale2 = from_float(obj.get("scale2"))
-        sphere = BSphere.from_dict(obj.get("sphere"))
+        sphere = Sphere.from_dict(obj.get("sphere"))
         translation = from_list(from_float, obj.get("translation"))
         unknown10 = from_float(obj.get("unknown10"))
         unused_name2 = from_union([from_int, from_str], obj.get("unused_name2"))
@@ -9654,7 +10842,7 @@ class NodeV1381_67_09PCBody:
         world_transform_mat4 = from_list(
             lambda x: from_list(from_float, x), obj.get("world_transform_mat4")
         )
-        return NodeV1381_67_09PCBody(
+        return NodeBodyV1381_67_09PC(
             bitmap_name,
             collide_seads_rect,
             color,
@@ -9684,13 +10872,9 @@ class NodeV1381_67_09PCBody:
     def to_dict(self):
         result = {}
         result["bitmap_name"] = from_union([from_int, from_str], self.bitmap_name)
-        result["collide_seads_rect"] = to_class(
-            FluffyCollideSeadsRect, self.collide_seads_rect
-        )
+        result["collide_seads_rect"] = to_class(RectForInt32, self.collide_seads_rect)
         result["color"] = from_list(to_float, self.color)
-        result["display_seads_rect"] = to_class(
-            FluffyCollideSeadsRect, self.display_seads_rect
-        )
+        result["display_seads_rect"] = to_class(RectForInt32, self.display_seads_rect)
         result["flags"] = from_int(self.flags)
         result["head_child_name"] = from_union(
             [from_int, from_str], self.head_child_name
@@ -9713,7 +10897,7 @@ class NodeV1381_67_09PCBody:
         result["rotation2"] = from_list(to_float, self.rotation2)
         result["scale"] = to_float(self.scale)
         result["scale2"] = to_float(self.scale2)
-        result["sphere"] = to_class(BSphere, self.sphere)
+        result["sphere"] = to_class(Sphere, self.sphere)
         result["translation"] = from_list(to_float, self.translation)
         result["unknown10"] = to_float(self.unknown10)
         result["unused_name2"] = from_union([from_int, from_str], self.unused_name2)
@@ -9726,7 +10910,7 @@ class NodeV1381_67_09PCBody:
         return result
 
 
-class NodeV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndNodeBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -9737,23 +10921,27 @@ class NodeV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = NodeV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = NodeBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return NodeV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndNodeBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(NodeV1381_67_09PCBody, self.body)
+        result["body"] = to_class(NodeBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -9769,13 +10957,25 @@ class Node:
     def from_dict(obj):
         assert isinstance(obj, dict)
         node_v1_06_63_02_pc = from_union(
-            [NodeV106_63_02_PC.from_dict, from_none], obj.get("NodeV1_06_63_02PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndNodeBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("NodeV1_06_63_02PC"),
         )
         node_v1_291_03_06_pc = from_union(
-            [NodeV1291_03_06_PC.from_dict, from_none], obj.get("NodeV1_291_03_06PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndNodeBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
+            obj.get("NodeV1_291_03_06PC"),
         )
         node_v1_381_67_09_pc = from_union(
-            [NodeV1381_67_09_PC.from_dict, from_none], obj.get("NodeV1_381_67_09PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndNodeBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("NodeV1_381_67_09PC"),
         )
         return Node(node_v1_06_63_02_pc, node_v1_291_03_06_pc, node_v1_381_67_09_pc)
 
@@ -9783,23 +10983,41 @@ class Node:
         result = {}
         if self.node_v1_06_63_02_pc is not None:
             result["NodeV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(NodeV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndNodeBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.node_v1_06_63_02_pc,
             )
         if self.node_v1_291_03_06_pc is not None:
             result["NodeV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(NodeV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndNodeBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.node_v1_291_03_06_pc,
             )
         if self.node_v1_381_67_09_pc is not None:
             result["NodeV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(NodeV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndNodeBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.node_v1_381_67_09_pc,
             )
         return result
 
 
-class OmniV106_63_02PCBody:
+class OmniBodyV106_63_02PC:
     def __init__(
         self,
         color,
@@ -9844,7 +11062,7 @@ class OmniV106_63_02PCBody:
             lambda x: from_list(from_float, x), obj.get("texture_projection_matrix")
         )
         unused = from_float(obj.get("unused"))
-        return OmniV106_63_02PCBody(
+        return OmniBodyV106_63_02PC(
             color,
             end,
             intensity,
@@ -9878,7 +11096,7 @@ class OmniV106_63_02PCBody:
         return result
 
 
-class OmniV106_63_02_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndOmniBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -9889,29 +11107,29 @@ class OmniV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = OmniV106_63_02PCBody.from_dict(obj.get("body"))
+        body = OmniBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return OmniV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV106_63_02PCAndOmniBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(OmniV106_63_02PCBody, self.body)
+        result["body"] = to_class(OmniBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class OmniV1381_67_09PCBody:
+class OmniBodyV1381_67_09PC:
     def __init__(
         self,
         material_anim_name0,
@@ -9987,7 +11205,7 @@ class OmniV1381_67_09PCBody:
         unknown7 = from_float(obj.get("unknown7"))
         unknown8 = from_float(obj.get("unknown8"))
         unknown9 = from_float(obj.get("unknown9"))
-        return OmniV1381_67_09PCBody(
+        return OmniBodyV1381_67_09PC(
             material_anim_name0,
             material_anim_name1,
             scale_matrix,
@@ -10043,7 +11261,7 @@ class OmniV1381_67_09PCBody:
         return result
 
 
-class OmniV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndOmniBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -10054,23 +11272,25 @@ class OmniV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = OmniV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = OmniBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return OmniV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV1381_67_09PCAndOmniBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(OmniV1381_67_09PCBody, self.body)
+        result["body"] = to_class(OmniBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -10085,10 +11305,18 @@ class Omni:
     def from_dict(obj):
         assert isinstance(obj, dict)
         omni_v1_06_63_02_pc = from_union(
-            [OmniV106_63_02_PC.from_dict, from_none], obj.get("OmniV1_06_63_02PC")
+            [
+                TrivialClassForObjectLinkHeaderV106_63_02PCAndOmniBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("OmniV1_06_63_02PC"),
         )
         omni_v1_381_67_09_pc = from_union(
-            [OmniV1381_67_09_PC.from_dict, from_none], obj.get("OmniV1_381_67_09PC")
+            [
+                TrivialClassForObjectLinkHeaderV1381_67_09PCAndOmniBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("OmniV1_381_67_09PC"),
         )
         return Omni(omni_v1_06_63_02_pc, omni_v1_381_67_09_pc)
 
@@ -10096,34 +11324,126 @@ class Omni:
         result = {}
         if self.omni_v1_06_63_02_pc is not None:
             result["OmniV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(OmniV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV106_63_02PCAndOmniBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.omni_v1_06_63_02_pc,
             )
         if self.omni_v1_381_67_09_pc is not None:
             result["OmniV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(OmniV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV1381_67_09PCAndOmniBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.omni_v1_381_67_09_pc,
             )
         return result
 
 
 class ParticlesEmitterFlags:
-    def __init__(self, value):
-        self.value = value
+    def __init__(
+        self,
+        fl_particles_accurate,
+        fl_particles_boundary_only,
+        fl_particles_flip_h,
+        fl_particles_flip_v,
+        fl_particles_last,
+        fl_particles_light,
+        fl_particles_lock_h,
+        fl_particles_lock_v,
+        fl_particles_loop,
+        fl_particles_noderel,
+        fl_particles_noemit,
+        fl_particles_oriented,
+        fl_particles_screen,
+        fl_particles_screenxy,
+        fl_particles_sizex_only,
+        fl_particles_use_total,
+    ):
+        self.fl_particles_accurate = fl_particles_accurate
+        self.fl_particles_boundary_only = fl_particles_boundary_only
+        self.fl_particles_flip_h = fl_particles_flip_h
+        self.fl_particles_flip_v = fl_particles_flip_v
+        self.fl_particles_last = fl_particles_last
+        self.fl_particles_light = fl_particles_light
+        self.fl_particles_lock_h = fl_particles_lock_h
+        self.fl_particles_lock_v = fl_particles_lock_v
+        self.fl_particles_loop = fl_particles_loop
+        self.fl_particles_noderel = fl_particles_noderel
+        self.fl_particles_noemit = fl_particles_noemit
+        self.fl_particles_oriented = fl_particles_oriented
+        self.fl_particles_screen = fl_particles_screen
+        self.fl_particles_screenxy = fl_particles_screenxy
+        self.fl_particles_sizex_only = fl_particles_sizex_only
+        self.fl_particles_use_total = fl_particles_use_total
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return ParticlesEmitterFlags(value)
+        fl_particles_accurate = from_int(obj.get("fl_particles_accurate"))
+        fl_particles_boundary_only = from_int(obj.get("fl_particles_boundary_only"))
+        fl_particles_flip_h = from_int(obj.get("fl_particles_flip_h"))
+        fl_particles_flip_v = from_int(obj.get("fl_particles_flip_v"))
+        fl_particles_last = from_int(obj.get("fl_particles_last"))
+        fl_particles_light = from_int(obj.get("fl_particles_light"))
+        fl_particles_lock_h = from_int(obj.get("fl_particles_lock_h"))
+        fl_particles_lock_v = from_int(obj.get("fl_particles_lock_v"))
+        fl_particles_loop = from_int(obj.get("fl_particles_loop"))
+        fl_particles_noderel = from_int(obj.get("fl_particles_noderel"))
+        fl_particles_noemit = from_int(obj.get("fl_particles_noemit"))
+        fl_particles_oriented = from_int(obj.get("fl_particles_oriented"))
+        fl_particles_screen = from_int(obj.get("fl_particles_screen"))
+        fl_particles_screenxy = from_int(obj.get("fl_particles_screenxy"))
+        fl_particles_sizex_only = from_int(obj.get("fl_particles_sizex_only"))
+        fl_particles_use_total = from_int(obj.get("fl_particles_use_total"))
+        return ParticlesEmitterFlags(
+            fl_particles_accurate,
+            fl_particles_boundary_only,
+            fl_particles_flip_h,
+            fl_particles_flip_v,
+            fl_particles_last,
+            fl_particles_light,
+            fl_particles_lock_h,
+            fl_particles_lock_v,
+            fl_particles_loop,
+            fl_particles_noderel,
+            fl_particles_noemit,
+            fl_particles_oriented,
+            fl_particles_screen,
+            fl_particles_screenxy,
+            fl_particles_sizex_only,
+            fl_particles_use_total,
+        )
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["fl_particles_accurate"] = from_int(self.fl_particles_accurate)
+        result["fl_particles_boundary_only"] = from_int(self.fl_particles_boundary_only)
+        result["fl_particles_flip_h"] = from_int(self.fl_particles_flip_h)
+        result["fl_particles_flip_v"] = from_int(self.fl_particles_flip_v)
+        result["fl_particles_last"] = from_int(self.fl_particles_last)
+        result["fl_particles_light"] = from_int(self.fl_particles_light)
+        result["fl_particles_lock_h"] = from_int(self.fl_particles_lock_h)
+        result["fl_particles_lock_v"] = from_int(self.fl_particles_lock_v)
+        result["fl_particles_loop"] = from_int(self.fl_particles_loop)
+        result["fl_particles_noderel"] = from_int(self.fl_particles_noderel)
+        result["fl_particles_noemit"] = from_int(self.fl_particles_noemit)
+        result["fl_particles_oriented"] = from_int(self.fl_particles_oriented)
+        result["fl_particles_screen"] = from_int(self.fl_particles_screen)
+        result["fl_particles_screenxy"] = from_int(self.fl_particles_screenxy)
+        result["fl_particles_sizex_only"] = from_int(self.fl_particles_sizex_only)
+        result["fl_particles_use_total"] = from_int(self.fl_particles_use_total)
         return result
 
 
-class Unknown63Keyframe:
+class KeyLinearTplForFloat:
     def __init__(self, time, value):
         self.time = time
         self.value = value
@@ -10133,7 +11453,7 @@ class Unknown63Keyframe:
         assert isinstance(obj, dict)
         time = from_float(obj.get("time"))
         value = from_float(obj.get("value"))
-        return Unknown63Keyframe(time, value)
+        return KeyLinearTplForFloat(time, value)
 
     def to_dict(self):
         result = {}
@@ -10142,7 +11462,7 @@ class Unknown63Keyframe:
         return result
 
 
-class Unknown63:
+class KeyframerTplForKeyLinearTplForFloat:
     def __init__(self, interpolation_type, keyframes):
         self.interpolation_type = interpolation_type
         self.keyframes = keyframes
@@ -10150,22 +11470,22 @@ class Unknown63:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        interpolation_type = InterpolationType(obj.get("interpolation_type"))
-        keyframes = from_list(Unknown63Keyframe.from_dict, obj.get("keyframes"))
-        return Unknown63(interpolation_type, keyframes)
+        interpolation_type = KeyframerInterpolationType(obj.get("interpolation_type"))
+        keyframes = from_list(KeyLinearTplForFloat.from_dict, obj.get("keyframes"))
+        return KeyframerTplForKeyLinearTplForFloat(interpolation_type, keyframes)
 
     def to_dict(self):
         result = {}
         result["interpolation_type"] = to_enum(
-            InterpolationType, self.interpolation_type
+            KeyframerInterpolationType, self.interpolation_type
         )
         result["keyframes"] = from_list(
-            lambda x: to_class(Unknown63Keyframe, x), self.keyframes
+            lambda x: to_class(KeyLinearTplForFloat, x), self.keyframes
         )
         return result
 
 
-class ParticlesEmitterElement:
+class ParticlesEmitter:
     def __init__(
         self,
         emitter_speed,
@@ -10238,16 +11558,26 @@ class ParticlesEmitterElement:
         p_cloud_offset = from_list(from_float, obj.get("p_cloud_offset"))
         p_cloud_size = from_list(from_float, obj.get("p_cloud_size"))
         p_cloud_type = from_int(obj.get("p_cloud_type"))
-        unknown60 = ScaleKeyframer.from_dict(obj.get("unknown60"))
-        unknown61 = ParamsKeyframer.from_dict(obj.get("unknown61"))
-        unknown62 = ParamsKeyframer.from_dict(obj.get("unknown62"))
-        unknown63 = Unknown63.from_dict(obj.get("unknown63"))
-        unknown64 = DiffuseKeyframer.from_dict(obj.get("unknown64"))
-        unknown65 = DiffuseKeyframer.from_dict(obj.get("unknown65"))
-        unknown66 = Unknown63.from_dict(obj.get("unknown66"))
+        unknown60 = KeyframerTplForKeyLinearTplForArraySize2_OfFloat.from_dict(
+            obj.get("unknown60")
+        )
+        unknown61 = KeyframerTplForKeyLinearTplForArraySize4_OfFloat.from_dict(
+            obj.get("unknown61")
+        )
+        unknown62 = KeyframerTplForKeyLinearTplForArraySize4_OfFloat.from_dict(
+            obj.get("unknown62")
+        )
+        unknown63 = KeyframerTplForKeyLinearTplForFloat.from_dict(obj.get("unknown63"))
+        unknown64 = KeyframerTplForKeyLinearTplForArraySize3_OfFloat.from_dict(
+            obj.get("unknown64")
+        )
+        unknown65 = KeyframerTplForKeyLinearTplForArraySize3_OfFloat.from_dict(
+            obj.get("unknown65")
+        )
+        unknown66 = KeyframerTplForKeyLinearTplForFloat.from_dict(obj.get("unknown66"))
         velocity = from_float(obj.get("velocity"))
         velocity_variation = from_float(obj.get("velocity_variation"))
-        return ParticlesEmitterElement(
+        return ParticlesEmitter(
             emitter_speed,
             emitter_speed_variation,
             flags,
@@ -10293,19 +11623,33 @@ class ParticlesEmitterElement:
         result["p_cloud_offset"] = from_list(to_float, self.p_cloud_offset)
         result["p_cloud_size"] = from_list(to_float, self.p_cloud_size)
         result["p_cloud_type"] = from_int(self.p_cloud_type)
-        result["unknown60"] = to_class(ScaleKeyframer, self.unknown60)
-        result["unknown61"] = to_class(ParamsKeyframer, self.unknown61)
-        result["unknown62"] = to_class(ParamsKeyframer, self.unknown62)
-        result["unknown63"] = to_class(Unknown63, self.unknown63)
-        result["unknown64"] = to_class(DiffuseKeyframer, self.unknown64)
-        result["unknown65"] = to_class(DiffuseKeyframer, self.unknown65)
-        result["unknown66"] = to_class(Unknown63, self.unknown66)
+        result["unknown60"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize2_OfFloat, self.unknown60
+        )
+        result["unknown61"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize4_OfFloat, self.unknown61
+        )
+        result["unknown62"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize4_OfFloat, self.unknown62
+        )
+        result["unknown63"] = to_class(
+            KeyframerTplForKeyLinearTplForFloat, self.unknown63
+        )
+        result["unknown64"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize3_OfFloat, self.unknown64
+        )
+        result["unknown65"] = to_class(
+            KeyframerTplForKeyLinearTplForArraySize3_OfFloat, self.unknown65
+        )
+        result["unknown66"] = to_class(
+            KeyframerTplForKeyLinearTplForFloat, self.unknown66
+        )
         result["velocity"] = to_float(self.velocity)
         result["velocity_variation"] = to_float(self.velocity_variation)
         return result
 
 
-class ParticlesV1381_67_09PCBody:
+class ParticlesBodyV1381_67_09PC:
     def __init__(self, mats, particles_emitters, unknown2, unknown3):
         self.mats = mats
         self.particles_emitters = particles_emitters
@@ -10319,11 +11663,11 @@ class ParticlesV1381_67_09PCBody:
             lambda x: from_list(lambda x: from_list(from_float, x), x), obj.get("mats")
         )
         particles_emitters = from_list(
-            ParticlesEmitterElement.from_dict, obj.get("particles_emitters")
+            ParticlesEmitter.from_dict, obj.get("particles_emitters")
         )
         unknown2 = from_float(obj.get("unknown2"))
         unknown3 = from_int(obj.get("unknown3"))
-        return ParticlesV1381_67_09PCBody(mats, particles_emitters, unknown2, unknown3)
+        return ParticlesBodyV1381_67_09PC(mats, particles_emitters, unknown2, unknown3)
 
     def to_dict(self):
         result = {}
@@ -10331,14 +11675,14 @@ class ParticlesV1381_67_09PCBody:
             lambda x: from_list(lambda x: from_list(to_float, x), x), self.mats
         )
         result["particles_emitters"] = from_list(
-            lambda x: to_class(ParticlesEmitterElement, x), self.particles_emitters
+            lambda x: to_class(ParticlesEmitter, x), self.particles_emitters
         )
         result["unknown2"] = to_float(self.unknown2)
         result["unknown3"] = from_int(self.unknown3)
         return result
 
 
-class ParticlesV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndParticlesBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -10349,23 +11693,27 @@ class ParticlesV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = ParticlesV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = ParticlesBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return ParticlesV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return (
+            TrivialClassForObjectLinkHeaderV1381_67_09PCAndParticlesBodyV1381_67_09PC(
+                body, class_name, link_header, link_name, name
+            )
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(ParticlesV1381_67_09PCBody, self.body)
+        result["body"] = to_class(ParticlesBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -10378,7 +11726,7 @@ class Particles:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        particles_v1_381_67_09_pc = ParticlesV1381_67_09_PC.from_dict(
+        particles_v1_381_67_09_pc = TrivialClassForObjectLinkHeaderV1381_67_09PCAndParticlesBodyV1381_67_09PC.from_dict(
             obj.get("ParticlesV1_381_67_09PC")
         )
         return Particles(particles_v1_381_67_09_pc)
@@ -10386,12 +11734,13 @@ class Particles:
     def to_dict(self):
         result = {}
         result["ParticlesV1_381_67_09PC"] = to_class(
-            ParticlesV1381_67_09_PC, self.particles_v1_381_67_09_pc
+            TrivialClassForObjectLinkHeaderV1381_67_09PCAndParticlesBodyV1381_67_09PC,
+            self.particles_v1_381_67_09_pc,
         )
         return result
 
 
-class FluffyFade:
+class FadeDistances3:
     def __init__(self, fade_close, x, y):
         self.fade_close = fade_close
         self.x = x
@@ -10403,7 +11752,7 @@ class FluffyFade:
         fade_close = from_float(obj.get("fade_close"))
         x = from_float(obj.get("x"))
         y = from_float(obj.get("y"))
-        return FluffyFade(fade_close, x, y)
+        return FadeDistances3(fade_close, x, y)
 
     def to_dict(self):
         result = {}
@@ -10413,7 +11762,7 @@ class FluffyFade:
         return result
 
 
-class ParticlesDataV1381_67_09PCBody:
+class ParticlesDataBodyV1381_67_09PC:
     def __init__(self, fade, flags, position, shorts, zero):
         self.fade = fade
         self.flags = flags
@@ -10424,24 +11773,24 @@ class ParticlesDataV1381_67_09PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        fade = FluffyFade.from_dict(obj.get("fade"))
-        flags = ResourceDatasFlags.from_dict(obj.get("flags"))
+        fade = FadeDistances3.from_dict(obj.get("fade"))
+        flags = ObjectDatasFlagsV1381_67_09PC.from_dict(obj.get("flags"))
         position = from_list(from_float, obj.get("position"))
         shorts = from_list(from_int, obj.get("shorts"))
         zero = from_int(obj.get("zero"))
-        return ParticlesDataV1381_67_09PCBody(fade, flags, position, shorts, zero)
+        return ParticlesDataBodyV1381_67_09PC(fade, flags, position, shorts, zero)
 
     def to_dict(self):
         result = {}
-        result["fade"] = to_class(FluffyFade, self.fade)
-        result["flags"] = to_class(ResourceDatasFlags, self.flags)
+        result["fade"] = to_class(FadeDistances3, self.fade)
+        result["flags"] = to_class(ObjectDatasFlagsV1381_67_09PC, self.flags)
         result["position"] = from_list(to_float, self.position)
         result["shorts"] = from_list(from_int, self.shorts)
         result["zero"] = from_int(self.zero)
         return result
 
 
-class ParticlesDataV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndParticlesDataBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -10452,25 +11801,27 @@ class ParticlesDataV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = ParticlesDataV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = ParticlesDataBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return ParticlesDataV1381_67_09_PC(
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndParticlesDataBodyV1381_67_09PC(
             body, class_name, link_header, link_name, name
         )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(ParticlesDataV1381_67_09PCBody, self.body)
+        result["body"] = to_class(ParticlesDataBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -10483,7 +11834,7 @@ class ParticlesData:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        particles_data_v1_381_67_09_pc = ParticlesDataV1381_67_09_PC.from_dict(
+        particles_data_v1_381_67_09_pc = TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndParticlesDataBodyV1381_67_09PC.from_dict(
             obj.get("ParticlesDataV1_381_67_09PC")
         )
         return ParticlesData(particles_data_v1_381_67_09_pc)
@@ -10491,12 +11842,13 @@ class ParticlesData:
     def to_dict(self):
         result = {}
         result["ParticlesDataV1_381_67_09PC"] = to_class(
-            ParticlesDataV1381_67_09_PC, self.particles_data_v1_381_67_09_pc
+            TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndParticlesDataBodyV1381_67_09PC,
+            self.particles_data_v1_381_67_09_pc,
         )
         return result
 
 
-class RotShapeV106_63_02PCBody:
+class RotShapeBodyV106_63_02PC:
     def __init__(
         self,
         local_uvs,
@@ -10527,7 +11879,7 @@ class RotShapeV106_63_02PCBody:
         material_indices = from_list(from_int, obj.get("material_indices"))
         rot_shape_type = from_int(obj.get("rot_shape_type"))
         scale = from_float(obj.get("scale"))
-        return RotShapeV106_63_02PCBody(
+        return RotShapeBodyV106_63_02PC(
             local_uvs,
             local_vertices,
             material_anim_names,
@@ -10553,7 +11905,7 @@ class RotShapeV106_63_02PCBody:
         return result
 
 
-class Schema22:
+class MorphTargetDescRelated3:
     def __init__(self, data):
         self.data = data
 
@@ -10561,7 +11913,7 @@ class Schema22:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema22(data)
+        return MorphTargetDescRelated3(data)
 
     def to_dict(self):
         result = {}
@@ -10569,7 +11921,7 @@ class Schema22:
         return result
 
 
-class Schema21:
+class MorphTargetDesc3:
     def __init__(self, morph_target_desc_relateds, name):
         self.morph_target_desc_relateds = morph_target_desc_relateds
         self.name = name
@@ -10578,21 +11930,22 @@ class Schema21:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morph_target_desc_relateds = from_list(
-            Schema22.from_dict, obj.get("morph_target_desc_relateds")
+            MorphTargetDescRelated3.from_dict, obj.get("morph_target_desc_relateds")
         )
         name = from_int(obj.get("name"))
-        return Schema21(morph_target_desc_relateds, name)
+        return MorphTargetDesc3(morph_target_desc_relateds, name)
 
     def to_dict(self):
         result = {}
         result["morph_target_desc_relateds"] = from_list(
-            lambda x: to_class(Schema22, x), self.morph_target_desc_relateds
+            lambda x: to_class(MorphTargetDescRelated3, x),
+            self.morph_target_desc_relateds,
         )
         result["name"] = from_int(self.name)
         return result
 
 
-class Schema23:
+class MorpherRelated3:
     def __init__(self, data):
         self.data = data
 
@@ -10600,7 +11953,7 @@ class Schema23:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema23(data)
+        return MorpherRelated3(data)
 
     def to_dict(self):
         result = {}
@@ -10608,7 +11961,7 @@ class Schema23:
         return result
 
 
-class LinkHeaderMorpher:
+class Morpher4:
     def __init__(self, morph_target_descs, morpher_relateds):
         self.morph_target_descs = morph_target_descs
         self.morpher_relateds = morpher_relateds
@@ -10617,23 +11970,25 @@ class LinkHeaderMorpher:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morph_target_descs = from_list(
-            Schema21.from_dict, obj.get("morph_target_descs")
+            MorphTargetDesc3.from_dict, obj.get("morph_target_descs")
         )
-        morpher_relateds = from_list(Schema23.from_dict, obj.get("morpher_relateds"))
-        return LinkHeaderMorpher(morph_target_descs, morpher_relateds)
+        morpher_relateds = from_list(
+            MorpherRelated3.from_dict, obj.get("morpher_relateds")
+        )
+        return Morpher4(morph_target_descs, morpher_relateds)
 
     def to_dict(self):
         result = {}
         result["morph_target_descs"] = from_list(
-            lambda x: to_class(Schema21, x), self.morph_target_descs
+            lambda x: to_class(MorphTargetDesc3, x), self.morph_target_descs
         )
         result["morpher_relateds"] = from_list(
-            lambda x: to_class(Schema23, x), self.morpher_relateds
+            lambda x: to_class(MorpherRelated3, x), self.morpher_relateds
         )
         return result
 
 
-class LinkHeaderPointsRelateds1:
+class PointsRelated12:
     def __init__(self, data):
         self.data = data
 
@@ -10641,7 +11996,7 @@ class LinkHeaderPointsRelateds1:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return LinkHeaderPointsRelateds1(data)
+        return PointsRelated12(data)
 
     def to_dict(self):
         result = {}
@@ -10649,7 +12004,7 @@ class LinkHeaderPointsRelateds1:
         return result
 
 
-class RotShapeV106_63_02PCLinkHeader:
+class LinkInfo:
     def __init__(self, morpher, points_relateds1, resource_link_header, vertices):
         self.morpher = morpher
         self.points_relateds1 = points_relateds1
@@ -10659,32 +12014,30 @@ class RotShapeV106_63_02PCLinkHeader:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        morpher = LinkHeaderMorpher.from_dict(obj.get("morpher"))
+        morpher = Morpher4.from_dict(obj.get("morpher"))
         points_relateds1 = from_list(
-            LinkHeaderPointsRelateds1.from_dict, obj.get("points_relateds1")
+            PointsRelated12.from_dict, obj.get("points_relateds1")
         )
-        resource_link_header = AnimationV1291_03_06PCLinkHeader.from_dict(
+        resource_link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
             obj.get("resource_link_header")
         )
         vertices = from_list(lambda x: from_list(from_float, x), obj.get("vertices"))
-        return RotShapeV106_63_02PCLinkHeader(
-            morpher, points_relateds1, resource_link_header, vertices
-        )
+        return LinkInfo(morpher, points_relateds1, resource_link_header, vertices)
 
     def to_dict(self):
         result = {}
-        result["morpher"] = to_class(LinkHeaderMorpher, self.morpher)
+        result["morpher"] = to_class(Morpher4, self.morpher)
         result["points_relateds1"] = from_list(
-            lambda x: to_class(LinkHeaderPointsRelateds1, x), self.points_relateds1
+            lambda x: to_class(PointsRelated12, x), self.points_relateds1
         )
         result["resource_link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.resource_link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.resource_link_header
         )
         result["vertices"] = from_list(lambda x: from_list(to_float, x), self.vertices)
         return result
 
 
-class RotShapeV106_63_02_PC:
+class TrivialClassForLinkInfoAndRotShapeBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -10695,29 +12048,29 @@ class RotShapeV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = RotShapeV106_63_02PCBody.from_dict(obj.get("body"))
+        body = RotShapeBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = RotShapeV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = LinkInfo.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return RotShapeV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForLinkInfoAndRotShapeBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(RotShapeV106_63_02PCBody, self.body)
+        result["body"] = to_class(RotShapeBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            RotShapeV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(LinkInfo, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class Schema24:
+class PointsRelated02:
     def __init__(self, data):
         self.data = data
 
@@ -10725,7 +12078,7 @@ class Schema24:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema24(data)
+        return PointsRelated02(data)
 
     def to_dict(self):
         result = {}
@@ -10733,7 +12086,7 @@ class Schema24:
         return result
 
 
-class Schema25:
+class PointsRelated13:
     def __init__(self, data):
         self.data = data
 
@@ -10741,7 +12094,7 @@ class Schema25:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema25(data)
+        return PointsRelated13(data)
 
     def to_dict(self):
         result = {}
@@ -10749,7 +12102,7 @@ class Schema25:
         return result
 
 
-class TentacledPoints:
+class Points3:
     def __init__(self, points_related0_s, points_related1_s, vertices):
         self.points_related0_s = points_related0_s
         self.points_related1_s = points_related1_s
@@ -10758,24 +12111,28 @@ class TentacledPoints:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        points_related0_s = from_list(Schema24.from_dict, obj.get("points_related0s"))
-        points_related1_s = from_list(Schema25.from_dict, obj.get("points_related1s"))
+        points_related0_s = from_list(
+            PointsRelated02.from_dict, obj.get("points_related0s")
+        )
+        points_related1_s = from_list(
+            PointsRelated13.from_dict, obj.get("points_related1s")
+        )
         vertices = from_list(lambda x: from_list(from_float, x), obj.get("vertices"))
-        return TentacledPoints(points_related0_s, points_related1_s, vertices)
+        return Points3(points_related0_s, points_related1_s, vertices)
 
     def to_dict(self):
         result = {}
         result["points_related0s"] = from_list(
-            lambda x: to_class(Schema24, x), self.points_related0_s
+            lambda x: to_class(PointsRelated02, x), self.points_related0_s
         )
         result["points_related1s"] = from_list(
-            lambda x: to_class(Schema25, x), self.points_related1_s
+            lambda x: to_class(PointsRelated13, x), self.points_related1_s
         )
         result["vertices"] = from_list(lambda x: from_list(to_float, x), self.vertices)
         return result
 
 
-class RotShapeV1291_03_06PCBody:
+class RotShapeBodyV1291_03_06PC:
     def __init__(
         self,
         local_uvs,
@@ -10805,10 +12162,10 @@ class RotShapeV1291_03_06PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("material_anims")
         )
         material_indices = from_list(from_int, obj.get("material_indices"))
-        points = TentacledPoints.from_dict(obj.get("points"))
+        points = Points3.from_dict(obj.get("points"))
         rot_shape_type = from_int(obj.get("rot_shape_type"))
         scale = from_float(obj.get("scale"))
-        return RotShapeV1291_03_06PCBody(
+        return RotShapeBodyV1291_03_06PC(
             local_uvs,
             local_vertices,
             material_anims,
@@ -10830,13 +12187,13 @@ class RotShapeV1291_03_06PCBody:
             lambda x: from_union([from_int, from_str], x), self.material_anims
         )
         result["material_indices"] = from_list(from_int, self.material_indices)
-        result["points"] = to_class(TentacledPoints, self.points)
+        result["points"] = to_class(Points3, self.points)
         result["rot_shape_type"] = from_int(self.rot_shape_type)
         result["scale"] = to_float(self.scale)
         return result
 
 
-class RotShapeV1291_03_06_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndRotShapeBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -10847,23 +12204,23 @@ class RotShapeV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = RotShapeV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = RotShapeBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return RotShapeV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV106_63_02PCAndRotShapeBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(RotShapeV1291_03_06PCBody, self.body)
+        result["body"] = to_class(RotShapeBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -10874,7 +12231,7 @@ class BillboardMode(Enum):
     Y_BILLBOARD = "YBillboard"
 
 
-class RotShapeV1381_67_09PCBody:
+class RotShapeBodyV1381_67_09PC:
     def __init__(
         self,
         billboard_mode,
@@ -10911,7 +12268,7 @@ class RotShapeV1381_67_09PCBody:
         sizes = from_list(lambda x: from_list(from_float, x), obj.get("sizes"))
         texcoords = from_list(lambda x: from_list(from_float, x), obj.get("texcoords"))
         zero = from_float(obj.get("zero"))
-        return RotShapeV1381_67_09PCBody(
+        return RotShapeBodyV1381_67_09PC(
             billboard_mode,
             material_anim_names,
             material_anim_names_indices,
@@ -10941,7 +12298,7 @@ class RotShapeV1381_67_09PCBody:
         return result
 
 
-class RotShapeV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndRotShapeBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -10952,23 +12309,25 @@ class RotShapeV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = RotShapeV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = RotShapeBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return RotShapeV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV1381_67_09PCAndRotShapeBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(RotShapeV1381_67_09PCBody, self.body)
+        result["body"] = to_class(RotShapeBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -10989,15 +12348,21 @@ class RotShape:
     def from_dict(obj):
         assert isinstance(obj, dict)
         rot_shape_v1_06_63_02_pc = from_union(
-            [RotShapeV106_63_02_PC.from_dict, from_none],
+            [TrivialClassForLinkInfoAndRotShapeBodyV106_63_02PC.from_dict, from_none],
             obj.get("RotShapeV1_06_63_02PC"),
         )
         rot_shape_v1_291_03_06_pc = from_union(
-            [RotShapeV1291_03_06_PC.from_dict, from_none],
+            [
+                TrivialClassForObjectLinkHeaderV106_63_02PCAndRotShapeBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
             obj.get("RotShapeV1_291_03_06PC"),
         )
         rot_shape_v1_381_67_09_pc = from_union(
-            [RotShapeV1381_67_09_PC.from_dict, from_none],
+            [
+                TrivialClassForObjectLinkHeaderV1381_67_09PCAndRotShapeBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
             obj.get("RotShapeV1_381_67_09PC"),
         )
         return RotShape(
@@ -11010,23 +12375,40 @@ class RotShape:
         result = {}
         if self.rot_shape_v1_06_63_02_pc is not None:
             result["RotShapeV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(RotShapeV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForLinkInfoAndRotShapeBodyV106_63_02PC, x
+                    ),
+                    from_none,
+                ],
                 self.rot_shape_v1_06_63_02_pc,
             )
         if self.rot_shape_v1_291_03_06_pc is not None:
             result["RotShapeV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(RotShapeV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV106_63_02PCAndRotShapeBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.rot_shape_v1_291_03_06_pc,
             )
         if self.rot_shape_v1_381_67_09_pc is not None:
             result["RotShapeV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(RotShapeV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV1381_67_09PCAndRotShapeBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.rot_shape_v1_381_67_09_pc,
             )
         return result
 
 
-class RotShapeDataV1381_67_09PCBody:
+class RotShapeDataBodyV1381_67_09PC:
     def __init__(self, flags, pad, zeros):
         self.flags = flags
         self.pad = pad
@@ -11035,20 +12417,20 @@ class RotShapeDataV1381_67_09PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        flags = ResourceDatasFlags.from_dict(obj.get("flags"))
+        flags = ObjectDatasFlagsV1381_67_09PC.from_dict(obj.get("flags"))
         pad = from_list(from_int, obj.get("pad"))
         zeros = from_list(from_int, obj.get("zeros"))
-        return RotShapeDataV1381_67_09PCBody(flags, pad, zeros)
+        return RotShapeDataBodyV1381_67_09PC(flags, pad, zeros)
 
     def to_dict(self):
         result = {}
-        result["flags"] = to_class(ResourceDatasFlags, self.flags)
+        result["flags"] = to_class(ObjectDatasFlagsV1381_67_09PC, self.flags)
         result["pad"] = from_list(from_int, self.pad)
         result["zeros"] = from_list(from_int, self.zeros)
         return result
 
 
-class RotShapeDataV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndRotShapeDataBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -11059,25 +12441,27 @@ class RotShapeDataV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = RotShapeDataV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = RotShapeDataBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return RotShapeDataV1381_67_09_PC(
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndRotShapeDataBodyV1381_67_09PC(
             body, class_name, link_header, link_name, name
         )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(RotShapeDataV1381_67_09PCBody, self.body)
+        result["body"] = to_class(RotShapeDataBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -11090,7 +12474,7 @@ class RotShapeData:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        rot_shape_data_v1_381_67_09_pc = RotShapeDataV1381_67_09_PC.from_dict(
+        rot_shape_data_v1_381_67_09_pc = TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndRotShapeDataBodyV1381_67_09PC.from_dict(
             obj.get("RotShapeDataV1_381_67_09PC")
         )
         return RotShapeData(rot_shape_data_v1_381_67_09_pc)
@@ -11098,12 +12482,13 @@ class RotShapeData:
     def to_dict(self):
         result = {}
         result["RotShapeDataV1_381_67_09PC"] = to_class(
-            RotShapeDataV1381_67_09_PC, self.rot_shape_data_v1_381_67_09_pc
+            TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndRotShapeDataBodyV1381_67_09PC,
+            self.rot_shape_data_v1_381_67_09_pc,
         )
         return result
 
 
-class AnimationOmniElement:
+class AnimationOmni:
     def __init__(
         self, animation_omni_flag, unknown0, unknown1, unknown2, unknown_node_name_name
     ):
@@ -11117,29 +12502,33 @@ class AnimationOmniElement:
     def from_dict(obj):
         assert isinstance(obj, dict)
         animation_omni_flag = from_int(obj.get("animation_omni_flag"))
-        unknown0 = KeyframerVec3Comp0.from_dict(obj.get("unknown0"))
-        unknown1 = KeyframerFloatComp0.from_dict(obj.get("unknown1"))
-        unknown2 = KeyframerFloatComp0.from_dict(obj.get("unknown2"))
+        unknown0 = KeyframerTplForKeyTgtTplForArraySize3_OfFloat.from_dict(
+            obj.get("unknown0")
+        )
+        unknown1 = KeyframerTplForKeyTgtTplForInt16.from_dict(obj.get("unknown1"))
+        unknown2 = KeyframerTplForKeyTgtTplForInt16.from_dict(obj.get("unknown2"))
         unknown_node_name_name = from_union(
             [from_int, from_str], obj.get("unknown_node_name_name")
         )
-        return AnimationOmniElement(
+        return AnimationOmni(
             animation_omni_flag, unknown0, unknown1, unknown2, unknown_node_name_name
         )
 
     def to_dict(self):
         result = {}
         result["animation_omni_flag"] = from_int(self.animation_omni_flag)
-        result["unknown0"] = to_class(KeyframerVec3Comp0, self.unknown0)
-        result["unknown1"] = to_class(KeyframerFloatComp0, self.unknown1)
-        result["unknown2"] = to_class(KeyframerFloatComp0, self.unknown2)
+        result["unknown0"] = to_class(
+            KeyframerTplForKeyTgtTplForArraySize3_OfFloat, self.unknown0
+        )
+        result["unknown1"] = to_class(KeyframerTplForKeyTgtTplForInt16, self.unknown1)
+        result["unknown2"] = to_class(KeyframerTplForKeyTgtTplForInt16, self.unknown2)
         result["unknown_node_name_name"] = from_union(
             [from_int, from_str], self.unknown_node_name_name
         )
         return result
 
 
-class Unknown1Element:
+class RTCAnimationNode:
     def __init__(
         self,
         rtc_animation_node_flag,
@@ -11160,14 +12549,22 @@ class Unknown1Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         rtc_animation_node_flag = from_int(obj.get("rtc_animation_node_flag"))
-        unknown0 = KeyframerRot.from_dict(obj.get("unknown0"))
-        unknown1 = KeyframerVec3Comp0.from_dict(obj.get("unknown1"))
-        unknown2 = KeyframerVec3Comp0.from_dict(obj.get("unknown2"))
-        unknown3 = KeyframerMessage.from_dict(obj.get("unknown3"))
+        unknown0 = KeyframerNoFlagsTplForKeyLinearTplForArraySize4_OfFloat.from_dict(
+            obj.get("unknown0")
+        )
+        unknown1 = KeyframerTplForKeyTgtTplForArraySize3_OfFloat.from_dict(
+            obj.get("unknown1")
+        )
+        unknown2 = KeyframerTplForKeyTgtTplForArraySize3_OfFloat.from_dict(
+            obj.get("unknown2")
+        )
+        unknown3 = KeyframerNoFlagsTplForKeyLinearTplForArrayOfMessage.from_dict(
+            obj.get("unknown3")
+        )
         unknown_node_name = from_union(
             [from_int, from_str], obj.get("unknown_node_name")
         )
-        return Unknown1Element(
+        return RTCAnimationNode(
             rtc_animation_node_flag,
             unknown0,
             unknown1,
@@ -11179,17 +12576,25 @@ class Unknown1Element:
     def to_dict(self):
         result = {}
         result["rtc_animation_node_flag"] = from_int(self.rtc_animation_node_flag)
-        result["unknown0"] = to_class(KeyframerRot, self.unknown0)
-        result["unknown1"] = to_class(KeyframerVec3Comp0, self.unknown1)
-        result["unknown2"] = to_class(KeyframerVec3Comp0, self.unknown2)
-        result["unknown3"] = to_class(KeyframerMessage, self.unknown3)
+        result["unknown0"] = to_class(
+            KeyframerNoFlagsTplForKeyLinearTplForArraySize4_OfFloat, self.unknown0
+        )
+        result["unknown1"] = to_class(
+            KeyframerTplForKeyTgtTplForArraySize3_OfFloat, self.unknown1
+        )
+        result["unknown2"] = to_class(
+            KeyframerTplForKeyTgtTplForArraySize3_OfFloat, self.unknown2
+        )
+        result["unknown3"] = to_class(
+            KeyframerNoFlagsTplForKeyLinearTplForArrayOfMessage, self.unknown3
+        )
         result["unknown_node_name"] = from_union(
             [from_int, from_str], self.unknown_node_name
         )
         return result
 
 
-class Schema27:
+class KeyTgtTplForFloat:
     def __init__(self, tangent_in, tangent_out, time, value):
         self.tangent_in = tangent_in
         self.tangent_out = tangent_out
@@ -11203,7 +12608,7 @@ class Schema27:
         tangent_out = from_float(obj.get("tangent_out"))
         time = from_float(obj.get("time"))
         value = from_float(obj.get("value"))
-        return Schema27(tangent_in, tangent_out, time, value)
+        return KeyTgtTplForFloat(tangent_in, tangent_out, time, value)
 
     def to_dict(self):
         result = {}
@@ -11214,7 +12619,7 @@ class Schema27:
         return result
 
 
-class Unknown2:
+class KeyframerTplForKeyTgtTplForFloat:
     def __init__(self, interpolation_type, keyframes):
         self.interpolation_type = interpolation_type
         self.keyframes = keyframes
@@ -11222,20 +12627,22 @@ class Unknown2:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        interpolation_type = InterpolationType(obj.get("interpolation_type"))
-        keyframes = from_list(Schema27.from_dict, obj.get("keyframes"))
-        return Unknown2(interpolation_type, keyframes)
+        interpolation_type = KeyframerInterpolationType(obj.get("interpolation_type"))
+        keyframes = from_list(KeyTgtTplForFloat.from_dict, obj.get("keyframes"))
+        return KeyframerTplForKeyTgtTplForFloat(interpolation_type, keyframes)
 
     def to_dict(self):
         result = {}
         result["interpolation_type"] = to_enum(
-            InterpolationType, self.interpolation_type
+            KeyframerInterpolationType, self.interpolation_type
         )
-        result["keyframes"] = from_list(lambda x: to_class(Schema27, x), self.keyframes)
+        result["keyframes"] = from_list(
+            lambda x: to_class(KeyTgtTplForFloat, x), self.keyframes
+        )
         return result
 
 
-class Schema26:
+class AnimationCamera:
     def __init__(
         self,
         animation_camera_flag,
@@ -11256,14 +12663,14 @@ class Schema26:
     def from_dict(obj):
         assert isinstance(obj, dict)
         animation_camera_flag = from_int(obj.get("animation_camera_flag"))
-        unknown0 = KeyframerFloatComp0.from_dict(obj.get("unknown0"))
-        unknown1 = KeyframerFloatComp0.from_dict(obj.get("unknown1"))
-        unknown2 = Unknown2.from_dict(obj.get("unknown2"))
-        unknown3 = KeyframerFloatComp0.from_dict(obj.get("unknown3"))
+        unknown0 = KeyframerTplForKeyTgtTplForInt16.from_dict(obj.get("unknown0"))
+        unknown1 = KeyframerTplForKeyTgtTplForInt16.from_dict(obj.get("unknown1"))
+        unknown2 = KeyframerTplForKeyTgtTplForFloat.from_dict(obj.get("unknown2"))
+        unknown3 = KeyframerTplForKeyTgtTplForInt16.from_dict(obj.get("unknown3"))
         unknown_node_name = from_union(
             [from_int, from_str], obj.get("unknown_node_name")
         )
-        return Schema26(
+        return AnimationCamera(
             animation_camera_flag,
             unknown0,
             unknown1,
@@ -11275,17 +12682,17 @@ class Schema26:
     def to_dict(self):
         result = {}
         result["animation_camera_flag"] = from_int(self.animation_camera_flag)
-        result["unknown0"] = to_class(KeyframerFloatComp0, self.unknown0)
-        result["unknown1"] = to_class(KeyframerFloatComp0, self.unknown1)
-        result["unknown2"] = to_class(Unknown2, self.unknown2)
-        result["unknown3"] = to_class(KeyframerFloatComp0, self.unknown3)
+        result["unknown0"] = to_class(KeyframerTplForKeyTgtTplForInt16, self.unknown0)
+        result["unknown1"] = to_class(KeyframerTplForKeyTgtTplForInt16, self.unknown1)
+        result["unknown2"] = to_class(KeyframerTplForKeyTgtTplForFloat, self.unknown2)
+        result["unknown3"] = to_class(KeyframerTplForKeyTgtTplForInt16, self.unknown3)
         result["unknown_node_name"] = from_union(
             [from_int, from_str], self.unknown_node_name
         )
         return result
 
 
-class Schema28:
+class Unknown82:
     def __init__(
         self,
         unknown3,
@@ -11320,7 +12727,7 @@ class Schema28:
         unknown_name_name2 = from_union(
             [from_int, from_str], obj.get("unknown_name_name2")
         )
-        return Schema28(
+        return Unknown82(
             unknown3,
             unknown4,
             unknown_name0,
@@ -11348,7 +12755,7 @@ class Schema28:
         return result
 
 
-class Unknown9Element:
+class Unknown9:
     def __init__(
         self,
         unknown0,
@@ -11380,7 +12787,7 @@ class Unknown9Element:
         unknown_name_name2 = from_union(
             [from_int, from_str], obj.get("unknown_name_name2")
         )
-        return Unknown9Element(
+        return Unknown9(
             unknown0,
             unknown_name0,
             unknown_name1,
@@ -11406,7 +12813,7 @@ class Unknown9Element:
         return result
 
 
-class RTCV1381_67_09PCBody:
+class RTCBodyV1381_67_09PC:
     def __init__(
         self,
         animation_omnis,
@@ -11434,15 +12841,15 @@ class RTCV1381_67_09PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        animation_omnis = from_list(
-            AnimationOmniElement.from_dict, obj.get("animation_omnis")
-        )
+        animation_omnis = from_list(AnimationOmni.from_dict, obj.get("animation_omnis"))
         duration = from_float(obj.get("duration"))
-        unknown1_s = from_list(Unknown1Element.from_dict, obj.get("unknown1s"))
-        unknown2_s = from_list(Schema26.from_dict, obj.get("unknown2s"))
-        unknown30 = KeyframerMessage.from_dict(obj.get("unknown30"))
-        unknown8_s = from_list(Schema28.from_dict, obj.get("unknown8s"))
-        unknown9_s = from_list(Unknown9Element.from_dict, obj.get("unknown9s"))
+        unknown1_s = from_list(RTCAnimationNode.from_dict, obj.get("unknown1s"))
+        unknown2_s = from_list(AnimationCamera.from_dict, obj.get("unknown2s"))
+        unknown30 = KeyframerNoFlagsTplForKeyLinearTplForArrayOfMessage.from_dict(
+            obj.get("unknown30")
+        )
+        unknown8_s = from_list(Unknown82.from_dict, obj.get("unknown8s"))
+        unknown9_s = from_list(Unknown9.from_dict, obj.get("unknown9s"))
         unknown_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("unknown_names")
         )
@@ -11452,7 +12859,7 @@ class RTCV1381_67_09PCBody:
         unknown_names2 = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("unknown_names2")
         )
-        return RTCV1381_67_09PCBody(
+        return RTCBodyV1381_67_09PC(
             animation_omnis,
             duration,
             unknown1_s,
@@ -11468,21 +12875,23 @@ class RTCV1381_67_09PCBody:
     def to_dict(self):
         result = {}
         result["animation_omnis"] = from_list(
-            lambda x: to_class(AnimationOmniElement, x), self.animation_omnis
+            lambda x: to_class(AnimationOmni, x), self.animation_omnis
         )
         result["duration"] = to_float(self.duration)
         result["unknown1s"] = from_list(
-            lambda x: to_class(Unknown1Element, x), self.unknown1_s
+            lambda x: to_class(RTCAnimationNode, x), self.unknown1_s
         )
         result["unknown2s"] = from_list(
-            lambda x: to_class(Schema26, x), self.unknown2_s
+            lambda x: to_class(AnimationCamera, x), self.unknown2_s
         )
-        result["unknown30"] = to_class(KeyframerMessage, self.unknown30)
+        result["unknown30"] = to_class(
+            KeyframerNoFlagsTplForKeyLinearTplForArrayOfMessage, self.unknown30
+        )
         result["unknown8s"] = from_list(
-            lambda x: to_class(Schema28, x), self.unknown8_s
+            lambda x: to_class(Unknown82, x), self.unknown8_s
         )
         result["unknown9s"] = from_list(
-            lambda x: to_class(Unknown9Element, x), self.unknown9_s
+            lambda x: to_class(Unknown9, x), self.unknown9_s
         )
         result["unknown_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.unknown_names
@@ -11496,7 +12905,7 @@ class RTCV1381_67_09PCBody:
         return result
 
 
-class RTCV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndRTCBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -11507,23 +12916,29 @@ class RTCV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = RTCV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = RTCBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return RTCV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return (
+            TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndRTCBodyV1381_67_09PC(
+                body, class_name, link_header, link_name, name
+            )
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(RTCV1381_67_09PCBody, self.body)
+        result["body"] = to_class(RTCBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -11536,18 +12951,21 @@ class RTC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        rtc_v1_381_67_09_pc = RTCV1381_67_09_PC.from_dict(obj.get("RtcV1_381_67_09PC"))
+        rtc_v1_381_67_09_pc = TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndRTCBodyV1381_67_09PC.from_dict(
+            obj.get("RtcV1_381_67_09PC")
+        )
         return RTC(rtc_v1_381_67_09_pc)
 
     def to_dict(self):
         result = {}
         result["RtcV1_381_67_09PC"] = to_class(
-            RTCV1381_67_09_PC, self.rtc_v1_381_67_09_pc
+            TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndRTCBodyV1381_67_09PC,
+            self.rtc_v1_381_67_09_pc,
         )
         return result
 
 
-class Schema29:
+class BoneNodeGroup:
     def __init__(self, bone_node_names):
         self.bone_node_names = bone_node_names
 
@@ -11557,7 +12975,7 @@ class Schema29:
         bone_node_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("bone_node_names")
         )
-        return Schema29(bone_node_names)
+        return BoneNodeGroup(bone_node_names)
 
     def to_dict(self):
         result = {}
@@ -11567,7 +12985,7 @@ class Schema29:
         return result
 
 
-class Schema30:
+class BoneNode:
     def __init__(
         self,
         bone_name,
@@ -11659,7 +13077,7 @@ class Schema30:
         unknown_ptrs1 = from_list(from_int, obj.get("unknown_ptrs1"))
         unknown_ptrs2 = from_list(from_int, obj.get("unknown_ptrs2"))
         user_define_name = from_union([from_int, from_str], obj.get("user_define_name"))
-        return Schema30(
+        return BoneNode(
             bone_name,
             child_bone_id,
             flags,
@@ -11739,7 +13157,7 @@ class Schema30:
         return result
 
 
-class Schema31:
+class BoxColBone:
     def __init__(self, bone_node_name, box_col):
         self.bone_node_name = bone_node_name
         self.box_col = box_col
@@ -11748,17 +13166,17 @@ class Schema31:
     def from_dict(obj):
         assert isinstance(obj, dict)
         bone_node_name = from_union([from_int, from_str], obj.get("bone_node_name"))
-        box_col = CollisionBoxElement.from_dict(obj.get("box_col"))
-        return Schema31(bone_node_name, box_col)
+        box_col = DynBox.from_dict(obj.get("box_col"))
+        return BoxColBone(bone_node_name, box_col)
 
     def to_dict(self):
         result = {}
         result["bone_node_name"] = from_union([from_int, from_str], self.bone_node_name)
-        result["box_col"] = to_class(CollisionBoxElement, self.box_col)
+        result["box_col"] = to_class(DynBox, self.box_col)
         return result
 
 
-class IndecentObjectDatas:
+class ObjectDatas7:
     def __init__(self, b_sphere_local, flag):
         self.b_sphere_local = b_sphere_local
         self.flag = flag
@@ -11766,18 +13184,18 @@ class IndecentObjectDatas:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_sphere_local = BSphere.from_dict(obj.get("b_sphere_local"))
+        b_sphere_local = Sphere.from_dict(obj.get("b_sphere_local"))
         flag = from_int(obj.get("flag"))
-        return IndecentObjectDatas(b_sphere_local, flag)
+        return ObjectDatas7(b_sphere_local, flag)
 
     def to_dict(self):
         result = {}
-        result["b_sphere_local"] = to_class(BSphere, self.b_sphere_local)
+        result["b_sphere_local"] = to_class(Sphere, self.b_sphere_local)
         result["flag"] = from_int(self.flag)
         return result
 
 
-class Schema32:
+class SphereColBone:
     def __init__(self, bone_node_name, sphere_col):
         self.bone_node_name = bone_node_name
         self.sphere_col = sphere_col
@@ -11786,17 +13204,17 @@ class Schema32:
     def from_dict(obj):
         assert isinstance(obj, dict)
         bone_node_name = from_union([from_int, from_str], obj.get("bone_node_name"))
-        sphere_col = SpheresColElement.from_dict(obj.get("sphere_col"))
-        return Schema32(bone_node_name, sphere_col)
+        sphere_col = DynSphere.from_dict(obj.get("sphere_col"))
+        return SphereColBone(bone_node_name, sphere_col)
 
     def to_dict(self):
         result = {}
         result["bone_node_name"] = from_union([from_int, from_str], self.bone_node_name)
-        result["sphere_col"] = to_class(SpheresColElement, self.sphere_col)
+        result["sphere_col"] = to_class(DynSphere, self.sphere_col)
         return result
 
 
-class SkelV106_63_02PCBody:
+class SkelBodyV106_63_02PC:
     def __init__(
         self,
         bone_node_groups,
@@ -11824,9 +13242,11 @@ class SkelV106_63_02PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        bone_node_groups = from_list(Schema29.from_dict, obj.get("bone_node_groups"))
-        bone_nodes = from_list(Schema30.from_dict, obj.get("bone_nodes"))
-        box_col_bones = from_list(Schema31.from_dict, obj.get("box_col_bones"))
+        bone_node_groups = from_list(
+            BoneNodeGroup.from_dict, obj.get("bone_node_groups")
+        )
+        bone_nodes = from_list(BoneNode.from_dict, obj.get("bone_nodes"))
+        box_col_bones = from_list(BoxColBone.from_dict, obj.get("box_col_bones"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
         )
@@ -11834,13 +13254,17 @@ class SkelV106_63_02PCBody:
         mesh_data_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("mesh_data_names")
         )
-        object_datas = IndecentObjectDatas.from_dict(obj.get("object_datas"))
-        sphere_col_bones1 = from_list(Schema32.from_dict, obj.get("sphere_col_bones1"))
-        sphere_col_bones2 = from_list(Schema32.from_dict, obj.get("sphere_col_bones2"))
+        object_datas = ObjectDatas7.from_dict(obj.get("object_datas"))
+        sphere_col_bones1 = from_list(
+            SphereColBone.from_dict, obj.get("sphere_col_bones1")
+        )
+        sphere_col_bones2 = from_list(
+            SphereColBone.from_dict, obj.get("sphere_col_bones2")
+        )
         unknown_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("unknown_names")
         )
-        return SkelV106_63_02PCBody(
+        return SkelBodyV106_63_02PC(
             bone_node_groups,
             bone_nodes,
             box_col_bones,
@@ -11856,13 +13280,13 @@ class SkelV106_63_02PCBody:
     def to_dict(self):
         result = {}
         result["bone_node_groups"] = from_list(
-            lambda x: to_class(Schema29, x), self.bone_node_groups
+            lambda x: to_class(BoneNodeGroup, x), self.bone_node_groups
         )
         result["bone_nodes"] = from_list(
-            lambda x: to_class(Schema30, x), self.bone_nodes
+            lambda x: to_class(BoneNode, x), self.bone_nodes
         )
         result["box_col_bones"] = from_list(
-            lambda x: to_class(Schema31, x), self.box_col_bones
+            lambda x: to_class(BoxColBone, x), self.box_col_bones
         )
         result["material_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.material_names
@@ -11871,12 +13295,12 @@ class SkelV106_63_02PCBody:
         result["mesh_data_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.mesh_data_names
         )
-        result["object_datas"] = to_class(IndecentObjectDatas, self.object_datas)
+        result["object_datas"] = to_class(ObjectDatas7, self.object_datas)
         result["sphere_col_bones1"] = from_list(
-            lambda x: to_class(Schema32, x), self.sphere_col_bones1
+            lambda x: to_class(SphereColBone, x), self.sphere_col_bones1
         )
         result["sphere_col_bones2"] = from_list(
-            lambda x: to_class(Schema32, x), self.sphere_col_bones2
+            lambda x: to_class(SphereColBone, x), self.sphere_col_bones2
         )
         result["unknown_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.unknown_names
@@ -11884,7 +13308,7 @@ class SkelV106_63_02PCBody:
         return result
 
 
-class SkelV106_63_02_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSkelBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -11895,29 +13319,35 @@ class SkelV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SkelV106_63_02PCBody.from_dict(obj.get("body"))
+        body = SkelBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SkelV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return (
+            TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSkelBodyV106_63_02PC(
+                body, class_name, link_header, link_name, name
+            )
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SkelV106_63_02PCBody, self.body)
+        result["body"] = to_class(SkelBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class Schema33:
+class BoneNodeGroup2:
     def __init__(self, bone_node_names):
         self.bone_node_names = bone_node_names
 
@@ -11927,7 +13357,7 @@ class Schema33:
         bone_node_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("bone_node_names")
         )
-        return Schema33(bone_node_names)
+        return BoneNodeGroup2(bone_node_names)
 
     def to_dict(self):
         result = {}
@@ -11937,7 +13367,7 @@ class Schema33:
         return result
 
 
-class Schema34:
+class BoneNode2:
     def __init__(
         self,
         bone_name,
@@ -12029,7 +13459,7 @@ class Schema34:
         unknown_ptrs1 = from_list(from_int, obj.get("unknown_ptrs1"))
         unknown_ptrs2 = from_list(from_int, obj.get("unknown_ptrs2"))
         user_define_name = from_union([from_int, from_str], obj.get("user_define_name"))
-        return Schema34(
+        return BoneNode2(
             bone_name,
             child_bone_id,
             flags,
@@ -12109,7 +13539,7 @@ class Schema34:
         return result
 
 
-class Schema35:
+class BoxColBone2:
     def __init__(self, bone_node_name, box_col):
         self.bone_node_name = bone_node_name
         self.box_col = box_col
@@ -12118,17 +13548,17 @@ class Schema35:
     def from_dict(obj):
         assert isinstance(obj, dict)
         bone_node_name = from_union([from_int, from_str], obj.get("bone_node_name"))
-        box_col = CollisionBoxElement.from_dict(obj.get("box_col"))
-        return Schema35(bone_node_name, box_col)
+        box_col = DynBox.from_dict(obj.get("box_col"))
+        return BoxColBone2(bone_node_name, box_col)
 
     def to_dict(self):
         result = {}
         result["bone_node_name"] = from_union([from_int, from_str], self.bone_node_name)
-        result["box_col"] = to_class(CollisionBoxElement, self.box_col)
+        result["box_col"] = to_class(DynBox, self.box_col)
         return result
 
 
-class HilariousObjectDatas:
+class ObjectDatas8:
     def __init__(self, b_sphere_local, flag):
         self.b_sphere_local = b_sphere_local
         self.flag = flag
@@ -12136,18 +13566,18 @@ class HilariousObjectDatas:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_sphere_local = BSphere.from_dict(obj.get("b_sphere_local"))
+        b_sphere_local = Sphere.from_dict(obj.get("b_sphere_local"))
         flag = from_int(obj.get("flag"))
-        return HilariousObjectDatas(b_sphere_local, flag)
+        return ObjectDatas8(b_sphere_local, flag)
 
     def to_dict(self):
         result = {}
-        result["b_sphere_local"] = to_class(BSphere, self.b_sphere_local)
+        result["b_sphere_local"] = to_class(Sphere, self.b_sphere_local)
         result["flag"] = from_int(self.flag)
         return result
 
 
-class Schema36:
+class SphereColBone2:
     def __init__(self, bone_node_name, sphere_col):
         self.bone_node_name = bone_node_name
         self.sphere_col = sphere_col
@@ -12156,17 +13586,17 @@ class Schema36:
     def from_dict(obj):
         assert isinstance(obj, dict)
         bone_node_name = from_union([from_int, from_str], obj.get("bone_node_name"))
-        sphere_col = SpheresColElement.from_dict(obj.get("sphere_col"))
-        return Schema36(bone_node_name, sphere_col)
+        sphere_col = DynSphere.from_dict(obj.get("sphere_col"))
+        return SphereColBone2(bone_node_name, sphere_col)
 
     def to_dict(self):
         result = {}
         result["bone_node_name"] = from_union([from_int, from_str], self.bone_node_name)
-        result["sphere_col"] = to_class(SpheresColElement, self.sphere_col)
+        result["sphere_col"] = to_class(DynSphere, self.sphere_col)
         return result
 
 
-class SkelV1291_03_06PCBody:
+class SkelBodyV1291_03_06PC:
     def __init__(
         self,
         bone_node_groups,
@@ -12192,22 +13622,28 @@ class SkelV1291_03_06PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        bone_node_groups = from_list(Schema33.from_dict, obj.get("bone_node_groups"))
-        bone_nodes = from_list(Schema34.from_dict, obj.get("bone_nodes"))
-        box_col_bones = from_list(Schema35.from_dict, obj.get("box_col_bones"))
+        bone_node_groups = from_list(
+            BoneNodeGroup2.from_dict, obj.get("bone_node_groups")
+        )
+        bone_nodes = from_list(BoneNode2.from_dict, obj.get("bone_nodes"))
+        box_col_bones = from_list(BoxColBone2.from_dict, obj.get("box_col_bones"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
         )
         mesh_data_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("mesh_data_names")
         )
-        object_datas = HilariousObjectDatas.from_dict(obj.get("object_datas"))
-        sphere_col_bones1 = from_list(Schema36.from_dict, obj.get("sphere_col_bones1"))
-        sphere_col_bones2 = from_list(Schema36.from_dict, obj.get("sphere_col_bones2"))
+        object_datas = ObjectDatas8.from_dict(obj.get("object_datas"))
+        sphere_col_bones1 = from_list(
+            SphereColBone2.from_dict, obj.get("sphere_col_bones1")
+        )
+        sphere_col_bones2 = from_list(
+            SphereColBone2.from_dict, obj.get("sphere_col_bones2")
+        )
         unknown_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("unknown_names")
         )
-        return SkelV1291_03_06PCBody(
+        return SkelBodyV1291_03_06PC(
             bone_node_groups,
             bone_nodes,
             box_col_bones,
@@ -12222,13 +13658,13 @@ class SkelV1291_03_06PCBody:
     def to_dict(self):
         result = {}
         result["bone_node_groups"] = from_list(
-            lambda x: to_class(Schema33, x), self.bone_node_groups
+            lambda x: to_class(BoneNodeGroup2, x), self.bone_node_groups
         )
         result["bone_nodes"] = from_list(
-            lambda x: to_class(Schema34, x), self.bone_nodes
+            lambda x: to_class(BoneNode2, x), self.bone_nodes
         )
         result["box_col_bones"] = from_list(
-            lambda x: to_class(Schema35, x), self.box_col_bones
+            lambda x: to_class(BoxColBone2, x), self.box_col_bones
         )
         result["material_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.material_names
@@ -12236,12 +13672,12 @@ class SkelV1291_03_06PCBody:
         result["mesh_data_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.mesh_data_names
         )
-        result["object_datas"] = to_class(HilariousObjectDatas, self.object_datas)
+        result["object_datas"] = to_class(ObjectDatas8, self.object_datas)
         result["sphere_col_bones1"] = from_list(
-            lambda x: to_class(Schema36, x), self.sphere_col_bones1
+            lambda x: to_class(SphereColBone2, x), self.sphere_col_bones1
         )
         result["sphere_col_bones2"] = from_list(
-            lambda x: to_class(Schema36, x), self.sphere_col_bones2
+            lambda x: to_class(SphereColBone2, x), self.sphere_col_bones2
         )
         result["unknown_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.unknown_names
@@ -12249,7 +13685,7 @@ class SkelV1291_03_06PCBody:
         return result
 
 
-class SkelV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSkelBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -12260,29 +13696,35 @@ class SkelV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SkelV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = SkelBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SkelV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return (
+            TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSkelBodyV1291_03_06PC(
+                body, class_name, link_header, link_name, name
+            )
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SkelV1291_03_06PCBody, self.body)
+        result["body"] = to_class(SkelBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class Schema37:
+class Bone:
     def __init__(
         self,
         bone_flags,
@@ -12374,7 +13816,7 @@ class Schema37:
             lambda x: from_list(from_float, x), obj.get("transformation")
         )
         user_define_name = from_union([from_int, from_str], obj.get("user_define_name"))
-        return Schema37(
+        return Bone(
             bone_flags,
             bone_name,
             child_bone_begin,
@@ -12444,7 +13886,7 @@ class Schema37:
         return result
 
 
-class Schema38:
+class BoxColBone3:
     def __init__(self, mat, names):
         self.mat = mat
         self.names = names
@@ -12456,7 +13898,7 @@ class Schema38:
         names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("names")
         )
-        return Schema38(mat, names)
+        return BoxColBone3(mat, names)
 
     def to_dict(self):
         result = {}
@@ -12467,7 +13909,7 @@ class Schema38:
         return result
 
 
-class SphereColBones0Element:
+class SphereColBone3:
     def __init__(self, names, sphere):
         self.names = names
         self.sphere = sphere
@@ -12478,19 +13920,19 @@ class SphereColBones0Element:
         names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("names")
         )
-        sphere = BSphere.from_dict(obj.get("sphere"))
-        return SphereColBones0Element(names, sphere)
+        sphere = Sphere.from_dict(obj.get("sphere"))
+        return SphereColBone3(names, sphere)
 
     def to_dict(self):
         result = {}
         result["names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.names
         )
-        result["sphere"] = to_class(BSphere, self.sphere)
+        result["sphere"] = to_class(Sphere, self.sphere)
         return result
 
 
-class SkelV1381_67_09PCBody:
+class SkelBodyV1381_67_09PC:
     def __init__(
         self,
         animation_node_names_arrays,
@@ -12522,10 +13964,10 @@ class SkelV1381_67_09PCBody:
             lambda x: from_list(lambda x: from_union([from_int, from_str], x), x),
             obj.get("animation_node_names_arrays"),
         )
-        bones = from_list(Schema37.from_dict, obj.get("bones"))
-        bounding_sphere_center = BSphere.from_dict(obj.get("bounding_sphere_center"))
-        box_col_bones = from_list(Schema38.from_dict, obj.get("box_col_bones"))
-        flags = ResourceDatasFlags.from_dict(obj.get("flags"))
+        bones = from_list(Bone.from_dict, obj.get("bones"))
+        bounding_sphere_center = Sphere.from_dict(obj.get("bounding_sphere_center"))
+        box_col_bones = from_list(BoxColBone3.from_dict, obj.get("box_col_bones"))
+        flags = ObjectDatasFlagsV1381_67_09PC.from_dict(obj.get("flags"))
         material_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("material_names")
         )
@@ -12536,12 +13978,12 @@ class SkelV1381_67_09PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("some_names")
         )
         sphere_col_bones0 = from_list(
-            SphereColBones0Element.from_dict, obj.get("sphere_col_bones0")
+            SphereColBone3.from_dict, obj.get("sphere_col_bones0")
         )
         sphere_col_bones1 = from_list(
-            SphereColBones0Element.from_dict, obj.get("sphere_col_bones1")
+            SphereColBone3.from_dict, obj.get("sphere_col_bones1")
         )
-        return SkelV1381_67_09PCBody(
+        return SkelBodyV1381_67_09PC(
             animation_node_names_arrays,
             bones,
             bounding_sphere_center,
@@ -12560,14 +14002,12 @@ class SkelV1381_67_09PCBody:
             lambda x: from_list(lambda x: from_union([from_int, from_str], x), x),
             self.animation_node_names_arrays,
         )
-        result["bones"] = from_list(lambda x: to_class(Schema37, x), self.bones)
-        result["bounding_sphere_center"] = to_class(
-            BSphere, self.bounding_sphere_center
-        )
+        result["bones"] = from_list(lambda x: to_class(Bone, x), self.bones)
+        result["bounding_sphere_center"] = to_class(Sphere, self.bounding_sphere_center)
         result["box_col_bones"] = from_list(
-            lambda x: to_class(Schema38, x), self.box_col_bones
+            lambda x: to_class(BoxColBone3, x), self.box_col_bones
         )
-        result["flags"] = to_class(ResourceDatasFlags, self.flags)
+        result["flags"] = to_class(ObjectDatasFlagsV1381_67_09PC, self.flags)
         result["material_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.material_names
         )
@@ -12578,15 +14018,15 @@ class SkelV1381_67_09PCBody:
             lambda x: from_union([from_int, from_str], x), self.some_names
         )
         result["sphere_col_bones0"] = from_list(
-            lambda x: to_class(SphereColBones0Element, x), self.sphere_col_bones0
+            lambda x: to_class(SphereColBone3, x), self.sphere_col_bones0
         )
         result["sphere_col_bones1"] = from_list(
-            lambda x: to_class(SphereColBones0Element, x), self.sphere_col_bones1
+            lambda x: to_class(SphereColBone3, x), self.sphere_col_bones1
         )
         return result
 
 
-class SkelV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndSkelBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -12597,23 +14037,27 @@ class SkelV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SkelV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = SkelBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SkelV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndSkelBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SkelV1381_67_09PCBody, self.body)
+        result["body"] = to_class(SkelBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -12629,13 +14073,25 @@ class Skel:
     def from_dict(obj):
         assert isinstance(obj, dict)
         skel_v1_06_63_02_pc = from_union(
-            [SkelV106_63_02_PC.from_dict, from_none], obj.get("SkelV1_06_63_02PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSkelBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("SkelV1_06_63_02PC"),
         )
         skel_v1_291_03_06_pc = from_union(
-            [SkelV1291_03_06_PC.from_dict, from_none], obj.get("SkelV1_291_03_06PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSkelBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
+            obj.get("SkelV1_291_03_06PC"),
         )
         skel_v1_381_67_09_pc = from_union(
-            [SkelV1381_67_09_PC.from_dict, from_none], obj.get("SkelV1_381_67_09PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndSkelBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("SkelV1_381_67_09PC"),
         )
         return Skel(skel_v1_06_63_02_pc, skel_v1_291_03_06_pc, skel_v1_381_67_09_pc)
 
@@ -12643,39 +14099,41 @@ class Skel:
         result = {}
         if self.skel_v1_06_63_02_pc is not None:
             result["SkelV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(SkelV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSkelBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.skel_v1_06_63_02_pc,
             )
         if self.skel_v1_291_03_06_pc is not None:
             result["SkelV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(SkelV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSkelBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.skel_v1_291_03_06_pc,
             )
         if self.skel_v1_381_67_09_pc is not None:
             result["SkelV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(SkelV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndSkelBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.skel_v1_381_67_09_pc,
             )
         return result
 
 
-class AnimClassIDS:
-    def __init__(
-        self,
-    ):
-        pass
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        return AnimClassIDS()
-
-    def to_dict(self):
-        result = {}
-        return result
-
-
-class BlendRelated1Element:
+class BlendRelated:
     def __init__(self, blend, index):
         self.blend = blend
         self.index = index
@@ -12685,7 +14143,7 @@ class BlendRelated1Element:
         assert isinstance(obj, dict)
         blend = from_float(obj.get("blend"))
         index = from_int(obj.get("index"))
-        return BlendRelated1Element(blend, index)
+        return BlendRelated(blend, index)
 
     def to_dict(self):
         result = {}
@@ -12694,7 +14152,7 @@ class BlendRelated1Element:
         return result
 
 
-class ResourceBlendElement:
+class ResourceBlend:
     def __init__(self, blend_related1_s, blend_related2_s, unknown):
         self.blend_related1_s = blend_related1_s
         self.blend_related2_s = blend_related2_s
@@ -12703,28 +14161,24 @@ class ResourceBlendElement:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        blend_related1_s = from_list(
-            BlendRelated1Element.from_dict, obj.get("blend_related1s")
-        )
-        blend_related2_s = from_list(
-            BlendRelated1Element.from_dict, obj.get("blend_related2s")
-        )
+        blend_related1_s = from_list(BlendRelated.from_dict, obj.get("blend_related1s"))
+        blend_related2_s = from_list(BlendRelated.from_dict, obj.get("blend_related2s"))
         unknown = from_int(obj.get("unknown"))
-        return ResourceBlendElement(blend_related1_s, blend_related2_s, unknown)
+        return ResourceBlend(blend_related1_s, blend_related2_s, unknown)
 
     def to_dict(self):
         result = {}
         result["blend_related1s"] = from_list(
-            lambda x: to_class(BlendRelated1Element, x), self.blend_related1_s
+            lambda x: to_class(BlendRelated, x), self.blend_related1_s
         )
         result["blend_related2s"] = from_list(
-            lambda x: to_class(BlendRelated1Element, x), self.blend_related2_s
+            lambda x: to_class(BlendRelated, x), self.blend_related2_s
         )
         result["unknown"] = from_int(self.unknown)
         return result
 
 
-class Schema39:
+class Bone2:
     def __init__(self, bone_name, resource_blends):
         self.bone_name = bone_name
         self.resource_blends = resource_blends
@@ -12733,21 +14187,19 @@ class Schema39:
     def from_dict(obj):
         assert isinstance(obj, dict)
         bone_name = from_union([from_int, from_str], obj.get("bone_name"))
-        resource_blends = from_list(
-            ResourceBlendElement.from_dict, obj.get("resource_blends")
-        )
-        return Schema39(bone_name, resource_blends)
+        resource_blends = from_list(ResourceBlend.from_dict, obj.get("resource_blends"))
+        return Bone2(bone_name, resource_blends)
 
     def to_dict(self):
         result = {}
         result["bone_name"] = from_union([from_int, from_str], self.bone_name)
         result["resource_blends"] = from_list(
-            lambda x: to_class(ResourceBlendElement, x), self.resource_blends
+            lambda x: to_class(ResourceBlend, x), self.resource_blends
         )
         return result
 
 
-class MorphPacketElement:
+class MorphPacket:
     def __init__(self, unknown0_name, unknown1_name):
         self.unknown0_name = unknown0_name
         self.unknown1_name = unknown1_name
@@ -12757,7 +14209,7 @@ class MorphPacketElement:
         assert isinstance(obj, dict)
         unknown0_name = from_union([from_int, from_str], obj.get("unknown0_name"))
         unknown1_name = from_union([from_int, from_str], obj.get("unknown1_name"))
-        return MorphPacketElement(unknown0_name, unknown1_name)
+        return MorphPacket(unknown0_name, unknown1_name)
 
     def to_dict(self):
         result = {}
@@ -12766,7 +14218,7 @@ class MorphPacketElement:
         return result
 
 
-class PlaceholderMorphPacketDa:
+class MorphPacketDA:
     def __init__(self, ptr, size_capacity):
         self.ptr = ptr
         self.size_capacity = size_capacity
@@ -12776,7 +14228,7 @@ class PlaceholderMorphPacketDa:
         assert isinstance(obj, dict)
         ptr = from_int(obj.get("ptr"))
         size_capacity = from_int(obj.get("size_capacity"))
-        return PlaceholderMorphPacketDa(ptr, size_capacity)
+        return MorphPacketDA(ptr, size_capacity)
 
     def to_dict(self):
         result = {}
@@ -12785,7 +14237,7 @@ class PlaceholderMorphPacketDa:
         return result
 
 
-class SkinSubSectionElement:
+class SkinSubSection:
     def __init__(
         self, bone_node_names, material_name, morph_packets, placeholder_morph_packet_da
     ):
@@ -12801,13 +14253,11 @@ class SkinSubSectionElement:
             lambda x: from_union([from_int, from_str], x), obj.get("bone_node_names")
         )
         material_name = from_union([from_int, from_str], obj.get("material_name"))
-        morph_packets = from_list(
-            MorphPacketElement.from_dict, obj.get("morph_packets")
-        )
-        placeholder_morph_packet_da = PlaceholderMorphPacketDa.from_dict(
+        morph_packets = from_list(MorphPacket.from_dict, obj.get("morph_packets"))
+        placeholder_morph_packet_da = MorphPacketDA.from_dict(
             obj.get("placeholder_morph_packet_da")
         )
-        return SkinSubSectionElement(
+        return SkinSubSection(
             bone_node_names, material_name, morph_packets, placeholder_morph_packet_da
         )
 
@@ -12818,15 +14268,15 @@ class SkinSubSectionElement:
         )
         result["material_name"] = from_union([from_int, from_str], self.material_name)
         result["morph_packets"] = from_list(
-            lambda x: to_class(MorphPacketElement, x), self.morph_packets
+            lambda x: to_class(MorphPacket, x), self.morph_packets
         )
         result["placeholder_morph_packet_da"] = to_class(
-            PlaceholderMorphPacketDa, self.placeholder_morph_packet_da
+            MorphPacketDA, self.placeholder_morph_packet_da
         )
         return result
 
 
-class Schema40:
+class SkinSection:
     def __init__(self, skin_sub_sections):
         self.skin_sub_sections = skin_sub_sections
 
@@ -12834,35 +14284,19 @@ class Schema40:
     def from_dict(obj):
         assert isinstance(obj, dict)
         skin_sub_sections = from_list(
-            SkinSubSectionElement.from_dict, obj.get("skin_sub_sections")
+            SkinSubSection.from_dict, obj.get("skin_sub_sections")
         )
-        return Schema40(skin_sub_sections)
+        return SkinSection(skin_sub_sections)
 
     def to_dict(self):
         result = {}
         result["skin_sub_sections"] = from_list(
-            lambda x: to_class(SkinSubSectionElement, x), self.skin_sub_sections
+            lambda x: to_class(SkinSubSection, x), self.skin_sub_sections
         )
         return result
 
 
-class SoundClassIDS:
-    def __init__(
-        self,
-    ):
-        pass
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        return SoundClassIDS()
-
-    def to_dict(self):
-        result = {}
-        return result
-
-
-class BodyUnknown0:
+class Unknown1:
     def __init__(self, unknown1):
         self.unknown1 = unknown1
 
@@ -12870,7 +14304,7 @@ class BodyUnknown0:
     def from_dict(obj):
         assert isinstance(obj, dict)
         unknown1 = from_list(from_int, obj.get("unknown1"))
-        return BodyUnknown0(unknown1)
+        return Unknown1(unknown1)
 
     def to_dict(self):
         result = {}
@@ -12878,7 +14312,7 @@ class BodyUnknown0:
         return result
 
 
-class SkinV1291_03_06PCBody:
+class SkinBodyV1291_03_06PC:
     def __init__(
         self,
         anim_class_ids,
@@ -12903,20 +14337,20 @@ class SkinV1291_03_06PCBody:
     def from_dict(obj):
         assert isinstance(obj, dict)
         anim_class_ids = from_union(
-            [from_none, AnimClassIDS.from_dict], obj.get("anim_class_ids")
+            [from_none, lambda x: from_dict(from_int, x)], obj.get("anim_class_ids")
         )
-        bones = from_list(Schema39.from_dict, obj.get("bones"))
+        bones = from_list(Bone2.from_dict, obj.get("bones"))
         is_class_id = from_int(obj.get("is_class_id"))
         matrix_cache_check = from_int(obj.get("matrix_cache_check"))
         mesh_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("mesh_names")
         )
-        skin_sections = from_list(Schema40.from_dict, obj.get("skin_sections"))
+        skin_sections = from_list(SkinSection.from_dict, obj.get("skin_sections"))
         sound_class_ids = from_union(
-            [from_none, SoundClassIDS.from_dict], obj.get("sound_class_ids")
+            [from_none, lambda x: from_dict(from_int, x)], obj.get("sound_class_ids")
         )
-        unknown0_s = from_list(BodyUnknown0.from_dict, obj.get("unknown0s"))
-        return SkinV1291_03_06PCBody(
+        unknown0_s = from_list(Unknown1.from_dict, obj.get("unknown0s"))
+        return SkinBodyV1291_03_06PC(
             anim_class_ids,
             bones,
             is_class_id,
@@ -12931,28 +14365,28 @@ class SkinV1291_03_06PCBody:
         result = {}
         if self.anim_class_ids is not None:
             result["anim_class_ids"] = from_union(
-                [from_none, lambda x: to_class(AnimClassIDS, x)], self.anim_class_ids
+                [from_none, lambda x: from_dict(from_int, x)], self.anim_class_ids
             )
-        result["bones"] = from_list(lambda x: to_class(Schema39, x), self.bones)
+        result["bones"] = from_list(lambda x: to_class(Bone2, x), self.bones)
         result["is_class_id"] = from_int(self.is_class_id)
         result["matrix_cache_check"] = from_int(self.matrix_cache_check)
         result["mesh_names"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.mesh_names
         )
         result["skin_sections"] = from_list(
-            lambda x: to_class(Schema40, x), self.skin_sections
+            lambda x: to_class(SkinSection, x), self.skin_sections
         )
         if self.sound_class_ids is not None:
             result["sound_class_ids"] = from_union(
-                [from_none, lambda x: to_class(SoundClassIDS, x)], self.sound_class_ids
+                [from_none, lambda x: from_dict(from_int, x)], self.sound_class_ids
             )
         result["unknown0s"] = from_list(
-            lambda x: to_class(BodyUnknown0, x), self.unknown0_s
+            lambda x: to_class(Unknown1, x), self.unknown0_s
         )
         return result
 
 
-class SkinV1291_03_06_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndSkinBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -12963,29 +14397,29 @@ class SkinV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SkinV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = SkinBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SkinV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV106_63_02PCAndSkinBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SkinV1291_03_06PCBody, self.body)
+        result["body"] = to_class(SkinBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class SkinSubsectionElement:
+class SkinSubsection:
     def __init__(self, animation_node_names, bone_names):
         self.animation_node_names = animation_node_names
         self.bone_names = bone_names
@@ -13000,7 +14434,7 @@ class SkinSubsectionElement:
         bone_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("bone_names")
         )
-        return SkinSubsectionElement(animation_node_names, bone_names)
+        return SkinSubsection(animation_node_names, bone_names)
 
     def to_dict(self):
         result = {}
@@ -13013,7 +14447,7 @@ class SkinSubsectionElement:
         return result
 
 
-class Schema41:
+class SkinSection2:
     def __init__(self, skin_subsections):
         self.skin_subsections = skin_subsections
 
@@ -13021,19 +14455,19 @@ class Schema41:
     def from_dict(obj):
         assert isinstance(obj, dict)
         skin_subsections = from_list(
-            SkinSubsectionElement.from_dict, obj.get("skin_subsections")
+            SkinSubsection.from_dict, obj.get("skin_subsections")
         )
-        return Schema41(skin_subsections)
+        return SkinSection2(skin_subsections)
 
     def to_dict(self):
         result = {}
         result["skin_subsections"] = from_list(
-            lambda x: to_class(SkinSubsectionElement, x), self.skin_subsections
+            lambda x: to_class(SkinSubsection, x), self.skin_subsections
         )
         return result
 
 
-class SkinV1381_67_09PCBody:
+class SkinBodyV1381_67_09PC:
     def __init__(
         self, bone_name_count, mesh_names, one_and_a_half, skin_sections, zeros
     ):
@@ -13051,9 +14485,9 @@ class SkinV1381_67_09PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("mesh_names")
         )
         one_and_a_half = from_float(obj.get("one_and_a_half"))
-        skin_sections = from_list(Schema41.from_dict, obj.get("skin_sections"))
+        skin_sections = from_list(SkinSection2.from_dict, obj.get("skin_sections"))
         zeros = from_list(from_int, obj.get("zeros"))
-        return SkinV1381_67_09PCBody(
+        return SkinBodyV1381_67_09PC(
             bone_name_count, mesh_names, one_and_a_half, skin_sections, zeros
         )
 
@@ -13065,13 +14499,13 @@ class SkinV1381_67_09PCBody:
         )
         result["one_and_a_half"] = to_float(self.one_and_a_half)
         result["skin_sections"] = from_list(
-            lambda x: to_class(Schema41, x), self.skin_sections
+            lambda x: to_class(SkinSection2, x), self.skin_sections
         )
         result["zeros"] = from_list(from_int, self.zeros)
         return result
 
 
-class SkinV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndSkinBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -13082,23 +14516,25 @@ class SkinV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SkinV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = SkinBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SkinV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV1381_67_09PCAndSkinBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SkinV1381_67_09PCBody, self.body)
+        result["body"] = to_class(SkinBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -13113,10 +14549,18 @@ class Skin:
     def from_dict(obj):
         assert isinstance(obj, dict)
         skin_v1_291_03_06_pc = from_union(
-            [SkinV1291_03_06_PC.from_dict, from_none], obj.get("SkinV1_291_03_06PC")
+            [
+                TrivialClassForObjectLinkHeaderV106_63_02PCAndSkinBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
+            obj.get("SkinV1_291_03_06PC"),
         )
         skin_v1_381_67_09_pc = from_union(
-            [SkinV1381_67_09_PC.from_dict, from_none], obj.get("SkinV1_381_67_09PC")
+            [
+                TrivialClassForObjectLinkHeaderV1381_67_09PCAndSkinBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("SkinV1_381_67_09PC"),
         )
         return Skin(skin_v1_291_03_06_pc, skin_v1_381_67_09_pc)
 
@@ -13124,72 +14568,68 @@ class Skin:
         result = {}
         if self.skin_v1_291_03_06_pc is not None:
             result["SkinV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(SkinV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV106_63_02PCAndSkinBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.skin_v1_291_03_06_pc,
             )
         if self.skin_v1_381_67_09_pc is not None:
             result["SkinV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(SkinV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV1381_67_09PCAndSkinBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.skin_v1_381_67_09_pc,
             )
         return result
 
 
-class SoundV1291_03_06PCBody:
-    def __init__(self, data):
-        self.data = data
+class SoundFlags:
+    def __init__(self, looping, paused, stereo):
+        self.looping = looping
+        self.paused = paused
+        self.stereo = stereo
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        data = from_list(from_int, obj.get("data"))
-        return SoundV1291_03_06PCBody(data)
+        looping = from_bool(obj.get("looping"))
+        paused = from_bool(obj.get("paused"))
+        stereo = from_bool(obj.get("stereo"))
+        return SoundFlags(looping, paused, stereo)
 
     def to_dict(self):
         result = {}
-        result["data"] = from_list(from_int, self.data)
+        result["looping"] = from_bool(self.looping)
+        result["paused"] = from_bool(self.paused)
+        result["stereo"] = from_bool(self.stereo)
         return result
 
 
-class PurpleFlags:
-    def __init__(self, value):
-        self.value = value
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return PurpleFlags(value)
-
-    def to_dict(self):
-        result = {}
-        result["value"] = from_int(self.value)
-        return result
-
-
-class SoundV1291_03_06PCLinkHeader:
-    def __init__(self, data_size, flags, sample_rate):
-        self.data_size = data_size
+class SoundBodyV1291_03_06PC:
+    def __init__(self, flags):
         self.flags = flags
-        self.sample_rate = sample_rate
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        data_size = from_int(obj.get("data_size"))
-        flags = PurpleFlags.from_dict(obj.get("flags"))
-        sample_rate = from_int(obj.get("sample_rate"))
-        return SoundV1291_03_06PCLinkHeader(data_size, flags, sample_rate)
+        flags = SoundFlags.from_dict(obj.get("flags"))
+        return SoundBodyV1291_03_06PC(flags)
 
     def to_dict(self):
         result = {}
-        result["data_size"] = from_int(self.data_size)
-        result["flags"] = to_class(PurpleFlags, self.flags)
-        result["sample_rate"] = from_int(self.sample_rate)
+        result["flags"] = to_class(SoundFlags, self.flags)
         return result
 
 
-class SoundV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSoundBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -13200,68 +14640,52 @@ class SoundV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SoundV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = SoundBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = SoundV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SoundV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSoundBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SoundV1291_03_06PCBody, self.body)
+        result["body"] = to_class(SoundBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(SoundV1291_03_06PCLinkHeader, self.link_header)
+        result["link_header"] = to_class(
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
+        )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class SoundV1381_67_09PCBody:
-    def __init__(self, data):
-        self.data = data
-
-    @staticmethod
-    def from_dict(obj):
-        assert isinstance(obj, dict)
-        data = from_list(from_int, obj.get("data"))
-        return SoundV1381_67_09PCBody(data)
-
-    def to_dict(self):
-        result = {}
-        result["data"] = from_list(from_int, self.data)
-        return result
-
-
-class SoundV1381_67_09PCLinkHeader:
-    def __init__(self, data_size, flags, link_name, sample_rate):
-        self.data_size = data_size
+class LinkHeader3:
+    def __init__(self, flags, link_name):
         self.flags = flags
         self.link_name = link_name
-        self.sample_rate = sample_rate
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        data_size = from_int(obj.get("data_size"))
-        flags = PurpleFlags.from_dict(obj.get("flags"))
+        flags = SoundFlags.from_dict(obj.get("flags"))
         link_name = from_union([from_int, from_str], obj.get("link_name"))
-        sample_rate = from_int(obj.get("sample_rate"))
-        return SoundV1381_67_09PCLinkHeader(data_size, flags, link_name, sample_rate)
+        return LinkHeader3(flags, link_name)
 
     def to_dict(self):
         result = {}
-        result["data_size"] = from_int(self.data_size)
-        result["flags"] = to_class(PurpleFlags, self.flags)
+        result["flags"] = to_class(SoundFlags, self.flags)
         result["link_name"] = from_union([from_int, from_str], self.link_name)
-        result["sample_rate"] = from_int(self.sample_rate)
         return result
 
 
-class SoundV1381_67_09_PC:
+class TrivialClassForLinkHeaderAndSoundBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -13272,21 +14696,23 @@ class SoundV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SoundV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = from_dict(lambda x: x, obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = SoundV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = LinkHeader3.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SoundV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForLinkHeaderAndSoundBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SoundV1381_67_09PCBody, self.body)
+        result["body"] = from_dict(lambda x: x, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(SoundV1381_67_09PCLinkHeader, self.link_header)
+        result["link_header"] = to_class(LinkHeader3, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -13301,10 +14727,15 @@ class Sound:
     def from_dict(obj):
         assert isinstance(obj, dict)
         sound_v1_291_03_06_pc = from_union(
-            [SoundV1291_03_06_PC.from_dict, from_none], obj.get("SoundV1_291_03_06PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSoundBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
+            obj.get("SoundV1_291_03_06PC"),
         )
         sound_v1_381_67_09_pc = from_union(
-            [SoundV1381_67_09_PC.from_dict, from_none], obj.get("SoundV1_381_67_09PC")
+            [TrivialClassForLinkHeaderAndSoundBodyV1381_67_09PC.from_dict, from_none],
+            obj.get("SoundV1_381_67_09PC"),
         )
         return Sound(sound_v1_291_03_06_pc, sound_v1_381_67_09_pc)
 
@@ -13312,18 +14743,29 @@ class Sound:
         result = {}
         if self.sound_v1_291_03_06_pc is not None:
             result["SoundV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(SoundV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSoundBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.sound_v1_291_03_06_pc,
             )
         if self.sound_v1_381_67_09_pc is not None:
             result["SoundV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(SoundV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForLinkHeaderAndSoundBodyV1381_67_09PC, x
+                    ),
+                    from_none,
+                ],
                 self.sound_v1_381_67_09_pc,
             )
         return result
 
 
-class SegmentElement:
+class Segment2:
     def __init__(self, length, vertices):
         self.length = length
         self.vertices = vertices
@@ -13333,7 +14775,7 @@ class SegmentElement:
         assert isinstance(obj, dict)
         length = from_float(obj.get("length"))
         vertices = from_list(lambda x: from_list(from_float, x), obj.get("vertices"))
-        return SegmentElement(length, vertices)
+        return Segment2(length, vertices)
 
     def to_dict(self):
         result = {}
@@ -13342,7 +14784,7 @@ class SegmentElement:
         return result
 
 
-class BodySpline:
+class Spline3:
     def __init__(self, flag, length, point_id, segments, tangent_id):
         self.flag = flag
         self.length = length
@@ -13356,23 +14798,21 @@ class BodySpline:
         flag = from_int(obj.get("flag"))
         length = from_float(obj.get("length"))
         point_id = from_list(from_int, obj.get("point_id"))
-        segments = from_list(SegmentElement.from_dict, obj.get("segments"))
+        segments = from_list(Segment2.from_dict, obj.get("segments"))
         tangent_id = from_list(from_int, obj.get("tangent_id"))
-        return BodySpline(flag, length, point_id, segments, tangent_id)
+        return Spline3(flag, length, point_id, segments, tangent_id)
 
     def to_dict(self):
         result = {}
         result["flag"] = from_int(self.flag)
         result["length"] = to_float(self.length)
         result["point_id"] = from_list(from_int, self.point_id)
-        result["segments"] = from_list(
-            lambda x: to_class(SegmentElement, x), self.segments
-        )
+        result["segments"] = from_list(lambda x: to_class(Segment2, x), self.segments)
         result["tangent_id"] = from_list(from_int, self.tangent_id)
         return result
 
 
-class SplineV106_63_02PCBody:
+class SplineBodyV106_63_02PC:
     def __init__(self, length, points, splines, vec):
         self.length = length
         self.points = points
@@ -13384,20 +14824,20 @@ class SplineV106_63_02PCBody:
         assert isinstance(obj, dict)
         length = from_float(obj.get("length"))
         points = from_list(lambda x: from_list(from_float, x), obj.get("points"))
-        splines = from_list(BodySpline.from_dict, obj.get("splines"))
+        splines = from_list(Spline3.from_dict, obj.get("splines"))
         vec = from_list(from_float, obj.get("vec"))
-        return SplineV106_63_02PCBody(length, points, splines, vec)
+        return SplineBodyV106_63_02PC(length, points, splines, vec)
 
     def to_dict(self):
         result = {}
         result["length"] = to_float(self.length)
         result["points"] = from_list(lambda x: from_list(to_float, x), self.points)
-        result["splines"] = from_list(lambda x: to_class(BodySpline, x), self.splines)
+        result["splines"] = from_list(lambda x: to_class(Spline3, x), self.splines)
         result["vec"] = from_list(to_float, self.vec)
         return result
 
 
-class SplineV106_63_02_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndSplineBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -13408,29 +14848,29 @@ class SplineV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SplineV106_63_02PCBody.from_dict(obj.get("body"))
+        body = SplineBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SplineV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV106_63_02PCAndSplineBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SplineV106_63_02PCBody, self.body)
+        result["body"] = to_class(SplineBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class Schema43:
+class SplineSegmentSubdivision:
     def __init__(self, length, p):
         self.length = length
         self.p = p
@@ -13440,7 +14880,7 @@ class Schema43:
         assert isinstance(obj, dict)
         length = from_float(obj.get("length"))
         p = from_list(lambda x: from_list(from_float, x), obj.get("p"))
-        return Schema43(length, p)
+        return SplineSegmentSubdivision(length, p)
 
     def to_dict(self):
         result = {}
@@ -13449,7 +14889,7 @@ class Schema43:
         return result
 
 
-class Schema42:
+class SplineSegment:
     def __init__(self, flags, length, p, spline_segment_subdivisions, t):
         self.flags = flags
         self.length = length
@@ -13464,10 +14904,10 @@ class Schema42:
         length = from_float(obj.get("length"))
         p = from_list(from_int, obj.get("p"))
         spline_segment_subdivisions = from_list(
-            Schema43.from_dict, obj.get("spline_segment_subdivisions")
+            SplineSegmentSubdivision.from_dict, obj.get("spline_segment_subdivisions")
         )
         t = from_list(from_int, obj.get("t"))
-        return Schema42(flags, length, p, spline_segment_subdivisions, t)
+        return SplineSegment(flags, length, p, spline_segment_subdivisions, t)
 
     def to_dict(self):
         result = {}
@@ -13475,13 +14915,14 @@ class Schema42:
         result["length"] = to_float(self.length)
         result["p"] = from_list(from_int, self.p)
         result["spline_segment_subdivisions"] = from_list(
-            lambda x: to_class(Schema43, x), self.spline_segment_subdivisions
+            lambda x: to_class(SplineSegmentSubdivision, x),
+            self.spline_segment_subdivisions,
         )
         result["t"] = from_list(from_int, self.t)
         return result
 
 
-class SplineV1381_67_09PCBody:
+class SplineBodyV1381_67_09PC:
     def __init__(self, length, points, spline_segments, vec):
         self.length = length
         self.points = points
@@ -13493,22 +14934,22 @@ class SplineV1381_67_09PCBody:
         assert isinstance(obj, dict)
         length = from_float(obj.get("length"))
         points = from_list(lambda x: from_list(from_float, x), obj.get("points"))
-        spline_segments = from_list(Schema42.from_dict, obj.get("spline_segments"))
+        spline_segments = from_list(SplineSegment.from_dict, obj.get("spline_segments"))
         vec = from_list(from_float, obj.get("vec"))
-        return SplineV1381_67_09PCBody(length, points, spline_segments, vec)
+        return SplineBodyV1381_67_09PC(length, points, spline_segments, vec)
 
     def to_dict(self):
         result = {}
         result["length"] = to_float(self.length)
         result["points"] = from_list(lambda x: from_list(to_float, x), self.points)
         result["spline_segments"] = from_list(
-            lambda x: to_class(Schema42, x), self.spline_segments
+            lambda x: to_class(SplineSegment, x), self.spline_segments
         )
         result["vec"] = from_list(to_float, self.vec)
         return result
 
 
-class SplineV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndSplineBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -13519,29 +14960,31 @@ class SplineV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SplineV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = SplineBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SplineV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV1381_67_09PCAndSplineBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SplineV1381_67_09PCBody, self.body)
+        result["body"] = to_class(SplineBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class Spline:
+class Spline2:
     def __init__(self, spline_v1_06_63_02_pc, spline_v1_381_67_09_pc):
         self.spline_v1_06_63_02_pc = spline_v1_06_63_02_pc
         self.spline_v1_381_67_09_pc = spline_v1_381_67_09_pc
@@ -13550,29 +14993,49 @@ class Spline:
     def from_dict(obj):
         assert isinstance(obj, dict)
         spline_v1_06_63_02_pc = from_union(
-            [SplineV106_63_02_PC.from_dict, from_none], obj.get("SplineV1_06_63_02PC")
+            [
+                TrivialClassForObjectLinkHeaderV106_63_02PCAndSplineBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("SplineV1_06_63_02PC"),
         )
         spline_v1_381_67_09_pc = from_union(
-            [SplineV1381_67_09_PC.from_dict, from_none], obj.get("SplineV1_381_67_09PC")
+            [
+                TrivialClassForObjectLinkHeaderV1381_67_09PCAndSplineBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("SplineV1_381_67_09PC"),
         )
-        return Spline(spline_v1_06_63_02_pc, spline_v1_381_67_09_pc)
+        return Spline2(spline_v1_06_63_02_pc, spline_v1_381_67_09_pc)
 
     def to_dict(self):
         result = {}
         if self.spline_v1_06_63_02_pc is not None:
             result["SplineV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(SplineV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV106_63_02PCAndSplineBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.spline_v1_06_63_02_pc,
             )
         if self.spline_v1_381_67_09_pc is not None:
             result["SplineV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(SplineV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV1381_67_09PCAndSplineBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.spline_v1_381_67_09_pc,
             )
         return result
 
 
-class Schema45:
+class SplineSegmentSubdivision2:
     def __init__(self, length, p):
         self.length = length
         self.p = p
@@ -13582,7 +15045,7 @@ class Schema45:
         assert isinstance(obj, dict)
         length = from_float(obj.get("length"))
         p = from_list(lambda x: from_list(from_float, x), obj.get("p"))
-        return Schema45(length, p)
+        return SplineSegmentSubdivision2(length, p)
 
     def to_dict(self):
         result = {}
@@ -13591,7 +15054,7 @@ class Schema45:
         return result
 
 
-class Schema44:
+class SplineSegment2:
     def __init__(self, flags, length, p, spline_segment_subdivisions, t):
         self.flags = flags
         self.length = length
@@ -13606,10 +15069,10 @@ class Schema44:
         length = from_float(obj.get("length"))
         p = from_list(from_int, obj.get("p"))
         spline_segment_subdivisions = from_list(
-            Schema45.from_dict, obj.get("spline_segment_subdivisions")
+            SplineSegmentSubdivision2.from_dict, obj.get("spline_segment_subdivisions")
         )
         t = from_list(from_int, obj.get("t"))
-        return Schema44(flags, length, p, spline_segment_subdivisions, t)
+        return SplineSegment2(flags, length, p, spline_segment_subdivisions, t)
 
     def to_dict(self):
         result = {}
@@ -13617,13 +15080,14 @@ class Schema44:
         result["length"] = to_float(self.length)
         result["p"] = from_list(from_int, self.p)
         result["spline_segment_subdivisions"] = from_list(
-            lambda x: to_class(Schema45, x), self.spline_segment_subdivisions
+            lambda x: to_class(SplineSegmentSubdivision2, x),
+            self.spline_segment_subdivisions,
         )
         result["t"] = from_list(from_int, self.t)
         return result
 
 
-class SplineGraphV1381_67_09PCBody:
+class SplineGraphBodyV1381_67_09PC:
     def __init__(
         self,
         length,
@@ -13654,9 +15118,11 @@ class SplineGraphV1381_67_09PCBody:
         spline_segment_datas = from_list(
             lambda x: from_list(from_int, x), obj.get("spline_segment_datas")
         )
-        spline_segments = from_list(Schema44.from_dict, obj.get("spline_segments"))
+        spline_segments = from_list(
+            SplineSegment2.from_dict, obj.get("spline_segments")
+        )
         vec = from_list(from_float, obj.get("vec"))
-        return SplineGraphV1381_67_09PCBody(
+        return SplineGraphBodyV1381_67_09PC(
             length,
             point_datas,
             point_names,
@@ -13678,13 +15144,13 @@ class SplineGraphV1381_67_09PCBody:
             lambda x: from_list(from_int, x), self.spline_segment_datas
         )
         result["spline_segments"] = from_list(
-            lambda x: to_class(Schema44, x), self.spline_segments
+            lambda x: to_class(SplineSegment2, x), self.spline_segments
         )
         result["vec"] = from_list(to_float, self.vec)
         return result
 
 
-class SplineGraphV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndSplineGraphBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -13695,23 +15161,27 @@ class SplineGraphV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SplineGraphV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = SplineGraphBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SplineGraphV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return (
+            TrivialClassForObjectLinkHeaderV1381_67_09PCAndSplineGraphBodyV1381_67_09PC(
+                body, class_name, link_header, link_name, name
+            )
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SplineGraphV1381_67_09PCBody, self.body)
+        result["body"] = to_class(SplineGraphBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -13724,7 +15194,7 @@ class SplineGraph:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        spline_graph_v1_381_67_09_pc = SplineGraphV1381_67_09_PC.from_dict(
+        spline_graph_v1_381_67_09_pc = TrivialClassForObjectLinkHeaderV1381_67_09PCAndSplineGraphBodyV1381_67_09PC.from_dict(
             obj.get("SplineGraphV1_381_67_09PC")
         )
         return SplineGraph(spline_graph_v1_381_67_09_pc)
@@ -13732,12 +15202,13 @@ class SplineGraph:
     def to_dict(self):
         result = {}
         result["SplineGraphV1_381_67_09PC"] = to_class(
-            SplineGraphV1381_67_09_PC, self.spline_graph_v1_381_67_09_pc
+            TrivialClassForObjectLinkHeaderV1381_67_09PCAndSplineGraphBodyV1381_67_09PC,
+            self.spline_graph_v1_381_67_09_pc,
         )
         return result
 
 
-class Schema46:
+class ClingLineRelated:
     def __init__(self, edge_id, flag, sphere, unk_float, unk_uints):
         self.edge_id = edge_id
         self.flag = flag
@@ -13750,22 +15221,22 @@ class Schema46:
         assert isinstance(obj, dict)
         edge_id = from_int(obj.get("edge_id"))
         flag = from_int(obj.get("flag"))
-        sphere = BSphere.from_dict(obj.get("sphere"))
+        sphere = Sphere.from_dict(obj.get("sphere"))
         unk_float = from_float(obj.get("unk_float"))
         unk_uints = from_list(from_int, obj.get("unk_uints"))
-        return Schema46(edge_id, flag, sphere, unk_float, unk_uints)
+        return ClingLineRelated(edge_id, flag, sphere, unk_float, unk_uints)
 
     def to_dict(self):
         result = {}
         result["edge_id"] = from_int(self.edge_id)
         result["flag"] = from_int(self.flag)
-        result["sphere"] = to_class(BSphere, self.sphere)
+        result["sphere"] = to_class(Sphere, self.sphere)
         result["unk_float"] = to_float(self.unk_float)
         result["unk_uints"] = from_list(from_int, self.unk_uints)
         return result
 
 
-class Schema47:
+class EdgeCol:
     def __init__(self, cache_index_maybe, edge_id, flag, sphere, unk_placeholder_ptr3):
         self.cache_index_maybe = cache_index_maybe
         self.edge_id = edge_id
@@ -13779,21 +15250,21 @@ class Schema47:
         cache_index_maybe = from_int(obj.get("cache_index_maybe"))
         edge_id = from_int(obj.get("edge_id"))
         flag = from_int(obj.get("flag"))
-        sphere = BSphere.from_dict(obj.get("sphere"))
+        sphere = Sphere.from_dict(obj.get("sphere"))
         unk_placeholder_ptr3 = from_int(obj.get("unk_placeholder_ptr3"))
-        return Schema47(cache_index_maybe, edge_id, flag, sphere, unk_placeholder_ptr3)
+        return EdgeCol(cache_index_maybe, edge_id, flag, sphere, unk_placeholder_ptr3)
 
     def to_dict(self):
         result = {}
         result["cache_index_maybe"] = from_int(self.cache_index_maybe)
         result["edge_id"] = from_int(self.edge_id)
         result["flag"] = from_int(self.flag)
-        result["sphere"] = to_class(BSphere, self.sphere)
+        result["sphere"] = to_class(Sphere, self.sphere)
         result["unk_placeholder_ptr3"] = from_int(self.unk_placeholder_ptr3)
         return result
 
 
-class Schema48:
+class Edge:
     def __init__(self, p, t):
         self.p = p
         self.t = t
@@ -13803,7 +15274,7 @@ class Schema48:
         assert isinstance(obj, dict)
         p = from_list(from_int, obj.get("p"))
         t = from_list(from_int, obj.get("t"))
-        return Schema48(p, t)
+        return Edge(p, t)
 
     def to_dict(self):
         result = {}
@@ -13812,7 +15283,7 @@ class Schema48:
         return result
 
 
-class Schema49:
+class PatchCol:
     def __init__(self, cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere):
         self.cdcdcdcd = cdcdcdcd
         self.edge_col_id = edge_col_id
@@ -13827,8 +15298,8 @@ class Schema49:
         edge_col_id = from_int(obj.get("edge_col_id"))
         flag = from_int(obj.get("flag"))
         next_patch_col_id = from_int(obj.get("next_patch_col_id"))
-        sphere = BSphere.from_dict(obj.get("sphere"))
-        return Schema49(cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere)
+        sphere = Sphere.from_dict(obj.get("sphere"))
+        return PatchCol(cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere)
 
     def to_dict(self):
         result = {}
@@ -13836,11 +15307,11 @@ class Schema49:
         result["edge_col_id"] = from_int(self.edge_col_id)
         result["flag"] = from_int(self.flag)
         result["next_patch_col_id"] = from_int(self.next_patch_col_id)
-        result["sphere"] = to_class(BSphere, self.sphere)
+        result["sphere"] = to_class(Sphere, self.sphere)
         return result
 
 
-class PurpleCullCone:
+class CullCone:
     def __init__(self, data):
         self.data = data
 
@@ -13848,7 +15319,7 @@ class PurpleCullCone:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return PurpleCullCone(data)
+        return CullCone(data)
 
     def to_dict(self):
         result = {}
@@ -13856,7 +15327,7 @@ class PurpleCullCone:
         return result
 
 
-class Schema50:
+class Patch:
     def __init__(
         self,
         b_box,
@@ -13892,10 +15363,10 @@ class Schema50:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_box = ColBoxClass.from_dict(obj.get("b_box"))
+        b_box = BffBox.from_dict(obj.get("b_box"))
         col_cache_index = from_int(obj.get("col_cache_index"))
         color_indices = from_list(from_int, obj.get("color_indices"))
-        cull_cone = PurpleCullCone.from_dict(obj.get("cull_cone"))
+        cull_cone = CullCone.from_dict(obj.get("cull_cone"))
         displacement_indices = from_list(from_int, obj.get("displacement_indices"))
         edge_indices = from_list(from_int, obj.get("edge_indices"))
         flag = from_int(obj.get("flag"))
@@ -13907,10 +15378,10 @@ class Schema50:
         should_draw_related_start_index = from_int(
             obj.get("should_draw_related_start_index")
         )
-        sphere = BSphere.from_dict(obj.get("sphere"))
+        sphere = Sphere.from_dict(obj.get("sphere"))
         unknown = from_int(obj.get("unknown"))
         unknown_indices = from_list(from_int, obj.get("unknown_indices"))
-        return Schema50(
+        return Patch(
             b_box,
             col_cache_index,
             color_indices,
@@ -13929,10 +15400,10 @@ class Schema50:
 
     def to_dict(self):
         result = {}
-        result["b_box"] = to_class(ColBoxClass, self.b_box)
+        result["b_box"] = to_class(BffBox, self.b_box)
         result["col_cache_index"] = from_int(self.col_cache_index)
         result["color_indices"] = from_list(from_int, self.color_indices)
-        result["cull_cone"] = to_class(PurpleCullCone, self.cull_cone)
+        result["cull_cone"] = to_class(CullCone, self.cull_cone)
         result["displacement_indices"] = from_list(from_int, self.displacement_indices)
         result["edge_indices"] = from_list(from_int, self.edge_indices)
         result["flag"] = from_int(self.flag)
@@ -13944,13 +15415,13 @@ class Schema50:
         result["should_draw_related_start_index"] = from_int(
             self.should_draw_related_start_index
         )
-        result["sphere"] = to_class(BSphere, self.sphere)
+        result["sphere"] = to_class(Sphere, self.sphere)
         result["unknown"] = from_int(self.unknown)
         result["unknown_indices"] = from_list(from_int, self.unknown_indices)
         return result
 
 
-class Schema52:
+class MorphTargetDescRelated4:
     def __init__(self, data):
         self.data = data
 
@@ -13958,7 +15429,7 @@ class Schema52:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema52(data)
+        return MorphTargetDescRelated4(data)
 
     def to_dict(self):
         result = {}
@@ -13966,7 +15437,7 @@ class Schema52:
         return result
 
 
-class Schema51:
+class MorphTargetDesc4:
     def __init__(self, morph_target_desc_relateds, name):
         self.morph_target_desc_relateds = morph_target_desc_relateds
         self.name = name
@@ -13975,21 +15446,22 @@ class Schema51:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morph_target_desc_relateds = from_list(
-            Schema52.from_dict, obj.get("morph_target_desc_relateds")
+            MorphTargetDescRelated4.from_dict, obj.get("morph_target_desc_relateds")
         )
         name = from_int(obj.get("name"))
-        return Schema51(morph_target_desc_relateds, name)
+        return MorphTargetDesc4(morph_target_desc_relateds, name)
 
     def to_dict(self):
         result = {}
         result["morph_target_desc_relateds"] = from_list(
-            lambda x: to_class(Schema52, x), self.morph_target_desc_relateds
+            lambda x: to_class(MorphTargetDescRelated4, x),
+            self.morph_target_desc_relateds,
         )
         result["name"] = from_int(self.name)
         return result
 
 
-class Schema53:
+class MorpherRelated4:
     def __init__(self, data):
         self.data = data
 
@@ -13997,7 +15469,7 @@ class Schema53:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema53(data)
+        return MorpherRelated4(data)
 
     def to_dict(self):
         result = {}
@@ -14005,7 +15477,7 @@ class Schema53:
         return result
 
 
-class StickyMorpher:
+class Morpher5:
     def __init__(self, morph_target_descs, morpher_relateds):
         self.morph_target_descs = morph_target_descs
         self.morpher_relateds = morpher_relateds
@@ -14014,23 +15486,25 @@ class StickyMorpher:
     def from_dict(obj):
         assert isinstance(obj, dict)
         morph_target_descs = from_list(
-            Schema51.from_dict, obj.get("morph_target_descs")
+            MorphTargetDesc4.from_dict, obj.get("morph_target_descs")
         )
-        morpher_relateds = from_list(Schema53.from_dict, obj.get("morpher_relateds"))
-        return StickyMorpher(morph_target_descs, morpher_relateds)
+        morpher_relateds = from_list(
+            MorpherRelated4.from_dict, obj.get("morpher_relateds")
+        )
+        return Morpher5(morph_target_descs, morpher_relateds)
 
     def to_dict(self):
         result = {}
         result["morph_target_descs"] = from_list(
-            lambda x: to_class(Schema51, x), self.morph_target_descs
+            lambda x: to_class(MorphTargetDesc4, x), self.morph_target_descs
         )
         result["morpher_relateds"] = from_list(
-            lambda x: to_class(Schema53, x), self.morpher_relateds
+            lambda x: to_class(MorpherRelated4, x), self.morpher_relateds
         )
         return result
 
 
-class PointsRelateds0Element:
+class PointsRelated03:
     def __init__(self, vec3):
         self.vec3 = vec3
 
@@ -14038,7 +15512,7 @@ class PointsRelateds0Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         vec3 = from_list(from_float, obj.get("vec3"))
-        return PointsRelateds0Element(vec3)
+        return PointsRelated03(vec3)
 
     def to_dict(self):
         result = {}
@@ -14046,7 +15520,7 @@ class PointsRelateds0Element:
         return result
 
 
-class PointsPointsRelateds1:
+class PointsRelated14:
     def __init__(self, vec4):
         self.vec4 = vec4
 
@@ -14054,7 +15528,7 @@ class PointsPointsRelateds1:
     def from_dict(obj):
         assert isinstance(obj, dict)
         vec4 = from_list(from_float, obj.get("vec4"))
-        return PointsPointsRelateds1(vec4)
+        return PointsRelated14(vec4)
 
     def to_dict(self):
         result = {}
@@ -14062,7 +15536,7 @@ class PointsPointsRelateds1:
         return result
 
 
-class StickyPoints:
+class Points4:
     def __init__(self, morpher, points_relateds0, points_relateds1):
         self.morpher = morpher
         self.points_relateds0 = points_relateds0
@@ -14071,28 +15545,28 @@ class StickyPoints:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        morpher = StickyMorpher.from_dict(obj.get("morpher"))
+        morpher = Morpher5.from_dict(obj.get("morpher"))
         points_relateds0 = from_list(
-            PointsRelateds0Element.from_dict, obj.get("points_relateds0")
+            PointsRelated03.from_dict, obj.get("points_relateds0")
         )
         points_relateds1 = from_list(
-            PointsPointsRelateds1.from_dict, obj.get("points_relateds1")
+            PointsRelated14.from_dict, obj.get("points_relateds1")
         )
-        return StickyPoints(morpher, points_relateds0, points_relateds1)
+        return Points4(morpher, points_relateds0, points_relateds1)
 
     def to_dict(self):
         result = {}
-        result["morpher"] = to_class(StickyMorpher, self.morpher)
+        result["morpher"] = to_class(Morpher5, self.morpher)
         result["points_relateds0"] = from_list(
-            lambda x: to_class(PointsRelateds0Element, x), self.points_relateds0
+            lambda x: to_class(PointsRelated03, x), self.points_relateds0
         )
         result["points_relateds1"] = from_list(
-            lambda x: to_class(PointsPointsRelateds1, x), self.points_relateds1
+            lambda x: to_class(PointsRelated14, x), self.points_relateds1
         )
         return result
 
 
-class Schema55:
+class SeadVoxel:
     def __init__(self, element_count, element_entry):
         self.element_count = element_count
         self.element_entry = element_entry
@@ -14102,7 +15576,7 @@ class Schema55:
         assert isinstance(obj, dict)
         element_count = from_int(obj.get("element_count"))
         element_entry = from_int(obj.get("element_entry"))
-        return Schema55(element_count, element_entry)
+        return SeadVoxel(element_count, element_entry)
 
     def to_dict(self):
         result = {}
@@ -14111,7 +15585,7 @@ class Schema55:
         return result
 
 
-class Schema54:
+class SeadIndex:
     def __init__(
         self,
         axes_1,
@@ -14171,7 +15645,7 @@ class Schema54:
         hit_patch_count = from_int(obj.get("hit_patch_count"))
         i_size = from_list(from_float, obj.get("i_size"))
         patch_indices = from_list(from_int, obj.get("patch_indices"))
-        sead_voxels = from_list(Schema55.from_dict, obj.get("sead_voxels"))
+        sead_voxels = from_list(SeadVoxel.from_dict, obj.get("sead_voxels"))
         size = from_list(from_float, obj.get("size"))
         step = from_list(from_float, obj.get("step"))
         unk_ptr1 = from_int(obj.get("unk_ptr1"))
@@ -14185,7 +15659,7 @@ class Schema54:
         unk_vec4_3 = from_list(from_float, obj.get("unk_vec4_3"))
         unk_vec4_4 = from_list(from_float, obj.get("unk_vec4_4"))
         unk_vec4_7 = from_list(from_float, obj.get("unk_vec4_7"))
-        return Schema54(
+        return SeadIndex(
             axes_1,
             axes_2,
             axes_3,
@@ -14221,7 +15695,7 @@ class Schema54:
         result["i_size"] = from_list(to_float, self.i_size)
         result["patch_indices"] = from_list(from_int, self.patch_indices)
         result["sead_voxels"] = from_list(
-            lambda x: to_class(Schema55, x), self.sead_voxels
+            lambda x: to_class(SeadVoxel, x), self.sead_voxels
         )
         result["size"] = from_list(to_float, self.size)
         result["step"] = from_list(to_float, self.step)
@@ -14239,42 +15713,48 @@ class Schema54:
         return result
 
 
-class PurpleSeadIndex:
+class BffOptionForSeadIndexAndUint8:
     def __init__(self, inner):
         self.inner = inner
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        inner = from_union([Schema54.from_dict, from_none], obj.get("inner"))
-        return PurpleSeadIndex(inner)
+        inner = from_union([SeadIndex.from_dict, from_none], obj.get("inner"))
+        return BffOptionForSeadIndexAndUint8(inner)
 
     def to_dict(self):
         result = {}
         if self.inner is not None:
             result["inner"] = from_union(
-                [lambda x: to_class(Schema54, x), from_none], self.inner
+                [lambda x: to_class(SeadIndex, x), from_none], self.inner
             )
         return result
 
 
-class Schema56:
-    def __init__(self, value):
-        self.value = value
+class ShouldDrawRelated:
+    def __init__(self, index_in_draw_info_array, other, shift_amount_for_bit):
+        self.index_in_draw_info_array = index_in_draw_info_array
+        self.other = other
+        self.shift_amount_for_bit = shift_amount_for_bit
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return Schema56(value)
+        index_in_draw_info_array = from_int(obj.get("index_in_draw_info_array"))
+        other = from_int(obj.get("other"))
+        shift_amount_for_bit = from_int(obj.get("shift_amount_for_bit"))
+        return ShouldDrawRelated(index_in_draw_info_array, other, shift_amount_for_bit)
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["index_in_draw_info_array"] = from_int(self.index_in_draw_info_array)
+        result["other"] = from_int(self.other)
+        result["shift_amount_for_bit"] = from_int(self.shift_amount_for_bit)
         return result
 
 
-class SurfaceV106_63_02PCBody:
+class SurfaceBodyV106_63_02PC:
     def __init__(
         self,
         cling_line_relateds,
@@ -14305,25 +15785,25 @@ class SurfaceV106_63_02PCBody:
     def from_dict(obj):
         assert isinstance(obj, dict)
         cling_line_relateds = from_list(
-            Schema46.from_dict, obj.get("cling_line_relateds")
+            ClingLineRelated.from_dict, obj.get("cling_line_relateds")
         )
         colors = from_list(lambda x: from_list(from_float, x), obj.get("colors"))
         displacement_relateds = from_list(
             lambda x: from_list(from_float, x), obj.get("displacement_relateds")
         )
-        edge_cols = from_list(Schema47.from_dict, obj.get("edge_cols"))
-        edges = from_list(Schema48.from_dict, obj.get("edges"))
+        edge_cols = from_list(EdgeCol.from_dict, obj.get("edge_cols"))
+        edges = from_list(Edge.from_dict, obj.get("edges"))
         normals = from_list(lambda x: from_list(from_float, x), obj.get("normals"))
-        patch_cols = from_list(Schema49.from_dict, obj.get("patch_cols"))
-        patches = from_list(Schema50.from_dict, obj.get("patches"))
-        points = StickyPoints.from_dict(obj.get("points"))
+        patch_cols = from_list(PatchCol.from_dict, obj.get("patch_cols"))
+        patches = from_list(Patch.from_dict, obj.get("patches"))
+        points = Points4.from_dict(obj.get("points"))
         sead_index = from_union(
-            [PurpleSeadIndex.from_dict, from_none], obj.get("sead_index")
+            [BffOptionForSeadIndexAndUint8.from_dict, from_none], obj.get("sead_index")
         )
         should_draw_relateds = from_list(
-            Schema56.from_dict, obj.get("should_draw_relateds")
+            ShouldDrawRelated.from_dict, obj.get("should_draw_relateds")
         )
-        return SurfaceV106_63_02PCBody(
+        return SurfaceBodyV106_63_02PC(
             cling_line_relateds,
             colors,
             displacement_relateds,
@@ -14340,31 +15820,32 @@ class SurfaceV106_63_02PCBody:
     def to_dict(self):
         result = {}
         result["cling_line_relateds"] = from_list(
-            lambda x: to_class(Schema46, x), self.cling_line_relateds
+            lambda x: to_class(ClingLineRelated, x), self.cling_line_relateds
         )
         result["colors"] = from_list(lambda x: from_list(to_float, x), self.colors)
         result["displacement_relateds"] = from_list(
             lambda x: from_list(to_float, x), self.displacement_relateds
         )
-        result["edge_cols"] = from_list(lambda x: to_class(Schema47, x), self.edge_cols)
-        result["edges"] = from_list(lambda x: to_class(Schema48, x), self.edges)
+        result["edge_cols"] = from_list(lambda x: to_class(EdgeCol, x), self.edge_cols)
+        result["edges"] = from_list(lambda x: to_class(Edge, x), self.edges)
         result["normals"] = from_list(lambda x: from_list(to_float, x), self.normals)
         result["patch_cols"] = from_list(
-            lambda x: to_class(Schema49, x), self.patch_cols
+            lambda x: to_class(PatchCol, x), self.patch_cols
         )
-        result["patches"] = from_list(lambda x: to_class(Schema50, x), self.patches)
-        result["points"] = to_class(StickyPoints, self.points)
+        result["patches"] = from_list(lambda x: to_class(Patch, x), self.patches)
+        result["points"] = to_class(Points4, self.points)
         if self.sead_index is not None:
             result["sead_index"] = from_union(
-                [lambda x: to_class(PurpleSeadIndex, x), from_none], self.sead_index
+                [lambda x: to_class(BffOptionForSeadIndexAndUint8, x), from_none],
+                self.sead_index,
             )
         result["should_draw_relateds"] = from_list(
-            lambda x: to_class(Schema56, x), self.should_draw_relateds
+            lambda x: to_class(ShouldDrawRelated, x), self.should_draw_relateds
         )
         return result
 
 
-class SurfaceV106_63_02_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSurfaceBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -14375,29 +15856,33 @@ class SurfaceV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SurfaceV106_63_02PCBody.from_dict(obj.get("body"))
+        body = SurfaceBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SurfaceV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSurfaceBodyV106_63_02PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SurfaceV106_63_02PCBody, self.body)
+        result["body"] = to_class(SurfaceBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class Schema57:
+class ClingLineRelated2:
     def __init__(self, edge_id, flag, sphere, unknown0, unknown1, unknown2):
         self.edge_id = edge_id
         self.flag = flag
@@ -14411,24 +15896,24 @@ class Schema57:
         assert isinstance(obj, dict)
         edge_id = from_int(obj.get("edge_id"))
         flag = from_int(obj.get("flag"))
-        sphere = BSphere.from_dict(obj.get("sphere"))
+        sphere = Sphere.from_dict(obj.get("sphere"))
         unknown0 = from_int(obj.get("unknown0"))
         unknown1 = from_int(obj.get("unknown1"))
         unknown2 = from_float(obj.get("unknown2"))
-        return Schema57(edge_id, flag, sphere, unknown0, unknown1, unknown2)
+        return ClingLineRelated2(edge_id, flag, sphere, unknown0, unknown1, unknown2)
 
     def to_dict(self):
         result = {}
         result["edge_id"] = from_int(self.edge_id)
         result["flag"] = from_int(self.flag)
-        result["sphere"] = to_class(BSphere, self.sphere)
+        result["sphere"] = to_class(Sphere, self.sphere)
         result["unknown0"] = from_int(self.unknown0)
         result["unknown1"] = from_int(self.unknown1)
         result["unknown2"] = to_float(self.unknown2)
         return result
 
 
-class Schema58:
+class EdgeCol2:
     def __init__(self, edge_id, flag, sphere, unknown0, unknown1):
         self.edge_id = edge_id
         self.flag = flag
@@ -14441,22 +15926,22 @@ class Schema58:
         assert isinstance(obj, dict)
         edge_id = from_int(obj.get("edge_id"))
         flag = from_int(obj.get("flag"))
-        sphere = BSphere.from_dict(obj.get("sphere"))
+        sphere = Sphere.from_dict(obj.get("sphere"))
         unknown0 = from_int(obj.get("unknown0"))
         unknown1 = from_int(obj.get("unknown1"))
-        return Schema58(edge_id, flag, sphere, unknown0, unknown1)
+        return EdgeCol2(edge_id, flag, sphere, unknown0, unknown1)
 
     def to_dict(self):
         result = {}
         result["edge_id"] = from_int(self.edge_id)
         result["flag"] = from_int(self.flag)
-        result["sphere"] = to_class(BSphere, self.sphere)
+        result["sphere"] = to_class(Sphere, self.sphere)
         result["unknown0"] = from_int(self.unknown0)
         result["unknown1"] = from_int(self.unknown1)
         return result
 
 
-class Schema59:
+class Edge2:
     def __init__(self, p, t):
         self.p = p
         self.t = t
@@ -14466,7 +15951,7 @@ class Schema59:
         assert isinstance(obj, dict)
         p = from_list(from_int, obj.get("p"))
         t = from_list(from_int, obj.get("t"))
-        return Schema59(p, t)
+        return Edge2(p, t)
 
     def to_dict(self):
         result = {}
@@ -14475,7 +15960,7 @@ class Schema59:
         return result
 
 
-class Schema60:
+class PatchCol2:
     def __init__(self, cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere):
         self.cdcdcdcd = cdcdcdcd
         self.edge_col_id = edge_col_id
@@ -14490,8 +15975,8 @@ class Schema60:
         edge_col_id = from_int(obj.get("edge_col_id"))
         flag = from_int(obj.get("flag"))
         next_patch_col_id = from_int(obj.get("next_patch_col_id"))
-        sphere = BSphere.from_dict(obj.get("sphere"))
-        return Schema60(cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere)
+        sphere = Sphere.from_dict(obj.get("sphere"))
+        return PatchCol2(cdcdcdcd, edge_col_id, flag, next_patch_col_id, sphere)
 
     def to_dict(self):
         result = {}
@@ -14499,11 +15984,11 @@ class Schema60:
         result["edge_col_id"] = from_int(self.edge_col_id)
         result["flag"] = from_int(self.flag)
         result["next_patch_col_id"] = from_int(self.next_patch_col_id)
-        result["sphere"] = to_class(BSphere, self.sphere)
+        result["sphere"] = to_class(Sphere, self.sphere)
         return result
 
 
-class PurpleBBox:
+class Box:
     def __init__(self, transformation):
         self.transformation = transformation
 
@@ -14513,7 +15998,7 @@ class PurpleBBox:
         transformation = from_list(
             lambda x: from_list(from_float, x), obj.get("transformation")
         )
-        return PurpleBBox(transformation)
+        return Box(transformation)
 
     def to_dict(self):
         result = {}
@@ -14523,7 +16008,7 @@ class PurpleBBox:
         return result
 
 
-class FluffyCullCone:
+class CullCone2:
     def __init__(self, data):
         self.data = data
 
@@ -14531,7 +16016,7 @@ class FluffyCullCone:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return FluffyCullCone(data)
+        return CullCone2(data)
 
     def to_dict(self):
         result = {}
@@ -14539,7 +16024,7 @@ class FluffyCullCone:
         return result
 
 
-class Schema61:
+class Patch2:
     def __init__(
         self,
         b_box,
@@ -14575,10 +16060,10 @@ class Schema61:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        b_box = PurpleBBox.from_dict(obj.get("b_box"))
+        b_box = Box.from_dict(obj.get("b_box"))
         col_cache_index = from_int(obj.get("col_cache_index"))
         color_indices = from_list(from_int, obj.get("color_indices"))
-        cull_cone = FluffyCullCone.from_dict(obj.get("cull_cone"))
+        cull_cone = CullCone2.from_dict(obj.get("cull_cone"))
         displacement_indices = from_list(from_int, obj.get("displacement_indices"))
         edge_indices = from_list(from_int, obj.get("edge_indices"))
         flag = from_int(obj.get("flag"))
@@ -14590,10 +16075,10 @@ class Schema61:
         should_draw_related_start_index = from_int(
             obj.get("should_draw_related_start_index")
         )
-        sphere = BSphere.from_dict(obj.get("sphere"))
+        sphere = Sphere.from_dict(obj.get("sphere"))
         unknown = from_int(obj.get("unknown"))
         unknown_indices = from_list(from_int, obj.get("unknown_indices"))
-        return Schema61(
+        return Patch2(
             b_box,
             col_cache_index,
             color_indices,
@@ -14612,10 +16097,10 @@ class Schema61:
 
     def to_dict(self):
         result = {}
-        result["b_box"] = to_class(PurpleBBox, self.b_box)
+        result["b_box"] = to_class(Box, self.b_box)
         result["col_cache_index"] = from_int(self.col_cache_index)
         result["color_indices"] = from_list(from_int, self.color_indices)
-        result["cull_cone"] = to_class(FluffyCullCone, self.cull_cone)
+        result["cull_cone"] = to_class(CullCone2, self.cull_cone)
         result["displacement_indices"] = from_list(from_int, self.displacement_indices)
         result["edge_indices"] = from_list(from_int, self.edge_indices)
         result["flag"] = from_int(self.flag)
@@ -14627,13 +16112,13 @@ class Schema61:
         result["should_draw_related_start_index"] = from_int(
             self.should_draw_related_start_index
         )
-        result["sphere"] = to_class(BSphere, self.sphere)
+        result["sphere"] = to_class(Sphere, self.sphere)
         result["unknown"] = from_int(self.unknown)
         result["unknown_indices"] = from_list(from_int, self.unknown_indices)
         return result
 
 
-class Schema62:
+class MorpherRelated5:
     def __init__(self, data):
         self.data = data
 
@@ -14641,7 +16126,7 @@ class Schema62:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Schema62(data)
+        return MorpherRelated5(data)
 
     def to_dict(self):
         result = {}
@@ -14649,25 +16134,27 @@ class Schema62:
         return result
 
 
-class IndigoMorpher:
+class Morpher6:
     def __init__(self, morpher_relateds):
         self.morpher_relateds = morpher_relateds
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        morpher_relateds = from_list(Schema62.from_dict, obj.get("morpher_relateds"))
-        return IndigoMorpher(morpher_relateds)
+        morpher_relateds = from_list(
+            MorpherRelated5.from_dict, obj.get("morpher_relateds")
+        )
+        return Morpher6(morpher_relateds)
 
     def to_dict(self):
         result = {}
         result["morpher_relateds"] = from_list(
-            lambda x: to_class(Schema62, x), self.morpher_relateds
+            lambda x: to_class(MorpherRelated5, x), self.morpher_relateds
         )
         return result
 
 
-class Schema63:
+class PointsRelated04:
     def __init__(self, vector):
         self.vector = vector
 
@@ -14675,7 +16162,7 @@ class Schema63:
     def from_dict(obj):
         assert isinstance(obj, dict)
         vector = from_list(from_float, obj.get("vector"))
-        return Schema63(vector)
+        return PointsRelated04(vector)
 
     def to_dict(self):
         result = {}
@@ -14683,7 +16170,7 @@ class Schema63:
         return result
 
 
-class Schema64:
+class PointsRelated15:
     def __init__(self, vector):
         self.vector = vector
 
@@ -14691,7 +16178,7 @@ class Schema64:
     def from_dict(obj):
         assert isinstance(obj, dict)
         vector = from_list(from_float, obj.get("vector"))
-        return Schema64(vector)
+        return PointsRelated15(vector)
 
     def to_dict(self):
         result = {}
@@ -14699,7 +16186,7 @@ class Schema64:
         return result
 
 
-class IndigoPoints:
+class Points5:
     def __init__(self, morpher, points_related0_s, points_related1_s):
         self.morpher = morpher
         self.points_related0_s = points_related0_s
@@ -14708,24 +16195,28 @@ class IndigoPoints:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        morpher = IndigoMorpher.from_dict(obj.get("morpher"))
-        points_related0_s = from_list(Schema63.from_dict, obj.get("points_related0s"))
-        points_related1_s = from_list(Schema64.from_dict, obj.get("points_related1s"))
-        return IndigoPoints(morpher, points_related0_s, points_related1_s)
+        morpher = Morpher6.from_dict(obj.get("morpher"))
+        points_related0_s = from_list(
+            PointsRelated04.from_dict, obj.get("points_related0s")
+        )
+        points_related1_s = from_list(
+            PointsRelated15.from_dict, obj.get("points_related1s")
+        )
+        return Points5(morpher, points_related0_s, points_related1_s)
 
     def to_dict(self):
         result = {}
-        result["morpher"] = to_class(IndigoMorpher, self.morpher)
+        result["morpher"] = to_class(Morpher6, self.morpher)
         result["points_related0s"] = from_list(
-            lambda x: to_class(Schema63, x), self.points_related0_s
+            lambda x: to_class(PointsRelated04, x), self.points_related0_s
         )
         result["points_related1s"] = from_list(
-            lambda x: to_class(Schema64, x), self.points_related1_s
+            lambda x: to_class(PointsRelated15, x), self.points_related1_s
         )
         return result
 
 
-class Schema66:
+class SeadVoxel2:
     def __init__(self, element_count, element_entry):
         self.element_count = element_count
         self.element_entry = element_entry
@@ -14735,7 +16226,7 @@ class Schema66:
         assert isinstance(obj, dict)
         element_count = from_int(obj.get("element_count"))
         element_entry = from_int(obj.get("element_entry"))
-        return Schema66(element_count, element_entry)
+        return SeadVoxel2(element_count, element_entry)
 
     def to_dict(self):
         result = {}
@@ -14744,7 +16235,7 @@ class Schema66:
         return result
 
 
-class Schema65:
+class SeadIndex2:
     def __init__(
         self,
         axes0,
@@ -14800,7 +16291,7 @@ class Schema65:
         hit_patch_count = from_int(obj.get("hit_patch_count"))
         i_size = from_list(from_float, obj.get("i_size"))
         patch_indices = from_list(from_int, obj.get("patch_indices"))
-        sead_voxels = from_list(Schema66.from_dict, obj.get("sead_voxels"))
+        sead_voxels = from_list(SeadVoxel2.from_dict, obj.get("sead_voxels"))
         size = from_list(from_float, obj.get("size"))
         step = from_list(from_float, obj.get("step"))
         unknown_ptr0 = from_int(obj.get("unknown_ptr0"))
@@ -14814,7 +16305,7 @@ class Schema65:
         unknown_vec1 = from_list(from_float, obj.get("unknown_vec1"))
         unknown_vec2 = from_list(from_float, obj.get("unknown_vec2"))
         used_in_voxel_trace = from_int(obj.get("used_in_voxel_trace"))
-        return Schema65(
+        return SeadIndex2(
             axes0,
             axes1,
             axes2,
@@ -14848,7 +16339,7 @@ class Schema65:
         result["i_size"] = from_list(to_float, self.i_size)
         result["patch_indices"] = from_list(from_int, self.patch_indices)
         result["sead_voxels"] = from_list(
-            lambda x: to_class(Schema66, x), self.sead_voxels
+            lambda x: to_class(SeadVoxel2, x), self.sead_voxels
         )
         result["size"] = from_list(to_float, self.size)
         result["step"] = from_list(to_float, self.step)
@@ -14866,42 +16357,48 @@ class Schema65:
         return result
 
 
-class FluffySeadIndex:
+class BffOptionForSeadIndexAndUint82:
     def __init__(self, inner):
         self.inner = inner
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        inner = from_union([Schema65.from_dict, from_none], obj.get("inner"))
-        return FluffySeadIndex(inner)
+        inner = from_union([SeadIndex2.from_dict, from_none], obj.get("inner"))
+        return BffOptionForSeadIndexAndUint82(inner)
 
     def to_dict(self):
         result = {}
         if self.inner is not None:
             result["inner"] = from_union(
-                [lambda x: to_class(Schema65, x), from_none], self.inner
+                [lambda x: to_class(SeadIndex2, x), from_none], self.inner
             )
         return result
 
 
-class Schema67:
-    def __init__(self, value):
-        self.value = value
+class ShouldDrawRelated2:
+    def __init__(self, index_in_draw_info_array, other, shift_amount_for_bit):
+        self.index_in_draw_info_array = index_in_draw_info_array
+        self.other = other
+        self.shift_amount_for_bit = shift_amount_for_bit
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return Schema67(value)
+        index_in_draw_info_array = from_int(obj.get("index_in_draw_info_array"))
+        other = from_int(obj.get("other"))
+        shift_amount_for_bit = from_int(obj.get("shift_amount_for_bit"))
+        return ShouldDrawRelated2(index_in_draw_info_array, other, shift_amount_for_bit)
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["index_in_draw_info_array"] = from_int(self.index_in_draw_info_array)
+        result["other"] = from_int(self.other)
+        result["shift_amount_for_bit"] = from_int(self.shift_amount_for_bit)
         return result
 
 
-class SurfaceV1291_03_06PCBody:
+class SurfaceBodyV1291_03_06PC:
     def __init__(
         self,
         cling_line_relateds,
@@ -14932,25 +16429,25 @@ class SurfaceV1291_03_06PCBody:
     def from_dict(obj):
         assert isinstance(obj, dict)
         cling_line_relateds = from_list(
-            Schema57.from_dict, obj.get("cling_line_relateds")
+            ClingLineRelated2.from_dict, obj.get("cling_line_relateds")
         )
         colors = from_list(lambda x: from_list(from_float, x), obj.get("colors"))
         displacement_relateds = from_list(
             lambda x: from_list(from_float, x), obj.get("displacement_relateds")
         )
-        edge_cols = from_list(Schema58.from_dict, obj.get("edge_cols"))
-        edges = from_list(Schema59.from_dict, obj.get("edges"))
+        edge_cols = from_list(EdgeCol2.from_dict, obj.get("edge_cols"))
+        edges = from_list(Edge2.from_dict, obj.get("edges"))
         normals = from_list(lambda x: from_list(from_float, x), obj.get("normals"))
-        patch_cols = from_list(Schema60.from_dict, obj.get("patch_cols"))
-        patches = from_list(Schema61.from_dict, obj.get("patches"))
-        points = IndigoPoints.from_dict(obj.get("points"))
+        patch_cols = from_list(PatchCol2.from_dict, obj.get("patch_cols"))
+        patches = from_list(Patch2.from_dict, obj.get("patches"))
+        points = Points5.from_dict(obj.get("points"))
         sead_index = from_union(
-            [FluffySeadIndex.from_dict, from_none], obj.get("sead_index")
+            [BffOptionForSeadIndexAndUint82.from_dict, from_none], obj.get("sead_index")
         )
         should_draw_relateds = from_list(
-            Schema67.from_dict, obj.get("should_draw_relateds")
+            ShouldDrawRelated2.from_dict, obj.get("should_draw_relateds")
         )
-        return SurfaceV1291_03_06PCBody(
+        return SurfaceBodyV1291_03_06PC(
             cling_line_relateds,
             colors,
             displacement_relateds,
@@ -14967,31 +16464,32 @@ class SurfaceV1291_03_06PCBody:
     def to_dict(self):
         result = {}
         result["cling_line_relateds"] = from_list(
-            lambda x: to_class(Schema57, x), self.cling_line_relateds
+            lambda x: to_class(ClingLineRelated2, x), self.cling_line_relateds
         )
         result["colors"] = from_list(lambda x: from_list(to_float, x), self.colors)
         result["displacement_relateds"] = from_list(
             lambda x: from_list(to_float, x), self.displacement_relateds
         )
-        result["edge_cols"] = from_list(lambda x: to_class(Schema58, x), self.edge_cols)
-        result["edges"] = from_list(lambda x: to_class(Schema59, x), self.edges)
+        result["edge_cols"] = from_list(lambda x: to_class(EdgeCol2, x), self.edge_cols)
+        result["edges"] = from_list(lambda x: to_class(Edge2, x), self.edges)
         result["normals"] = from_list(lambda x: from_list(to_float, x), self.normals)
         result["patch_cols"] = from_list(
-            lambda x: to_class(Schema60, x), self.patch_cols
+            lambda x: to_class(PatchCol2, x), self.patch_cols
         )
-        result["patches"] = from_list(lambda x: to_class(Schema61, x), self.patches)
-        result["points"] = to_class(IndigoPoints, self.points)
+        result["patches"] = from_list(lambda x: to_class(Patch2, x), self.patches)
+        result["points"] = to_class(Points5, self.points)
         if self.sead_index is not None:
             result["sead_index"] = from_union(
-                [lambda x: to_class(FluffySeadIndex, x), from_none], self.sead_index
+                [lambda x: to_class(BffOptionForSeadIndexAndUint82, x), from_none],
+                self.sead_index,
             )
         result["should_draw_relateds"] = from_list(
-            lambda x: to_class(Schema67, x), self.should_draw_relateds
+            lambda x: to_class(ShouldDrawRelated2, x), self.should_draw_relateds
         )
         return result
 
 
-class SurfaceV1291_03_06_PC:
+class TrivialClassForObjectLinkHeaderV106_63_02PCAndSurfaceBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -15002,29 +16500,29 @@ class SurfaceV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SurfaceV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = SurfaceBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraZoneV106_63_02PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV106_63_02PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SurfaceV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV106_63_02PCAndSurfaceBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SurfaceV1291_03_06PCBody, self.body)
+        result["body"] = to_class(SurfaceBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
-        result["link_header"] = to_class(
-            CameraZoneV106_63_02PCLinkHeader, self.link_header
-        )
+        result["link_header"] = to_class(ObjectLinkHeaderV106_63_02PC, self.link_header)
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class Schema68:
+class Edge3:
     def __init__(self, p, t):
         self.p = p
         self.t = t
@@ -15034,7 +16532,7 @@ class Schema68:
         assert isinstance(obj, dict)
         p = from_list(from_int, obj.get("p"))
         t = from_list(from_int, obj.get("t"))
-        return Schema68(p, t)
+        return Edge3(p, t)
 
     def to_dict(self):
         result = {}
@@ -15043,7 +16541,7 @@ class Schema68:
         return result
 
 
-class Schema69:
+class Patch3:
     def __init__(
         self,
         data,
@@ -15083,7 +16581,7 @@ class Schema69:
         surface_indices_index = from_int(obj.get("surface_indices_index"))
         unknown3_s = from_list(from_int, obj.get("unknown3s"))
         vec4_fs_indices = from_list(from_int, obj.get("vec4fs_indices"))
-        return Schema69(
+        return Patch3(
             data,
             edge_indices,
             flag,
@@ -15113,7 +16611,7 @@ class Schema69:
         return result
 
 
-class Schema71:
+class SeadVoxel3:
     def __init__(self, patches_indices_range):
         self.patches_indices_range = patches_indices_range
 
@@ -15121,7 +16619,7 @@ class Schema71:
     def from_dict(obj):
         assert isinstance(obj, dict)
         patches_indices_range = Range.from_dict(obj.get("patches_indices_range"))
-        return Schema71(patches_indices_range)
+        return SeadVoxel3(patches_indices_range)
 
     def to_dict(self):
         result = {}
@@ -15159,7 +16657,7 @@ class Unknown15:
         return result
 
 
-class Schema70:
+class SeadIndex3:
     def __init__(self, patch_count, patches_indices, sead_voxels, unknown15):
         self.patch_count = patch_count
         self.patches_indices = patches_indices
@@ -15171,57 +16669,63 @@ class Schema70:
         assert isinstance(obj, dict)
         patch_count = from_int(obj.get("patch_count"))
         patches_indices = from_list(from_int, obj.get("patches_indices"))
-        sead_voxels = from_list(Schema71.from_dict, obj.get("sead_voxels"))
+        sead_voxels = from_list(SeadVoxel3.from_dict, obj.get("sead_voxels"))
         unknown15 = Unknown15.from_dict(obj.get("unknown15"))
-        return Schema70(patch_count, patches_indices, sead_voxels, unknown15)
+        return SeadIndex3(patch_count, patches_indices, sead_voxels, unknown15)
 
     def to_dict(self):
         result = {}
         result["patch_count"] = from_int(self.patch_count)
         result["patches_indices"] = from_list(from_int, self.patches_indices)
         result["sead_voxels"] = from_list(
-            lambda x: to_class(Schema71, x), self.sead_voxels
+            lambda x: to_class(SeadVoxel3, x), self.sead_voxels
         )
         result["unknown15"] = to_class(Unknown15, self.unknown15)
         return result
 
 
-class TentacledSeadIndex:
+class BffOptionForSeadIndexAndUint83:
     def __init__(self, inner):
         self.inner = inner
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        inner = from_union([Schema70.from_dict, from_none], obj.get("inner"))
-        return TentacledSeadIndex(inner)
+        inner = from_union([SeadIndex3.from_dict, from_none], obj.get("inner"))
+        return BffOptionForSeadIndexAndUint83(inner)
 
     def to_dict(self):
         result = {}
         if self.inner is not None:
             result["inner"] = from_union(
-                [lambda x: to_class(Schema70, x), from_none], self.inner
+                [lambda x: to_class(SeadIndex3, x), from_none], self.inner
             )
         return result
 
 
-class Schema72:
-    def __init__(self, value):
-        self.value = value
+class ShouldDrawBitfield:
+    def __init__(self, index_in_draw_info_array, other, shift_amount_for_bit):
+        self.index_in_draw_info_array = index_in_draw_info_array
+        self.other = other
+        self.shift_amount_for_bit = shift_amount_for_bit
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        value = from_int(obj.get("value"))
-        return Schema72(value)
+        index_in_draw_info_array = from_int(obj.get("index_in_draw_info_array"))
+        other = from_int(obj.get("other"))
+        shift_amount_for_bit = from_int(obj.get("shift_amount_for_bit"))
+        return ShouldDrawBitfield(index_in_draw_info_array, other, shift_amount_for_bit)
 
     def to_dict(self):
         result = {}
-        result["value"] = from_int(self.value)
+        result["index_in_draw_info_array"] = from_int(self.index_in_draw_info_array)
+        result["other"] = from_int(self.other)
+        result["shift_amount_for_bit"] = from_int(self.shift_amount_for_bit)
         return result
 
 
-class Unused12Element:
+class Unused12:
     def __init__(self, data):
         self.data = data
 
@@ -15229,7 +16733,7 @@ class Unused12Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Unused12Element(data)
+        return Unused12(data)
 
     def to_dict(self):
         result = {}
@@ -15237,7 +16741,7 @@ class Unused12Element:
         return result
 
 
-class Unused2Element:
+class Unused2:
     def __init__(self, data):
         self.data = data
 
@@ -15245,7 +16749,7 @@ class Unused2Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Unused2Element(data)
+        return Unused2(data)
 
     def to_dict(self):
         result = {}
@@ -15253,7 +16757,7 @@ class Unused2Element:
         return result
 
 
-class Unused3Element:
+class Unused3:
     def __init__(self, data):
         self.data = data
 
@@ -15261,7 +16765,7 @@ class Unused3Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return Unused3Element(data)
+        return Unused3(data)
 
     def to_dict(self):
         result = {}
@@ -15269,7 +16773,7 @@ class Unused3Element:
         return result
 
 
-class SurfaceV1381_67_09PCBody:
+class SurfaceBodyV1381_67_09PC:
     def __init__(
         self,
         edges,
@@ -15301,23 +16805,23 @@ class SurfaceV1381_67_09PCBody:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        edges = from_list(Schema68.from_dict, obj.get("edges"))
+        edges = from_list(Edge3.from_dict, obj.get("edges"))
         normals = from_list(lambda x: from_list(from_float, x), obj.get("normals"))
-        patches = from_list(Schema69.from_dict, obj.get("patches"))
+        patches = from_list(Patch3.from_dict, obj.get("patches"))
         points = from_list(lambda x: from_list(from_float, x), obj.get("points"))
         sead_index = from_union(
-            [TentacledSeadIndex.from_dict, from_none], obj.get("sead_index")
+            [BffOptionForSeadIndexAndUint83.from_dict, from_none], obj.get("sead_index")
         )
         should_draw_relateds = from_list(
-            Schema72.from_dict, obj.get("should_draw_relateds")
+            ShouldDrawBitfield.from_dict, obj.get("should_draw_relateds")
         )
-        unused12_s = from_list(Unused12Element.from_dict, obj.get("unused12s"))
-        unused2_s = from_list(Unused2Element.from_dict, obj.get("unused2s"))
-        unused3_s = from_list(Unused3Element.from_dict, obj.get("unused3s"))
+        unused12_s = from_list(Unused12.from_dict, obj.get("unused12s"))
+        unused2_s = from_list(Unused2.from_dict, obj.get("unused2s"))
+        unused3_s = from_list(Unused3.from_dict, obj.get("unused3s"))
         vec4_fs = from_list(lambda x: from_list(from_float, x), obj.get("vec4fs"))
         vertex10_s = from_list(lambda x: from_list(from_float, x), obj.get("vertex10s"))
         vertex9_s = from_list(lambda x: from_list(from_float, x), obj.get("vertex9s"))
-        return SurfaceV1381_67_09PCBody(
+        return SurfaceBodyV1381_67_09PC(
             edges,
             normals,
             patches,
@@ -15334,26 +16838,23 @@ class SurfaceV1381_67_09PCBody:
 
     def to_dict(self):
         result = {}
-        result["edges"] = from_list(lambda x: to_class(Schema68, x), self.edges)
+        result["edges"] = from_list(lambda x: to_class(Edge3, x), self.edges)
         result["normals"] = from_list(lambda x: from_list(to_float, x), self.normals)
-        result["patches"] = from_list(lambda x: to_class(Schema69, x), self.patches)
+        result["patches"] = from_list(lambda x: to_class(Patch3, x), self.patches)
         result["points"] = from_list(lambda x: from_list(to_float, x), self.points)
         if self.sead_index is not None:
             result["sead_index"] = from_union(
-                [lambda x: to_class(TentacledSeadIndex, x), from_none], self.sead_index
+                [lambda x: to_class(BffOptionForSeadIndexAndUint83, x), from_none],
+                self.sead_index,
             )
         result["should_draw_relateds"] = from_list(
-            lambda x: to_class(Schema72, x), self.should_draw_relateds
+            lambda x: to_class(ShouldDrawBitfield, x), self.should_draw_relateds
         )
         result["unused12s"] = from_list(
-            lambda x: to_class(Unused12Element, x), self.unused12_s
+            lambda x: to_class(Unused12, x), self.unused12_s
         )
-        result["unused2s"] = from_list(
-            lambda x: to_class(Unused2Element, x), self.unused2_s
-        )
-        result["unused3s"] = from_list(
-            lambda x: to_class(Unused3Element, x), self.unused3_s
-        )
+        result["unused2s"] = from_list(lambda x: to_class(Unused2, x), self.unused2_s)
+        result["unused3s"] = from_list(lambda x: to_class(Unused3, x), self.unused3_s)
         result["vec4fs"] = from_list(lambda x: from_list(to_float, x), self.vec4_fs)
         result["vertex10s"] = from_list(
             lambda x: from_list(to_float, x), self.vertex10_s
@@ -15362,7 +16863,7 @@ class SurfaceV1381_67_09PCBody:
         return result
 
 
-class SurfaceV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndSurfaceBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -15373,23 +16874,25 @@ class SurfaceV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SurfaceV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = SurfaceBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SurfaceV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV1381_67_09PCAndSurfaceBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SurfaceV1381_67_09PCBody, self.body)
+        result["body"] = to_class(SurfaceBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -15407,14 +16910,24 @@ class Surface:
     def from_dict(obj):
         assert isinstance(obj, dict)
         surface_v1_06_63_02_pc = from_union(
-            [SurfaceV106_63_02_PC.from_dict, from_none], obj.get("SurfaceV1_06_63_02PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSurfaceBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("SurfaceV1_06_63_02PC"),
         )
         surface_v1_291_03_06_pc = from_union(
-            [SurfaceV1291_03_06_PC.from_dict, from_none],
+            [
+                TrivialClassForObjectLinkHeaderV106_63_02PCAndSurfaceBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
             obj.get("SurfaceV1_291_03_06PC"),
         )
         surface_v1_381_67_09_pc = from_union(
-            [SurfaceV1381_67_09_PC.from_dict, from_none],
+            [
+                TrivialClassForObjectLinkHeaderV1381_67_09PCAndSurfaceBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
             obj.get("SurfaceV1_381_67_09PC"),
         )
         return Surface(
@@ -15425,39 +16938,57 @@ class Surface:
         result = {}
         if self.surface_v1_06_63_02_pc is not None:
             result["SurfaceV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(SurfaceV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndSurfaceBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.surface_v1_06_63_02_pc,
             )
         if self.surface_v1_291_03_06_pc is not None:
             result["SurfaceV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(SurfaceV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV106_63_02PCAndSurfaceBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.surface_v1_291_03_06_pc,
             )
         if self.surface_v1_381_67_09_pc is not None:
             result["SurfaceV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(SurfaceV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForObjectLinkHeaderV1381_67_09PCAndSurfaceBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.surface_v1_381_67_09_pc,
             )
         return result
 
 
-class SurfaceDatasV1381_67_09PCBody:
+class SurfaceDatasBodyV1381_67_09PC:
     def __init__(self, flags):
         self.flags = flags
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        flags = ResourceDatasFlags.from_dict(obj.get("flags"))
-        return SurfaceDatasV1381_67_09PCBody(flags)
+        flags = ObjectDatasFlagsV1381_67_09PC.from_dict(obj.get("flags"))
+        return SurfaceDatasBodyV1381_67_09PC(flags)
 
     def to_dict(self):
         result = {}
-        result["flags"] = to_class(ResourceDatasFlags, self.flags)
+        result["flags"] = to_class(ObjectDatasFlagsV1381_67_09PC, self.flags)
         return result
 
 
-class SurfaceDatasV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndSurfaceDatasBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -15468,25 +16999,27 @@ class SurfaceDatasV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = SurfaceDatasV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = SurfaceDatasBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return SurfaceDatasV1381_67_09_PC(
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndSurfaceDatasBodyV1381_67_09PC(
             body, class_name, link_header, link_name, name
         )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(SurfaceDatasV1381_67_09PCBody, self.body)
+        result["body"] = to_class(SurfaceDatasBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -15499,7 +17032,7 @@ class SurfaceDatas:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        surface_datas_v1_381_67_09_pc = SurfaceDatasV1381_67_09_PC.from_dict(
+        surface_datas_v1_381_67_09_pc = TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndSurfaceDatasBodyV1381_67_09PC.from_dict(
             obj.get("SurfaceDatasV1_381_67_09PC")
         )
         return SurfaceDatas(surface_datas_v1_381_67_09_pc)
@@ -15507,12 +17040,13 @@ class SurfaceDatas:
     def to_dict(self):
         result = {}
         result["SurfaceDatasV1_381_67_09PC"] = to_class(
-            SurfaceDatasV1381_67_09_PC, self.surface_datas_v1_381_67_09_pc
+            TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndSurfaceDatasBodyV1381_67_09PC,
+            self.surface_datas_v1_381_67_09_pc,
         )
         return result
 
 
-class UserDefineV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndUserDefineBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -15525,47 +17059,119 @@ class UserDefineV1291_03_06_PC:
         assert isinstance(obj, dict)
         body = from_dict(lambda x: x, obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return UserDefineV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndUserDefineBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
         result["body"] = from_dict(lambda x: x, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
+            )
+        result["name"] = from_union([from_int, from_str], self.name)
+        return result
+
+
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndUserDefineBodyV1381_67_09PC:
+    def __init__(self, body, class_name, link_header, link_name, name):
+        self.body = body
+        self.class_name = class_name
+        self.link_header = link_header
+        self.link_name = link_name
+        self.name = name
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        body = from_dict(lambda x: x, obj.get("body"))
+        class_name = from_union([from_int, from_str], obj.get("class_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
+        name = from_union([from_int, from_str], obj.get("name"))
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndUserDefineBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
+
+    def to_dict(self):
+        result = {}
+        result["body"] = from_dict(lambda x: x, self.body)
+        result["class_name"] = from_union([from_int, from_str], self.class_name)
+        result["link_header"] = to_class(
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
+        )
+        if self.link_name is not None:
+            result["link_name"] = from_union(
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
 class UserDefine:
-    def __init__(self, user_define_v1_291_03_06_pc):
+    def __init__(self, user_define_v1_381_67_09_pc, user_define_v1_291_03_06_pc):
+        self.user_define_v1_381_67_09_pc = user_define_v1_381_67_09_pc
         self.user_define_v1_291_03_06_pc = user_define_v1_291_03_06_pc
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        user_define_v1_291_03_06_pc = UserDefineV1291_03_06_PC.from_dict(
-            obj.get("UserDefineV1_291_03_06PC")
+        user_define_v1_381_67_09_pc = from_union(
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndUserDefineBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("UserDefineV1_381_67_09PC"),
         )
-        return UserDefine(user_define_v1_291_03_06_pc)
+        user_define_v1_291_03_06_pc = from_union(
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndUserDefineBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
+            obj.get("UserDefineV1_291_03_06PC"),
+        )
+        return UserDefine(user_define_v1_381_67_09_pc, user_define_v1_291_03_06_pc)
 
     def to_dict(self):
         result = {}
-        result["UserDefineV1_291_03_06PC"] = to_class(
-            UserDefineV1291_03_06_PC, self.user_define_v1_291_03_06_pc
-        )
+        if self.user_define_v1_381_67_09_pc is not None:
+            result["UserDefineV1_381_67_09PC"] = from_union(
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndUserDefineBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
+                self.user_define_v1_381_67_09_pc,
+            )
+        if self.user_define_v1_291_03_06_pc is not None:
+            result["UserDefineV1_291_03_06PC"] = from_union(
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndUserDefineBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
+                self.user_define_v1_291_03_06_pc,
+            )
         return result
 
 
-class WarpV106_63_02PCBody:
+class WarpBodyV106_63_02PC:
     def __init__(
         self, anim_frame_names, flag, material_anim_names, node_name, vec, vertices
     ):
@@ -15590,7 +17196,7 @@ class WarpV106_63_02PCBody:
         node_name = from_union([from_int, from_str], obj.get("node_name"))
         vec = from_list(from_float, obj.get("vec"))
         vertices = from_list(lambda x: from_list(from_float, x), obj.get("vertices"))
-        return WarpV106_63_02PCBody(
+        return WarpBodyV106_63_02PC(
             anim_frame_names, flag, material_anim_names, node_name, vec, vertices
         )
 
@@ -15609,7 +17215,7 @@ class WarpV106_63_02PCBody:
         return result
 
 
-class WarpV106_63_02_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWarpBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -15620,47 +17226,167 @@ class WarpV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = WarpV106_63_02PCBody.from_dict(obj.get("body"))
+        body = WarpBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return WarpV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return (
+            TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWarpBodyV106_63_02PC(
+                body, class_name, link_header, link_name, name
+            )
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(WarpV106_63_02PCBody, self.body)
+        result["body"] = to_class(WarpBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
+            )
+        result["name"] = from_union([from_int, from_str], self.name)
+        return result
+
+
+class WarpBodyV1381_67_09PC:
+    def __init__(
+        self, anim_frame_names, flag, material_anim_names, node_name, vec, vertices
+    ):
+        self.anim_frame_names = anim_frame_names
+        self.flag = flag
+        self.material_anim_names = material_anim_names
+        self.node_name = node_name
+        self.vec = vec
+        self.vertices = vertices
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        anim_frame_names = from_list(
+            lambda x: from_union([from_int, from_str], x), obj.get("anim_frame_names")
+        )
+        flag = from_int(obj.get("flag"))
+        material_anim_names = from_list(
+            lambda x: from_union([from_int, from_str], x),
+            obj.get("material_anim_names"),
+        )
+        node_name = from_union([from_int, from_str], obj.get("node_name"))
+        vec = from_list(from_float, obj.get("vec"))
+        vertices = from_list(lambda x: from_list(from_float, x), obj.get("vertices"))
+        return WarpBodyV1381_67_09PC(
+            anim_frame_names, flag, material_anim_names, node_name, vec, vertices
+        )
+
+    def to_dict(self):
+        result = {}
+        result["anim_frame_names"] = from_list(
+            lambda x: from_union([from_int, from_str], x), self.anim_frame_names
+        )
+        result["flag"] = from_int(self.flag)
+        result["material_anim_names"] = from_list(
+            lambda x: from_union([from_int, from_str], x), self.material_anim_names
+        )
+        result["node_name"] = from_union([from_int, from_str], self.node_name)
+        result["vec"] = from_list(to_float, self.vec)
+        result["vertices"] = from_list(lambda x: from_list(to_float, x), self.vertices)
+        return result
+
+
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndWarpBodyV1381_67_09PC:
+    def __init__(self, body, class_name, link_header, link_name, name):
+        self.body = body
+        self.class_name = class_name
+        self.link_header = link_header
+        self.link_name = link_name
+        self.name = name
+
+    @staticmethod
+    def from_dict(obj):
+        assert isinstance(obj, dict)
+        body = WarpBodyV1381_67_09PC.from_dict(obj.get("body"))
+        class_name = from_union([from_int, from_str], obj.get("class_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
+        name = from_union([from_int, from_str], obj.get("name"))
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndWarpBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
+
+    def to_dict(self):
+        result = {}
+        result["body"] = to_class(WarpBodyV1381_67_09PC, self.body)
+        result["class_name"] = from_union([from_int, from_str], self.class_name)
+        result["link_header"] = to_class(
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
+        )
+        if self.link_name is not None:
+            result["link_name"] = from_union(
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
 class Warp:
-    def __init__(self, warp_v1_06_63_02_pc):
+    def __init__(self, warp_v1_381_67_09_pc, warp_v1_06_63_02_pc):
+        self.warp_v1_381_67_09_pc = warp_v1_381_67_09_pc
         self.warp_v1_06_63_02_pc = warp_v1_06_63_02_pc
 
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        warp_v1_06_63_02_pc = WarpV106_63_02_PC.from_dict(obj.get("WarpV1_06_63_02PC"))
-        return Warp(warp_v1_06_63_02_pc)
+        warp_v1_381_67_09_pc = from_union(
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndWarpBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("WarpV1_381_67_09PC"),
+        )
+        warp_v1_06_63_02_pc = from_union(
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWarpBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("WarpV1_06_63_02PC"),
+        )
+        return Warp(warp_v1_381_67_09_pc, warp_v1_06_63_02_pc)
 
     def to_dict(self):
         result = {}
-        result["WarpV1_06_63_02PC"] = to_class(
-            WarpV106_63_02_PC, self.warp_v1_06_63_02_pc
-        )
+        if self.warp_v1_381_67_09_pc is not None:
+            result["WarpV1_381_67_09PC"] = from_union(
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndWarpBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
+                self.warp_v1_381_67_09_pc,
+            )
+        if self.warp_v1_06_63_02_pc is not None:
+            result["WarpV1_06_63_02PC"] = from_union(
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWarpBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
+                self.warp_v1_06_63_02_pc,
+            )
         return result
 
 
-class Schema73:
+class SeadEntry:
     def __init__(
         self,
         grid_id,
@@ -15683,7 +17409,7 @@ class Schema73:
         next_resource_of_entry = from_int(obj.get("next_resource_of_entry"))
         node_name = from_union([from_int, from_str], obj.get("node_name"))
         prev_resource_of_entry = from_int(obj.get("prev_resource_of_entry"))
-        return Schema73(
+        return SeadEntry(
             grid_id,
             next_entry_of_resource,
             next_resource_of_entry,
@@ -15701,7 +17427,7 @@ class Schema73:
         return result
 
 
-class PurpleSeadHandle0:
+class SeadHandle:
     def __init__(
         self, first_free, free_count, grid, inv_diag, p_max, p_min, sead_entries, size
     ):
@@ -15723,9 +17449,9 @@ class PurpleSeadHandle0:
         inv_diag = from_list(from_float, obj.get("inv_diag"))
         p_max = from_list(from_float, obj.get("p_max"))
         p_min = from_list(from_float, obj.get("p_min"))
-        sead_entries = from_list(Schema73.from_dict, obj.get("sead_entries"))
-        size = from_list(lambda x: x, obj.get("size"))
-        return PurpleSeadHandle0(
+        sead_entries = from_list(SeadEntry.from_dict, obj.get("sead_entries"))
+        size = from_list(from_int, obj.get("size"))
+        return SeadHandle(
             first_free, free_count, grid, inv_diag, p_max, p_min, sead_entries, size
         )
 
@@ -15738,13 +17464,13 @@ class PurpleSeadHandle0:
         result["p_max"] = from_list(to_float, self.p_max)
         result["p_min"] = from_list(to_float, self.p_min)
         result["sead_entries"] = from_list(
-            lambda x: to_class(Schema73, x), self.sead_entries
+            lambda x: to_class(SeadEntry, x), self.sead_entries
         )
-        result["size"] = from_list(lambda x: x, self.size)
+        result["size"] = from_list(from_int, self.size)
         return result
 
 
-class UnkStructs1Element:
+class UnkStruct12:
     def __init__(self, data):
         self.data = data
 
@@ -15752,7 +17478,7 @@ class UnkStructs1Element:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return UnkStructs1Element(data)
+        return UnkStruct12(data)
 
     def to_dict(self):
         result = {}
@@ -15760,7 +17486,7 @@ class UnkStructs1Element:
         return result
 
 
-class PurpleSubWorldRange:
+class SubWorldRange:
     def __init__(self, data, unk0, unk_structs1):
         self.data = data
         self.unk0 = unk0
@@ -15771,20 +17497,20 @@ class PurpleSubWorldRange:
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
         unk0 = from_int(obj.get("unk0"))
-        unk_structs1 = from_list(UnkStructs1Element.from_dict, obj.get("unk_structs1"))
-        return PurpleSubWorldRange(data, unk0, unk_structs1)
+        unk_structs1 = from_list(UnkStruct12.from_dict, obj.get("unk_structs1"))
+        return SubWorldRange(data, unk0, unk_structs1)
 
     def to_dict(self):
         result = {}
         result["data"] = from_list(from_int, self.data)
         result["unk0"] = from_int(self.unk0)
         result["unk_structs1"] = from_list(
-            lambda x: to_class(UnkStructs1Element, x), self.unk_structs1
+            lambda x: to_class(UnkStruct12, x), self.unk_structs1
         )
         return result
 
 
-class Schema74:
+class SubWorldData:
     def __init__(
         self, data, sub_world_range, unknown0_s, unknown1_s, unknown2_s, unknown3_s
     ):
@@ -15799,19 +17525,19 @@ class Schema74:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        sub_world_range = PurpleSubWorldRange.from_dict(obj.get("sub_world_range"))
+        sub_world_range = SubWorldRange.from_dict(obj.get("sub_world_range"))
         unknown0_s = from_list(from_int, obj.get("unknown0s"))
         unknown1_s = from_list(from_int, obj.get("unknown1s"))
         unknown2_s = from_list(from_int, obj.get("unknown2s"))
         unknown3_s = from_list(from_int, obj.get("unknown3s"))
-        return Schema74(
+        return SubWorldData(
             data, sub_world_range, unknown0_s, unknown1_s, unknown2_s, unknown3_s
         )
 
     def to_dict(self):
         result = {}
         result["data"] = from_list(from_int, self.data)
-        result["sub_world_range"] = to_class(PurpleSubWorldRange, self.sub_world_range)
+        result["sub_world_range"] = to_class(SubWorldRange, self.sub_world_range)
         result["unknown0s"] = from_list(from_int, self.unknown0_s)
         result["unknown1s"] = from_list(from_int, self.unknown1_s)
         result["unknown2s"] = from_list(from_int, self.unknown2_s)
@@ -15819,7 +17545,7 @@ class Schema74:
         return result
 
 
-class WorldV106_63_02PCBody:
+class WorldBodyV106_63_02PC:
     def __init__(
         self,
         anim_frame_names,
@@ -15877,11 +17603,11 @@ class WorldV106_63_02PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("occluder_names")
         )
         root_node_name = from_union([from_int, from_str], obj.get("root_node_name"))
-        sead_handle0 = PurpleSeadHandle0.from_dict(obj.get("sead_handle0"))
-        sead_handle1 = PurpleSeadHandle0.from_dict(obj.get("sead_handle1"))
-        sub_world_datas = from_list(Schema74.from_dict, obj.get("sub_world_datas"))
+        sead_handle0 = SeadHandle.from_dict(obj.get("sead_handle0"))
+        sead_handle1 = SeadHandle.from_dict(obj.get("sead_handle1"))
+        sub_world_datas = from_list(SubWorldData.from_dict, obj.get("sub_world_datas"))
         warp_name = from_union([from_int, from_str], obj.get("warp_name"))
-        return WorldV106_63_02PCBody(
+        return WorldBodyV106_63_02PC(
             anim_frame_names,
             camera_zone_names,
             crc32_unk5,
@@ -15922,16 +17648,16 @@ class WorldV106_63_02PCBody:
             lambda x: from_union([from_int, from_str], x), self.occluder_names
         )
         result["root_node_name"] = from_union([from_int, from_str], self.root_node_name)
-        result["sead_handle0"] = to_class(PurpleSeadHandle0, self.sead_handle0)
-        result["sead_handle1"] = to_class(PurpleSeadHandle0, self.sead_handle1)
+        result["sead_handle0"] = to_class(SeadHandle, self.sead_handle0)
+        result["sead_handle1"] = to_class(SeadHandle, self.sead_handle1)
         result["sub_world_datas"] = from_list(
-            lambda x: to_class(Schema74, x), self.sub_world_datas
+            lambda x: to_class(SubWorldData, x), self.sub_world_datas
         )
         result["warp_name"] = from_union([from_int, from_str], self.warp_name)
         return result
 
 
-class WorldV106_63_02_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWorldBodyV106_63_02PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -15942,29 +17668,35 @@ class WorldV106_63_02_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = WorldV106_63_02PCBody.from_dict(obj.get("body"))
+        body = WorldBodyV106_63_02PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return WorldV106_63_02_PC(body, class_name, link_header, link_name, name)
+        return (
+            TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWorldBodyV106_63_02PC(
+                body, class_name, link_header, link_name, name
+            )
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(WorldV106_63_02PCBody, self.body)
+        result["body"] = to_class(WorldBodyV106_63_02PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class Schema75:
+class SeadEntry2:
     def __init__(
         self,
         grid_id,
@@ -15987,7 +17719,7 @@ class Schema75:
         next_resource_of_entry = from_int(obj.get("next_resource_of_entry"))
         node_name = from_union([from_int, from_str], obj.get("node_name"))
         prev_resource_of_entry = from_int(obj.get("prev_resource_of_entry"))
-        return Schema75(
+        return SeadEntry2(
             grid_id,
             next_entry_of_resource,
             next_resource_of_entry,
@@ -16005,7 +17737,7 @@ class Schema75:
         return result
 
 
-class FluffySeadHandle0:
+class SeadHandle2:
     def __init__(
         self, first_free, free_count, grid, inv_diag, p_max, p_min, sead_entries, size
     ):
@@ -16027,9 +17759,9 @@ class FluffySeadHandle0:
         inv_diag = from_list(from_float, obj.get("inv_diag"))
         p_max = from_list(from_float, obj.get("p_max"))
         p_min = from_list(from_float, obj.get("p_min"))
-        sead_entries = from_list(Schema75.from_dict, obj.get("sead_entries"))
-        size = from_list(lambda x: x, obj.get("size"))
-        return FluffySeadHandle0(
+        sead_entries = from_list(SeadEntry2.from_dict, obj.get("sead_entries"))
+        size = from_list(from_int, obj.get("size"))
+        return SeadHandle2(
             first_free, free_count, grid, inv_diag, p_max, p_min, sead_entries, size
         )
 
@@ -16042,13 +17774,13 @@ class FluffySeadHandle0:
         result["p_max"] = from_list(to_float, self.p_max)
         result["p_min"] = from_list(to_float, self.p_min)
         result["sead_entries"] = from_list(
-            lambda x: to_class(Schema75, x), self.sead_entries
+            lambda x: to_class(SeadEntry2, x), self.sead_entries
         )
-        result["size"] = from_list(lambda x: x, self.size)
+        result["size"] = from_list(from_int, self.size)
         return result
 
 
-class SubWorldRangeUnknown0:
+class Unknown0:
     def __init__(self, data):
         self.data = data
 
@@ -16056,7 +17788,7 @@ class SubWorldRangeUnknown0:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        return SubWorldRangeUnknown0(data)
+        return Unknown0(data)
 
     def to_dict(self):
         result = {}
@@ -16064,7 +17796,7 @@ class SubWorldRangeUnknown0:
         return result
 
 
-class FluffySubWorldRange:
+class SubWorldRange2:
     def __init__(self, data, unknown0_s, unknown1):
         self.data = data
         self.unknown0_s = unknown0_s
@@ -16074,21 +17806,21 @@ class FluffySubWorldRange:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        unknown0_s = from_list(SubWorldRangeUnknown0.from_dict, obj.get("unknown0s"))
+        unknown0_s = from_list(Unknown0.from_dict, obj.get("unknown0s"))
         unknown1 = from_int(obj.get("unknown1"))
-        return FluffySubWorldRange(data, unknown0_s, unknown1)
+        return SubWorldRange2(data, unknown0_s, unknown1)
 
     def to_dict(self):
         result = {}
         result["data"] = from_list(from_int, self.data)
         result["unknown0s"] = from_list(
-            lambda x: to_class(SubWorldRangeUnknown0, x), self.unknown0_s
+            lambda x: to_class(Unknown0, x), self.unknown0_s
         )
         result["unknown1"] = from_int(self.unknown1)
         return result
 
 
-class Schema76:
+class SubWorldData2:
     def __init__(
         self, data, sub_world_range, unknown0_s, unknown1_s, unknown2_s, unknown3_s
     ):
@@ -16103,19 +17835,19 @@ class Schema76:
     def from_dict(obj):
         assert isinstance(obj, dict)
         data = from_list(from_int, obj.get("data"))
-        sub_world_range = FluffySubWorldRange.from_dict(obj.get("sub_world_range"))
+        sub_world_range = SubWorldRange2.from_dict(obj.get("sub_world_range"))
         unknown0_s = from_list(from_int, obj.get("unknown0s"))
         unknown1_s = from_list(from_int, obj.get("unknown1s"))
         unknown2_s = from_list(from_int, obj.get("unknown2s"))
         unknown3_s = from_list(from_int, obj.get("unknown3s"))
-        return Schema76(
+        return SubWorldData2(
             data, sub_world_range, unknown0_s, unknown1_s, unknown2_s, unknown3_s
         )
 
     def to_dict(self):
         result = {}
         result["data"] = from_list(from_int, self.data)
-        result["sub_world_range"] = to_class(FluffySubWorldRange, self.sub_world_range)
+        result["sub_world_range"] = to_class(SubWorldRange2, self.sub_world_range)
         result["unknown0s"] = from_list(from_int, self.unknown0_s)
         result["unknown1s"] = from_list(from_int, self.unknown1_s)
         result["unknown2s"] = from_list(from_int, self.unknown2_s)
@@ -16123,7 +17855,7 @@ class Schema76:
         return result
 
 
-class WorldV1291_03_06PCBody:
+class WorldBodyV1291_03_06PC:
     def __init__(
         self,
         anim_frame_names,
@@ -16176,16 +17908,16 @@ class WorldV1291_03_06PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("occluder_names")
         )
         root_node_name = from_union([from_int, from_str], obj.get("root_node_name"))
-        sead_handle0 = FluffySeadHandle0.from_dict(obj.get("sead_handle0"))
-        sead_handle1 = FluffySeadHandle0.from_dict(obj.get("sead_handle1"))
-        sub_world_datas = from_list(Schema76.from_dict, obj.get("sub_world_datas"))
+        sead_handle0 = SeadHandle2.from_dict(obj.get("sead_handle0"))
+        sead_handle1 = SeadHandle2.from_dict(obj.get("sead_handle1"))
+        sub_world_datas = from_list(SubWorldData2.from_dict, obj.get("sub_world_datas"))
         unk0_name = from_union([from_int, from_str], obj.get("unk0_name"))
         unk1_name = from_union([from_int, from_str], obj.get("unk1_name"))
         unk2_names = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("unk2_names")
         )
         warp_name = from_union([from_int, from_str], obj.get("warp_name"))
-        return WorldV1291_03_06PCBody(
+        return WorldBodyV1291_03_06PC(
             anim_frame_names,
             camera_zone_names,
             game_obj_name,
@@ -16221,10 +17953,10 @@ class WorldV1291_03_06PCBody:
             lambda x: from_union([from_int, from_str], x), self.occluder_names
         )
         result["root_node_name"] = from_union([from_int, from_str], self.root_node_name)
-        result["sead_handle0"] = to_class(FluffySeadHandle0, self.sead_handle0)
-        result["sead_handle1"] = to_class(FluffySeadHandle0, self.sead_handle1)
+        result["sead_handle0"] = to_class(SeadHandle2, self.sead_handle0)
+        result["sead_handle1"] = to_class(SeadHandle2, self.sead_handle1)
         result["sub_world_datas"] = from_list(
-            lambda x: to_class(Schema76, x), self.sub_world_datas
+            lambda x: to_class(SubWorldData2, x), self.sub_world_datas
         )
         result["unk0_name"] = from_union([from_int, from_str], self.unk0_name)
         result["unk1_name"] = from_union([from_int, from_str], self.unk1_name)
@@ -16235,7 +17967,7 @@ class WorldV1291_03_06PCBody:
         return result
 
 
-class WorldV1291_03_06_PC:
+class TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWorldBodyV1291_03_06PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -16246,29 +17978,33 @@ class WorldV1291_03_06_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = WorldV1291_03_06PCBody.from_dict(obj.get("body"))
+        body = WorldBodyV1291_03_06PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1291_03_06PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV106_63_02PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return WorldV1291_03_06_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWorldBodyV1291_03_06PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(WorldV1291_03_06PCBody, self.body)
+        result["body"] = to_class(WorldBodyV1291_03_06PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1291_03_06PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV106_63_02PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
 
 
-class Schema77:
+class Unknown2:
     def __init__(self, index, placeholder0, placeholder1, placeholder2, unknown4, zero):
         self.index = index
         self.placeholder0 = placeholder0
@@ -16286,7 +18022,7 @@ class Schema77:
         placeholder2 = from_int(obj.get("placeholder2"))
         unknown4 = from_int(obj.get("unknown4"))
         zero = from_int(obj.get("zero"))
-        return Schema77(index, placeholder0, placeholder1, placeholder2, unknown4, zero)
+        return Unknown2(index, placeholder0, placeholder1, placeholder2, unknown4, zero)
 
     def to_dict(self):
         result = {}
@@ -16299,7 +18035,7 @@ class Schema77:
         return result
 
 
-class WorldV1381_67_09PCBody:
+class WorldBodyV1381_67_09PC:
     def __init__(
         self,
         game_obj_name,
@@ -16364,9 +18100,9 @@ class WorldV1381_67_09PCBody:
             lambda x: from_union([from_int, from_str], x), obj.get("spline_graph_names")
         )
         unknown0 = from_list(lambda x: from_list(from_float, x), obj.get("unknown0"))
-        unknown2_s = from_list(Schema77.from_dict, obj.get("unknown2s"))
+        unknown2_s = from_list(Unknown2.from_dict, obj.get("unknown2s"))
         unknown3_s = from_list(lambda x: from_list(from_float, x), obj.get("unknown3s"))
-        unknown5_s = from_list(Schema77.from_dict, obj.get("unknown5s"))
+        unknown5_s = from_list(Unknown2.from_dict, obj.get("unknown5s"))
         unused10_s = from_list(
             lambda x: from_union([from_int, from_str], x), obj.get("unused10s")
         )
@@ -16389,7 +18125,7 @@ class WorldV1381_67_09PCBody:
         )
         unuseds = from_list(from_int, obj.get("unuseds"))
         warp_name = from_union([from_int, from_str], obj.get("warp_name"))
-        return WorldV1381_67_09PCBody(
+        return WorldBodyV1381_67_09PC(
             game_obj_name,
             gen_world_name,
             indices0,
@@ -16430,13 +18166,13 @@ class WorldV1381_67_09PCBody:
         )
         result["unknown0"] = from_list(lambda x: from_list(to_float, x), self.unknown0)
         result["unknown2s"] = from_list(
-            lambda x: to_class(Schema77, x), self.unknown2_s
+            lambda x: to_class(Unknown2, x), self.unknown2_s
         )
         result["unknown3s"] = from_list(
             lambda x: from_list(to_float, x), self.unknown3_s
         )
         result["unknown5s"] = from_list(
-            lambda x: to_class(Schema77, x), self.unknown5_s
+            lambda x: to_class(Unknown2, x), self.unknown5_s
         )
         result["unused10s"] = from_list(
             lambda x: from_union([from_int, from_str], x), self.unused10_s
@@ -16463,7 +18199,7 @@ class WorldV1381_67_09PCBody:
         return result
 
 
-class WorldV1381_67_09_PC:
+class TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndWorldBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -16474,23 +18210,27 @@ class WorldV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = WorldV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = WorldBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = AnimationV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ResourceObjectLinkHeaderV1381_67_09PC.from_dict(
+            obj.get("link_header")
+        )
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return WorldV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndWorldBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(WorldV1381_67_09PCBody, self.body)
+        result["body"] = to_class(WorldBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            AnimationV1381_67_09PCLinkHeader, self.link_header
+            ResourceObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -16508,13 +18248,25 @@ class World:
     def from_dict(obj):
         assert isinstance(obj, dict)
         world_v1_06_63_02_pc = from_union(
-            [WorldV106_63_02_PC.from_dict, from_none], obj.get("WorldV1_06_63_02PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWorldBodyV106_63_02PC.from_dict,
+                from_none,
+            ],
+            obj.get("WorldV1_06_63_02PC"),
         )
         world_v1_291_03_06_pc = from_union(
-            [WorldV1291_03_06_PC.from_dict, from_none], obj.get("WorldV1_291_03_06PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWorldBodyV1291_03_06PC.from_dict,
+                from_none,
+            ],
+            obj.get("WorldV1_291_03_06PC"),
         )
         world_v1_381_67_09_pc = from_union(
-            [WorldV1381_67_09_PC.from_dict, from_none], obj.get("WorldV1_381_67_09PC")
+            [
+                TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndWorldBodyV1381_67_09PC.from_dict,
+                from_none,
+            ],
+            obj.get("WorldV1_381_67_09PC"),
         )
         return World(world_v1_06_63_02_pc, world_v1_291_03_06_pc, world_v1_381_67_09_pc)
 
@@ -16522,23 +18274,41 @@ class World:
         result = {}
         if self.world_v1_06_63_02_pc is not None:
             result["WorldV1_06_63_02PC"] = from_union(
-                [lambda x: to_class(WorldV106_63_02_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWorldBodyV106_63_02PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.world_v1_06_63_02_pc,
             )
         if self.world_v1_291_03_06_pc is not None:
             result["WorldV1_291_03_06PC"] = from_union(
-                [lambda x: to_class(WorldV1291_03_06_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndWorldBodyV1291_03_06PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.world_v1_291_03_06_pc,
             )
         if self.world_v1_381_67_09_pc is not None:
             result["WorldV1_381_67_09PC"] = from_union(
-                [lambda x: to_class(WorldV1381_67_09_PC, x), from_none],
+                [
+                    lambda x: to_class(
+                        TrivialClassForResourceObjectLinkHeaderV1381_67_09PCAndWorldBodyV1381_67_09PC,
+                        x,
+                    ),
+                    from_none,
+                ],
                 self.world_v1_381_67_09_pc,
             )
         return result
 
 
-class UUIDPairElement:
+class UUIDPair:
     def __init__(self, uuid0, uuid1):
         self.uuid0 = uuid0
         self.uuid1 = uuid1
@@ -16548,7 +18318,7 @@ class UUIDPairElement:
         assert isinstance(obj, dict)
         uuid0 = from_int(obj.get("uuid0"))
         uuid1 = from_int(obj.get("uuid1"))
-        return UUIDPairElement(uuid0, uuid1)
+        return UUIDPair(uuid0, uuid1)
 
     def to_dict(self):
         result = {}
@@ -16557,7 +18327,7 @@ class UUIDPairElement:
         return result
 
 
-class WorldRefV1381_67_09PCBody:
+class WorldRefBodyV1381_67_09PC:
     def __init__(
         self,
         game_obj_name,
@@ -16611,10 +18381,10 @@ class WorldRefV1381_67_09PCBody:
         unused14 = from_union([from_int, from_str], obj.get("unused14"))
         unused17_s = from_list(from_int, obj.get("unused17s"))
         unuseds = from_list(from_int, obj.get("unuseds"))
-        uuid_pairs = from_list(UUIDPairElement.from_dict, obj.get("uuid_pairs"))
+        uuid_pairs = from_list(UUIDPair.from_dict, obj.get("uuid_pairs"))
         warp_name = from_union([from_int, from_str], obj.get("warp_name"))
         zero = from_int(obj.get("zero"))
-        return WorldRefV1381_67_09PCBody(
+        return WorldRefBodyV1381_67_09PC(
             game_obj_name,
             gen_world_name,
             init_script,
@@ -16651,14 +18421,14 @@ class WorldRefV1381_67_09PCBody:
         result["unused17s"] = from_list(from_int, self.unused17_s)
         result["unuseds"] = from_list(from_int, self.unuseds)
         result["uuid_pairs"] = from_list(
-            lambda x: to_class(UUIDPairElement, x), self.uuid_pairs
+            lambda x: to_class(UUIDPair, x), self.uuid_pairs
         )
         result["warp_name"] = from_union([from_int, from_str], self.warp_name)
         result["zero"] = from_int(self.zero)
         return result
 
 
-class WorldRefV1381_67_09_PC:
+class TrivialClassForObjectLinkHeaderV1381_67_09PCAndWorldRefBodyV1381_67_09PC:
     def __init__(self, body, class_name, link_header, link_name, name):
         self.body = body
         self.class_name = class_name
@@ -16669,23 +18439,25 @@ class WorldRefV1381_67_09_PC:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        body = WorldRefV1381_67_09PCBody.from_dict(obj.get("body"))
+        body = WorldRefBodyV1381_67_09PC.from_dict(obj.get("body"))
         class_name = from_union([from_int, from_str], obj.get("class_name"))
-        link_header = CameraV1381_67_09PCLinkHeader.from_dict(obj.get("link_header"))
-        link_name = from_union([from_none, from_int, from_str], obj.get("link_name"))
+        link_header = ObjectLinkHeaderV1381_67_09PC.from_dict(obj.get("link_header"))
+        link_name = from_union([from_int, from_none, from_str], obj.get("link_name"))
         name = from_union([from_int, from_str], obj.get("name"))
-        return WorldRefV1381_67_09_PC(body, class_name, link_header, link_name, name)
+        return TrivialClassForObjectLinkHeaderV1381_67_09PCAndWorldRefBodyV1381_67_09PC(
+            body, class_name, link_header, link_name, name
+        )
 
     def to_dict(self):
         result = {}
-        result["body"] = to_class(WorldRefV1381_67_09PCBody, self.body)
+        result["body"] = to_class(WorldRefBodyV1381_67_09PC, self.body)
         result["class_name"] = from_union([from_int, from_str], self.class_name)
         result["link_header"] = to_class(
-            CameraV1381_67_09PCLinkHeader, self.link_header
+            ObjectLinkHeaderV1381_67_09PC, self.link_header
         )
         if self.link_name is not None:
             result["link_name"] = from_union(
-                [from_none, from_int, from_str], self.link_name
+                [from_int, from_none, from_str], self.link_name
             )
         result["name"] = from_union([from_int, from_str], self.name)
         return result
@@ -16698,7 +18470,7 @@ class WorldRef:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
-        world_ref_v1_381_67_09_pc = WorldRefV1381_67_09_PC.from_dict(
+        world_ref_v1_381_67_09_pc = TrivialClassForObjectLinkHeaderV1381_67_09PCAndWorldRefBodyV1381_67_09PC.from_dict(
             obj.get("WorldRefV1_381_67_09PC")
         )
         return WorldRef(world_ref_v1_381_67_09_pc)
@@ -16706,7 +18478,8 @@ class WorldRef:
     def to_dict(self):
         result = {}
         result["WorldRefV1_381_67_09PC"] = to_class(
-            WorldRefV1381_67_09_PC, self.world_ref_v1_381_67_09_pc
+            TrivialClassForObjectLinkHeaderV1381_67_09PCAndWorldRefBodyV1381_67_09PC,
+            self.world_ref_v1_381_67_09_pc,
         )
         return result
 
@@ -16714,37 +18487,58 @@ class WorldRef:
 class Class:
     def __init__(
         self,
+        ai_obstacle_collection,
+        ai_object_collection,
+        ambient_lightmap,
         animation,
+        animation_collection,
         animation_graph,
         animation_graph_override,
+        animation_stack,
         anim_frame,
         area_light,
         binary,
         bitmap,
         camera,
         camera_zone,
+        character_description,
         collision_vol,
         collision_vol_data,
         conductor,
+        data_base_file,
+        data_container,
         decal,
         dialog_event,
+        embedded_file,
+        engine_parameters,
         entity,
+        entity_data,
+        fence,
+        fence_datas,
         flare,
         flare_data,
         fog_volume,
+        font3_d,
         fonts,
         fx_particles,
         fx_particles_data,
         game_obj,
+        game_parameters,
         gen_world,
         graph,
+        graph_dummy,
         gw_road,
         h_fog,
         h_fog_data,
         hull_spline_zone,
+        in_game_animation_file,
+        in_game_file,
+        lens_flare,
+        lens_flare_data,
         light,
         light_data,
         light_probe_volume,
+        lip_sync,
         lod,
         lod_data,
         mass_instancing_volume,
@@ -16752,37 +18546,65 @@ class Class:
         material_anim,
         material_collect,
         material_obj,
+        menu_master_menu,
         mesh,
         mesh_data,
+        navigation_area,
+        navigation_spline,
         net_bing_obj,
         node,
+        object,
+        object_datas,
         occluder,
         omni,
         omni_data,
         override,
+        package,
+        parameter_table_file,
         particles,
         particles_data,
         prefab,
         prefab_ref,
+        projector,
+        projector_data,
         reflection_probe,
         rot_shape,
         rot_shape_data,
         rtc,
         shader,
         skel,
+        skel_data,
         skin,
         skin_data,
         sound,
+        sound_ambience,
+        sound_data,
         sound_event,
+        sound_id,
+        sound_node,
         special_effect_node,
         spline,
         spline_graph,
+        spline_node,
+        spline_point_node,
+        spline_point_tangent_node,
         spline_zone,
+        sub_world,
         surface,
         surface_datas,
         terrain,
         texture,
+        trigger_node,
         txt,
+        ui3_d_canvas,
+        ui_container,
+        ui_font,
+        ui_layout_node,
+        ui_list_box,
+        ui_material,
+        ui_nine_slice,
+        ui_panel,
+        ui_text_panel,
         user_define,
         user_define_script,
         warp,
@@ -16790,37 +18612,58 @@ class Class:
         world_ref,
         x_ref_node,
     ):
+        self.ai_obstacle_collection = ai_obstacle_collection
+        self.ai_object_collection = ai_object_collection
+        self.ambient_lightmap = ambient_lightmap
         self.animation = animation
+        self.animation_collection = animation_collection
         self.animation_graph = animation_graph
         self.animation_graph_override = animation_graph_override
+        self.animation_stack = animation_stack
         self.anim_frame = anim_frame
         self.area_light = area_light
         self.binary = binary
         self.bitmap = bitmap
         self.camera = camera
         self.camera_zone = camera_zone
+        self.character_description = character_description
         self.collision_vol = collision_vol
         self.collision_vol_data = collision_vol_data
         self.conductor = conductor
+        self.data_base_file = data_base_file
+        self.data_container = data_container
         self.decal = decal
         self.dialog_event = dialog_event
+        self.embedded_file = embedded_file
+        self.engine_parameters = engine_parameters
         self.entity = entity
+        self.entity_data = entity_data
+        self.fence = fence
+        self.fence_datas = fence_datas
         self.flare = flare
         self.flare_data = flare_data
         self.fog_volume = fog_volume
+        self.font3_d = font3_d
         self.fonts = fonts
         self.fx_particles = fx_particles
         self.fx_particles_data = fx_particles_data
         self.game_obj = game_obj
+        self.game_parameters = game_parameters
         self.gen_world = gen_world
         self.graph = graph
+        self.graph_dummy = graph_dummy
         self.gw_road = gw_road
         self.h_fog = h_fog
         self.h_fog_data = h_fog_data
         self.hull_spline_zone = hull_spline_zone
+        self.in_game_animation_file = in_game_animation_file
+        self.in_game_file = in_game_file
+        self.lens_flare = lens_flare
+        self.lens_flare_data = lens_flare_data
         self.light = light
         self.light_data = light_data
         self.light_probe_volume = light_probe_volume
+        self.lip_sync = lip_sync
         self.lod = lod
         self.lod_data = lod_data
         self.mass_instancing_volume = mass_instancing_volume
@@ -16828,37 +18671,65 @@ class Class:
         self.material_anim = material_anim
         self.material_collect = material_collect
         self.material_obj = material_obj
+        self.menu_master_menu = menu_master_menu
         self.mesh = mesh
         self.mesh_data = mesh_data
+        self.navigation_area = navigation_area
+        self.navigation_spline = navigation_spline
         self.net_bing_obj = net_bing_obj
         self.node = node
+        self.object = object
+        self.object_datas = object_datas
         self.occluder = occluder
         self.omni = omni
         self.omni_data = omni_data
         self.override = override
+        self.package = package
+        self.parameter_table_file = parameter_table_file
         self.particles = particles
         self.particles_data = particles_data
         self.prefab = prefab
         self.prefab_ref = prefab_ref
+        self.projector = projector
+        self.projector_data = projector_data
         self.reflection_probe = reflection_probe
         self.rot_shape = rot_shape
         self.rot_shape_data = rot_shape_data
         self.rtc = rtc
         self.shader = shader
         self.skel = skel
+        self.skel_data = skel_data
         self.skin = skin
         self.skin_data = skin_data
         self.sound = sound
+        self.sound_ambience = sound_ambience
+        self.sound_data = sound_data
         self.sound_event = sound_event
+        self.sound_id = sound_id
+        self.sound_node = sound_node
         self.special_effect_node = special_effect_node
         self.spline = spline
         self.spline_graph = spline_graph
+        self.spline_node = spline_node
+        self.spline_point_node = spline_point_node
+        self.spline_point_tangent_node = spline_point_tangent_node
         self.spline_zone = spline_zone
+        self.sub_world = sub_world
         self.surface = surface
         self.surface_datas = surface_datas
         self.terrain = terrain
         self.texture = texture
+        self.trigger_node = trigger_node
         self.txt = txt
+        self.ui3_d_canvas = ui3_d_canvas
+        self.ui_container = ui_container
+        self.ui_font = ui_font
+        self.ui_layout_node = ui_layout_node
+        self.ui_list_box = ui_list_box
+        self.ui_material = ui_material
+        self.ui_nine_slice = ui_nine_slice
+        self.ui_panel = ui_panel
+        self.ui_text_panel = ui_text_panel
         self.user_define = user_define
         self.user_define_script = user_define_script
         self.warp = warp
@@ -16869,13 +18740,31 @@ class Class:
     @staticmethod
     def from_dict(obj):
         assert isinstance(obj, dict)
+        ai_obstacle_collection = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none],
+            obj.get("AIObstacleCollection"),
+        )
+        ai_object_collection = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none],
+            obj.get("AIObjectCollection"),
+        )
+        ambient_lightmap = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("AmbientLightmap")
+        )
         animation = from_union([Animation.from_dict, from_none], obj.get("Animation"))
+        animation_collection = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none],
+            obj.get("AnimationCollection"),
+        )
         animation_graph = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("AnimationGraph")
         )
         animation_graph_override = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none],
             obj.get("AnimationGraphOverride"),
+        )
+        animation_stack = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("AnimationStack")
         )
         anim_frame = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("AnimFrame")
@@ -16889,6 +18778,10 @@ class Class:
         camera_zone = from_union(
             [CameraZone.from_dict, from_none], obj.get("CameraZone")
         )
+        character_description = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none],
+            obj.get("CharacterDescription"),
+        )
         collision_vol = from_union(
             [CollisionVol.from_dict, from_none], obj.get("CollisionVol")
         )
@@ -16899,14 +18792,36 @@ class Class:
         conductor = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Conductor")
         )
+        data_base_file = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("DataBaseFile")
+        )
+        data_container = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("DataContainer")
+        )
         decal = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Decal")
         )
         dialog_event = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("DialogEvent")
         )
+        embedded_file = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("EmbeddedFile")
+        )
+        engine_parameters = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none],
+            obj.get("EngineParameters"),
+        )
         entity = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Entity")
+        )
+        entity_data = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("EntityData")
+        )
+        fence = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Fence")
+        )
+        fence_datas = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("FenceDatas")
         )
         flare = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Flare")
@@ -16917,6 +18832,9 @@ class Class:
         fog_volume = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("FogVolume")
         )
+        font3_d = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Font3D")
+        )
         fonts = from_union([Fonts.from_dict, from_none], obj.get("Fonts"))
         fx_particles = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("FxParticles")
@@ -16925,9 +18843,15 @@ class Class:
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("FxParticlesData")
         )
         game_obj = from_union([GameObj.from_dict, from_none], obj.get("GameObj"))
+        game_parameters = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("GameParameters")
+        )
         gen_world = from_union([GenWorld.from_dict, from_none], obj.get("GenWorld"))
         graph = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Graph")
+        )
+        graph_dummy = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("GraphDummy")
         )
         gw_road = from_union([GwRoad.from_dict, from_none], obj.get("GwRoad"))
         h_fog = from_union(
@@ -16939,11 +18863,27 @@ class Class:
         hull_spline_zone = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("HullSplineZone")
         )
+        in_game_animation_file = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none],
+            obj.get("InGameAnimationFile"),
+        )
+        in_game_file = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("InGameFile")
+        )
+        lens_flare = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("LensFlare")
+        )
+        lens_flare_data = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("LensFlareData")
+        )
         light = from_union([Light.from_dict, from_none], obj.get("Light"))
         light_data = from_union([LightData.from_dict, from_none], obj.get("LightData"))
         light_probe_volume = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none],
             obj.get("LightProbeVolume"),
+        )
+        lip_sync = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("LipSync")
         )
         lod = from_union([Lod.from_dict, from_none], obj.get("Lod"))
         lod_data = from_union([LodData.from_dict, from_none], obj.get("LodData"))
@@ -16961,12 +18901,28 @@ class Class:
         material_obj = from_union(
             [MaterialObj.from_dict, from_none], obj.get("MaterialObj")
         )
+        menu_master_menu = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("MenuMasterMenu")
+        )
         mesh = from_union([Mesh.from_dict, from_none], obj.get("Mesh"))
         mesh_data = from_union([MeshData.from_dict, from_none], obj.get("MeshData"))
+        navigation_area = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("NavigationArea")
+        )
+        navigation_spline = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none],
+            obj.get("NavigationSpline"),
+        )
         net_bing_obj = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("NetBingObj")
         )
         node = from_union([Node.from_dict, from_none], obj.get("Node"))
+        object = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Object")
+        )
+        object_datas = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("ObjectDatas")
+        )
         occluder = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Occluder")
         )
@@ -16977,6 +18933,13 @@ class Class:
         override = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Override")
         )
+        package = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Package")
+        )
+        parameter_table_file = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none],
+            obj.get("ParameterTableFile"),
+        )
         particles = from_union([Particles.from_dict, from_none], obj.get("Particles"))
         particles_data = from_union(
             [ParticlesData.from_dict, from_none], obj.get("ParticlesData")
@@ -16986,6 +18949,12 @@ class Class:
         )
         prefab_ref = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("PrefabRef")
+        )
+        projector = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Projector")
+        )
+        projector_data = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("ProjectorData")
         )
         reflection_probe = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("ReflectionProbe")
@@ -16999,24 +18968,52 @@ class Class:
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Shader")
         )
         skel = from_union([Skel.from_dict, from_none], obj.get("Skel"))
+        skel_data = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("SkelData")
+        )
         skin = from_union([Skin.from_dict, from_none], obj.get("Skin"))
         skin_data = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("SkinData")
         )
         sound = from_union([Sound.from_dict, from_none], obj.get("Sound"))
+        sound_ambience = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("SoundAmbience")
+        )
+        sound_data = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("SoundData")
+        )
         sound_event = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("SoundEvent")
+        )
+        sound_id = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("SoundId")
+        )
+        sound_node = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("SoundNode")
         )
         special_effect_node = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none],
             obj.get("SpecialEffectNode"),
         )
-        spline = from_union([Spline.from_dict, from_none], obj.get("Spline"))
+        spline = from_union([Spline2.from_dict, from_none], obj.get("Spline"))
         spline_graph = from_union(
             [SplineGraph.from_dict, from_none], obj.get("SplineGraph")
         )
+        spline_node = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("SplineNode")
+        )
+        spline_point_node = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("SplinePointNode")
+        )
+        spline_point_tangent_node = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none],
+            obj.get("SplinePointTangentNode"),
+        )
         spline_zone = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("SplineZone")
+        )
+        sub_world = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("SubWorld")
         )
         surface = from_union([Surface.from_dict, from_none], obj.get("Surface"))
         surface_datas = from_union(
@@ -17028,8 +19025,38 @@ class Class:
         texture = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Texture")
         )
+        trigger_node = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("TriggerNode")
+        )
         txt = from_union(
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("Txt")
+        )
+        ui3_d_canvas = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("UI3DCanvas")
+        )
+        ui_container = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("UIContainer")
+        )
+        ui_font = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("UIFont")
+        )
+        ui_layout_node = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("UILayoutNode")
+        )
+        ui_list_box = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("UIListBox")
+        )
+        ui_material = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("UIMaterial")
+        )
+        ui_nine_slice = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("UINineSlice")
+        )
+        ui_panel = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("UIPanel")
+        )
+        ui_text_panel = from_union(
+            [lambda x: from_dict(lambda x: x, x), from_none], obj.get("UITextPanel")
         )
         user_define = from_union(
             [UserDefine.from_dict, from_none], obj.get("UserDefine")
@@ -17045,37 +19072,58 @@ class Class:
             [lambda x: from_dict(lambda x: x, x), from_none], obj.get("XRefNode")
         )
         return Class(
+            ai_obstacle_collection,
+            ai_object_collection,
+            ambient_lightmap,
             animation,
+            animation_collection,
             animation_graph,
             animation_graph_override,
+            animation_stack,
             anim_frame,
             area_light,
             binary,
             bitmap,
             camera,
             camera_zone,
+            character_description,
             collision_vol,
             collision_vol_data,
             conductor,
+            data_base_file,
+            data_container,
             decal,
             dialog_event,
+            embedded_file,
+            engine_parameters,
             entity,
+            entity_data,
+            fence,
+            fence_datas,
             flare,
             flare_data,
             fog_volume,
+            font3_d,
             fonts,
             fx_particles,
             fx_particles_data,
             game_obj,
+            game_parameters,
             gen_world,
             graph,
+            graph_dummy,
             gw_road,
             h_fog,
             h_fog_data,
             hull_spline_zone,
+            in_game_animation_file,
+            in_game_file,
+            lens_flare,
+            lens_flare_data,
             light,
             light_data,
             light_probe_volume,
+            lip_sync,
             lod,
             lod_data,
             mass_instancing_volume,
@@ -17083,37 +19131,65 @@ class Class:
             material_anim,
             material_collect,
             material_obj,
+            menu_master_menu,
             mesh,
             mesh_data,
+            navigation_area,
+            navigation_spline,
             net_bing_obj,
             node,
+            object,
+            object_datas,
             occluder,
             omni,
             omni_data,
             override,
+            package,
+            parameter_table_file,
             particles,
             particles_data,
             prefab,
             prefab_ref,
+            projector,
+            projector_data,
             reflection_probe,
             rot_shape,
             rot_shape_data,
             rtc,
             shader,
             skel,
+            skel_data,
             skin,
             skin_data,
             sound,
+            sound_ambience,
+            sound_data,
             sound_event,
+            sound_id,
+            sound_node,
             special_effect_node,
             spline,
             spline_graph,
+            spline_node,
+            spline_point_node,
+            spline_point_tangent_node,
             spline_zone,
+            sub_world,
             surface,
             surface_datas,
             terrain,
             texture,
+            trigger_node,
             txt,
+            ui3_d_canvas,
+            ui_container,
+            ui_font,
+            ui_layout_node,
+            ui_list_box,
+            ui_material,
+            ui_nine_slice,
+            ui_panel,
+            ui_text_panel,
             user_define,
             user_define_script,
             warp,
@@ -17124,9 +19200,28 @@ class Class:
 
     def to_dict(self):
         result = {}
+        if self.ai_obstacle_collection is not None:
+            result["AIObstacleCollection"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none],
+                self.ai_obstacle_collection,
+            )
+        if self.ai_object_collection is not None:
+            result["AIObjectCollection"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none],
+                self.ai_object_collection,
+            )
+        if self.ambient_lightmap is not None:
+            result["AmbientLightmap"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.ambient_lightmap
+            )
         if self.animation is not None:
             result["Animation"] = from_union(
                 [lambda x: to_class(Animation, x), from_none], self.animation
+            )
+        if self.animation_collection is not None:
+            result["AnimationCollection"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none],
+                self.animation_collection,
             )
         if self.animation_graph is not None:
             result["AnimationGraph"] = from_union(
@@ -17136,6 +19231,10 @@ class Class:
             result["AnimationGraphOverride"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none],
                 self.animation_graph_override,
+            )
+        if self.animation_stack is not None:
+            result["AnimationStack"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.animation_stack
             )
         if self.anim_frame is not None:
             result["AnimFrame"] = from_union(
@@ -17161,6 +19260,11 @@ class Class:
             result["CameraZone"] = from_union(
                 [lambda x: to_class(CameraZone, x), from_none], self.camera_zone
             )
+        if self.character_description is not None:
+            result["CharacterDescription"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none],
+                self.character_description,
+            )
         if self.collision_vol is not None:
             result["CollisionVol"] = from_union(
                 [lambda x: to_class(CollisionVol, x), from_none], self.collision_vol
@@ -17174,6 +19278,14 @@ class Class:
             result["Conductor"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.conductor
             )
+        if self.data_base_file is not None:
+            result["DataBaseFile"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.data_base_file
+            )
+        if self.data_container is not None:
+            result["DataContainer"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.data_container
+            )
         if self.decal is not None:
             result["Decal"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.decal
@@ -17182,9 +19294,29 @@ class Class:
             result["DialogEvent"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.dialog_event
             )
+        if self.embedded_file is not None:
+            result["EmbeddedFile"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.embedded_file
+            )
+        if self.engine_parameters is not None:
+            result["EngineParameters"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.engine_parameters
+            )
         if self.entity is not None:
             result["Entity"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.entity
+            )
+        if self.entity_data is not None:
+            result["EntityData"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.entity_data
+            )
+        if self.fence is not None:
+            result["Fence"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.fence
+            )
+        if self.fence_datas is not None:
+            result["FenceDatas"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.fence_datas
             )
         if self.flare is not None:
             result["Flare"] = from_union(
@@ -17197,6 +19329,10 @@ class Class:
         if self.fog_volume is not None:
             result["FogVolume"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.fog_volume
+            )
+        if self.font3_d is not None:
+            result["Font3D"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.font3_d
             )
         if self.fonts is not None:
             result["Fonts"] = from_union(
@@ -17214,6 +19350,10 @@ class Class:
             result["GameObj"] = from_union(
                 [lambda x: to_class(GameObj, x), from_none], self.game_obj
             )
+        if self.game_parameters is not None:
+            result["GameParameters"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.game_parameters
+            )
         if self.gen_world is not None:
             result["GenWorld"] = from_union(
                 [lambda x: to_class(GenWorld, x), from_none], self.gen_world
@@ -17221,6 +19361,10 @@ class Class:
         if self.graph is not None:
             result["Graph"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.graph
+            )
+        if self.graph_dummy is not None:
+            result["GraphDummy"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.graph_dummy
             )
         if self.gw_road is not None:
             result["GwRoad"] = from_union(
@@ -17238,6 +19382,23 @@ class Class:
             result["HullSplineZone"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.hull_spline_zone
             )
+        if self.in_game_animation_file is not None:
+            result["InGameAnimationFile"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none],
+                self.in_game_animation_file,
+            )
+        if self.in_game_file is not None:
+            result["InGameFile"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.in_game_file
+            )
+        if self.lens_flare is not None:
+            result["LensFlare"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.lens_flare
+            )
+        if self.lens_flare_data is not None:
+            result["LensFlareData"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.lens_flare_data
+            )
         if self.light is not None:
             result["Light"] = from_union(
                 [lambda x: to_class(Light, x), from_none], self.light
@@ -17250,6 +19411,10 @@ class Class:
             result["LightProbeVolume"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none],
                 self.light_probe_volume,
+            )
+        if self.lip_sync is not None:
+            result["LipSync"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.lip_sync
             )
         if self.lod is not None:
             result["Lod"] = from_union(
@@ -17280,6 +19445,10 @@ class Class:
             result["MaterialObj"] = from_union(
                 [lambda x: to_class(MaterialObj, x), from_none], self.material_obj
             )
+        if self.menu_master_menu is not None:
+            result["MenuMasterMenu"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.menu_master_menu
+            )
         if self.mesh is not None:
             result["Mesh"] = from_union(
                 [lambda x: to_class(Mesh, x), from_none], self.mesh
@@ -17288,6 +19457,14 @@ class Class:
             result["MeshData"] = from_union(
                 [lambda x: to_class(MeshData, x), from_none], self.mesh_data
             )
+        if self.navigation_area is not None:
+            result["NavigationArea"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.navigation_area
+            )
+        if self.navigation_spline is not None:
+            result["NavigationSpline"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.navigation_spline
+            )
         if self.net_bing_obj is not None:
             result["NetBingObj"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.net_bing_obj
@@ -17295,6 +19472,14 @@ class Class:
         if self.node is not None:
             result["Node"] = from_union(
                 [lambda x: to_class(Node, x), from_none], self.node
+            )
+        if self.object is not None:
+            result["Object"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.object
+            )
+        if self.object_datas is not None:
+            result["ObjectDatas"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.object_datas
             )
         if self.occluder is not None:
             result["Occluder"] = from_union(
@@ -17312,6 +19497,15 @@ class Class:
             result["Override"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.override
             )
+        if self.package is not None:
+            result["Package"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.package
+            )
+        if self.parameter_table_file is not None:
+            result["ParameterTableFile"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none],
+                self.parameter_table_file,
+            )
         if self.particles is not None:
             result["Particles"] = from_union(
                 [lambda x: to_class(Particles, x), from_none], self.particles
@@ -17327,6 +19521,14 @@ class Class:
         if self.prefab_ref is not None:
             result["PrefabRef"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.prefab_ref
+            )
+        if self.projector is not None:
+            result["Projector"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.projector
+            )
+        if self.projector_data is not None:
+            result["ProjectorData"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.projector_data
             )
         if self.reflection_probe is not None:
             result["ReflectionProbe"] = from_union(
@@ -17352,6 +19554,10 @@ class Class:
             result["Skel"] = from_union(
                 [lambda x: to_class(Skel, x), from_none], self.skel
             )
+        if self.skel_data is not None:
+            result["SkelData"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.skel_data
+            )
         if self.skin is not None:
             result["Skin"] = from_union(
                 [lambda x: to_class(Skin, x), from_none], self.skin
@@ -17364,9 +19570,25 @@ class Class:
             result["Sound"] = from_union(
                 [lambda x: to_class(Sound, x), from_none], self.sound
             )
+        if self.sound_ambience is not None:
+            result["SoundAmbience"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.sound_ambience
+            )
+        if self.sound_data is not None:
+            result["SoundData"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.sound_data
+            )
         if self.sound_event is not None:
             result["SoundEvent"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.sound_event
+            )
+        if self.sound_id is not None:
+            result["SoundId"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.sound_id
+            )
+        if self.sound_node is not None:
+            result["SoundNode"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.sound_node
             )
         if self.special_effect_node is not None:
             result["SpecialEffectNode"] = from_union(
@@ -17375,15 +19597,32 @@ class Class:
             )
         if self.spline is not None:
             result["Spline"] = from_union(
-                [lambda x: to_class(Spline, x), from_none], self.spline
+                [lambda x: to_class(Spline2, x), from_none], self.spline
             )
         if self.spline_graph is not None:
             result["SplineGraph"] = from_union(
                 [lambda x: to_class(SplineGraph, x), from_none], self.spline_graph
             )
+        if self.spline_node is not None:
+            result["SplineNode"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.spline_node
+            )
+        if self.spline_point_node is not None:
+            result["SplinePointNode"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.spline_point_node
+            )
+        if self.spline_point_tangent_node is not None:
+            result["SplinePointTangentNode"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none],
+                self.spline_point_tangent_node,
+            )
         if self.spline_zone is not None:
             result["SplineZone"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.spline_zone
+            )
+        if self.sub_world is not None:
+            result["SubWorld"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.sub_world
             )
         if self.surface is not None:
             result["Surface"] = from_union(
@@ -17401,9 +19640,49 @@ class Class:
             result["Texture"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.texture
             )
+        if self.trigger_node is not None:
+            result["TriggerNode"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.trigger_node
+            )
         if self.txt is not None:
             result["Txt"] = from_union(
                 [lambda x: from_dict(lambda x: x, x), from_none], self.txt
+            )
+        if self.ui3_d_canvas is not None:
+            result["UI3DCanvas"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.ui3_d_canvas
+            )
+        if self.ui_container is not None:
+            result["UIContainer"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.ui_container
+            )
+        if self.ui_font is not None:
+            result["UIFont"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.ui_font
+            )
+        if self.ui_layout_node is not None:
+            result["UILayoutNode"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.ui_layout_node
+            )
+        if self.ui_list_box is not None:
+            result["UIListBox"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.ui_list_box
+            )
+        if self.ui_material is not None:
+            result["UIMaterial"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.ui_material
+            )
+        if self.ui_nine_slice is not None:
+            result["UINineSlice"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.ui_nine_slice
+            )
+        if self.ui_panel is not None:
+            result["UIPanel"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.ui_panel
+            )
+        if self.ui_text_panel is not None:
+            result["UITextPanel"] = from_union(
+                [lambda x: from_dict(lambda x: x, x), from_none], self.ui_text_panel
             )
         if self.user_define is not None:
             result["UserDefine"] = from_union(
@@ -17452,7 +19731,7 @@ class Platform(Enum):
     XBOX_SERIES = "XboxSeries"
 
 
-class BffClassHeader:
+class BffResourceHeader:
     def __init__(self, platform, version):
         self.platform = platform
         self.version = version
@@ -17462,7 +19741,7 @@ class BffClassHeader:
         assert isinstance(obj, dict)
         platform = Platform(obj.get("platform"))
         version = from_str(obj.get("version"))
-        return BffClassHeader(platform, version)
+        return BffResourceHeader(platform, version)
 
     def to_dict(self):
         result = {}
@@ -17480,13 +19759,13 @@ class BffClass:
     def from_dict(obj):
         assert isinstance(obj, dict)
         bff_class_class = Class.from_dict(obj.get("class"))
-        header = BffClassHeader.from_dict(obj.get("header"))
+        header = BffResourceHeader.from_dict(obj.get("header"))
         return BffClass(bff_class_class, header)
 
     def to_dict(self):
         result = {}
         result["class"] = to_class(Class, self.bff_class_class)
-        result["header"] = to_class(BffClassHeader, self.header)
+        result["header"] = to_class(BffResourceHeader, self.header)
         return result
 
 

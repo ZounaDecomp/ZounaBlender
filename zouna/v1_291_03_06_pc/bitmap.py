@@ -1,13 +1,24 @@
-from ..bff.io import BitmapV1291_03_06PCBody, BitmapV1291_03_06_PC, AnimationV1291_03_06PCLinkHeader, BodyHeader
+from ..bff.io import (
+    BitmapBodyV1291_03_06PC,
+    BitmapHeader,
+    ResourceObjectLinkHeaderV106_63_02PC,
+    TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV1291_03_06PC,
+)
 from ..generic.bitmap import Bitmap
 from ...common.constants import BmTransp
 from ...common.util import safe_int
 
+
 class BitmapV1_291_03_06_PC:
     file_path: str
-    bitmap: BitmapV1291_03_06_PC
+    bitmap: (
+        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV1291_03_06PC
+    )
 
-    def __init__(self, bitmap: BitmapV1291_03_06_PC = None):
+    def __init__(
+        self,
+        bitmap: TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV1291_03_06PC = None,
+    ):
         if bitmap is not None:
             self.bitmap = bitmap.bitmap_v1_291_03_06_pc
             self.file_path = bitmap.file_path
@@ -35,7 +46,7 @@ class BitmapV1_291_03_06_PC:
         # ------------------------------------------------------------
         # Body header (V1291 replacement for V106 body)
         # ------------------------------------------------------------
-        header = BodyHeader(
+        header = BitmapHeader(
             flag=flag,
             format=generic_bitmap.format,
             height=generic_bitmap.height,
@@ -45,18 +56,18 @@ class BitmapV1_291_03_06_PC:
             width=generic_bitmap.width,
         )
 
-        body = BitmapV1291_03_06PCBody(header=header)
+        body = BitmapBodyV1291_03_06PC(header=header)
 
         # ------------------------------------------------------------
         # Link header (identical pattern to V106)
         # ------------------------------------------------------------
-        link_header = AnimationV1291_03_06PCLinkHeader(
+        link_header = ResourceObjectLinkHeaderV106_63_02PC(
             link_name=safe_int(generic_bitmap.file_name) or "",
             names=[],
             links=[],
         )
 
-        versioned_bitmap = BitmapV1291_03_06_PC(
+        versioned_bitmap = TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndBitmapBodyV1291_03_06PC(
             body=body,
             class_name="Bitmap_Z",
             link_header=link_header,
@@ -71,7 +82,7 @@ class BitmapV1_291_03_06_PC:
         return bmp
 
     def to_generic(self) -> Bitmap:
-        body: BitmapV1291_03_06PCBody = self.bitmap.body
+        body: BitmapBodyV1291_03_06PC = self.bitmap.body
         generic_bitmap = Bitmap()
 
         generic_bitmap.file_path = self.file_path

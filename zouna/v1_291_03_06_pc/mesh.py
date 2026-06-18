@@ -3,19 +3,19 @@
 # from ..common.resource import load_dependencies
 # from collections import defaultdict
 # from ..bff.io import (
-#     MeshV1291_03_06PCBody,
-#     MeshV1291_03_06_PC,
-#     FluffyMeshBuffers,
-#     Schema7,  # index buffer
-#     Schema9,  # vertex buffer
-#     Schema10,  # vertex group
-#     LayoutNoBlendElement,
+#     MeshBodyV1291_03_06PC,
+#     TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC,
+#     MeshBuffers2,
+#     IndexBuffer,  # index buffer
+#     VertexBuffer,  # vertex buffer
+#     VertexGroup,  # vertex group
+#     LayoutNoBlend,
 #     VertexGroupFlags,
 #     Vertices,
-#     FluffyMorpher,
-#     FluffyPoints,
-#     TypeEnum,
-#     CameraZoneV106_63_02PCLinkHeader,
+#     Morpher2,
+#     Points2,
+#     ObjectType,
+#     ObjectLinkHeaderV106_63_02PC,
 # )
 # from ..common.resource import save_dependencies
 # from ...common.util import safe_int
@@ -23,9 +23,12 @@
 
 # class MeshV1_291_03_06_PC:
 #     file_path: str
-#     mesh: MeshV1291_03_06_PC
+#     mesh: TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC
 
-#     def __init__(self, mesh: MeshV1291_03_06_PC = None):
+#     def __init__(
+#         self,
+#         mesh: TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC = None,
+#     ):
 #         if mesh is not None:
 #             self.mesh = mesh.mesh_v1_291_03_06_pc
 #             self.file_path = mesh.file_path
@@ -98,10 +101,10 @@
 #             vertex_count = len(material_vertices)
 
 #             # --------------------------------------------------------
-#             # Vertex group (Schema10)
+#             # Vertex group (VertexGroup)
 #             # --------------------------------------------------------
 #             vertex_groups.append(
-#                 Schema10(
+#                 VertexGroup(
 #                     len(faces),                      # face_count
 #                     VertexGroupFlags(1, 0, 0, 0, 0, 0, 0),
 #                     index_buffer_index_begin,        # index_buffer_index_begin
@@ -121,7 +124,7 @@
 #             # --------------------------------------------------------
 #             for pos, norm, uv, luv in material_vertices:
 #                 final_layout_no_blend.append(
-#                     LayoutNoBlendElement(
+#                     LayoutNoBlend(
 #                         position=pos,
 #                         normal=norm,
 #                         normal_w=0,
@@ -144,7 +147,7 @@
 #         # ------------------------------------------------------------
 #         # Buffers
 #         # ------------------------------------------------------------
-#         index_buffers = [Schema7(flags=34, tris=final_tris)]
+#         index_buffers = [IndexBuffer(flags=34, tris=final_tris)]
 
 #         vertices = Vertices(
 #             layout_position=None,
@@ -155,11 +158,11 @@
 #             layout_unknown=None,
 #         )
 
-#         vertex_buffers = [Schema9(flags=34, vertices=vertices)]
+#         vertex_buffers = [VertexBuffer(flags=34, vertices=vertices)]
 
-#         mesh_buffers = FluffyMeshBuffers(
+#         mesh_buffers = MeshBuffers2(
 #             index_buffers=index_buffers,
-#             morpher=FluffyMorpher(morpher_descs=[], morpher_relateds=[]),
+#             morpher=Morpher2(morpher_descs=[], morpher_relateds=[]),
 #             unknowns=[],
 #             vertex_buffers=vertex_buffers,
 #             vertex_groups=vertex_groups,
@@ -168,7 +171,7 @@
 #         # ------------------------------------------------------------
 #         # Body (ALL fields filled)
 #         # ------------------------------------------------------------
-#         body = MeshV1291_03_06PCBody(
+#         body = MeshBodyV1291_03_06PC(
 #             box_cols=list(generic_mesh.col_boxes),
 #             collision_aabb_tris=[],
 #             collision_aabbs=[],
@@ -178,7 +181,7 @@
 #             material_names=material_names,
 #             mesh_buffers=mesh_buffers,
 #             normals=[],  # not used (vertex buffer contains normals)
-#             points=FluffyPoints(
+#             points=Points2(
 #                 [],  # points_related0
 #                 [],  # points_related1
 #                 [],  # points_related2
@@ -198,7 +201,7 @@
 #         # ------------------------------------------------------------
 #         # Final mesh
 #         # ------------------------------------------------------------
-#         link_header = CameraZoneV106_63_02PCLinkHeader(
+#         link_header = ObjectLinkHeaderV106_63_02PC(
 #             b_box=generic_mesh.b_box,
 #             b_sphere=generic_mesh.b_sphere,
 #             data_name=generic_mesh.data_name,
@@ -206,9 +209,9 @@
 #             flags=generic_mesh.flags,
 #             link_name=safe_int(generic_mesh.name),
 #             names=material_names,  # Use saved keys
-#             type=TypeEnum.MESH,
+#             type=ObjectType.MESH,
 #         )
-#         mesh_pc = MeshV1291_03_06_PC(
+#         mesh_pc = TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC(
 #             body=body,
 #             class_name="Mesh_Z",
 #             link_header=link_header,
@@ -222,7 +225,7 @@
 #         return wrapper
 
 #     def to_generic(self) -> Mesh:
-#         body: MeshV1291_03_06PCBody = self.mesh.body
+#         body: MeshBodyV1291_03_06PC = self.mesh.body
 #         generic_mesh = Mesh()
 
 #         for mat in body.material_names:
@@ -291,19 +294,22 @@ from ..common.mesh import decode_vertex_buffer
 from ..common.resource import load_dependencies, save_dependencies
 from collections import defaultdict
 from ..bff.io import (
-    MeshV1291_03_06PCBody,
-    MeshV1291_03_06_PC,
-    FluffyMeshBuffers,
-    Schema7,   # index buffer
-    Schema9,   # vertex buffer
-    Schema10,  # vertex group
-    LayoutNoBlendElement,
+    MeshBodyV1291_03_06PC,
+    TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC,
+    MeshBuffers2,
+    IndexBuffer,
+    VertexBuffer,
+    VertexGroup,
+    LayoutNoBlend,
     VertexGroupFlags,
     Vertices,
-    FluffyMorpher,
-    FluffyPoints,
-    TypeEnum,
-    CameraZoneV106_63_02PCLinkHeader,
+    Morpher2,
+    Points2,
+    ObjectType,
+    ObjectLinkHeaderV106_63_02PC,
+    BoxCol2,
+    CylindreCol4,
+    SphereCol2,
 )
 from ...common.util import safe_int
 
@@ -313,9 +319,12 @@ MAX_TRIS = MAX_VERTS // 3
 
 class MeshV1_291_03_06_PC:
     file_path: str
-    mesh: MeshV1291_03_06_PC
+    mesh: TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC
 
-    def __init__(self, mesh: MeshV1291_03_06_PC = None):
+    def __init__(
+        self,
+        mesh: TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC = None,
+    ):
         if mesh is not None:
             self.mesh = mesh.mesh_v1_291_03_06_pc
             self.file_path = mesh.file_path
@@ -359,9 +368,19 @@ class MeshV1_291_03_06_PC:
                         idx = len(material_vertices)
                         vertex_map[key] = idx
                         pos = generic_mesh.positions[v.position_id]
-                        norm = generic_mesh.normals[v.normal_id] if v.normal_id is not None else [0, 0, 0]
-                        uv = generic_mesh.uvs[v.uv_id] if v.uv_id is not None else [0, 0]
-                        luv = generic_mesh.luvs[v.luv_id] if v.luv_id is not None else [0, 0]
+                        norm = (
+                            generic_mesh.normals[v.normal_id]
+                            if v.normal_id is not None
+                            else [0, 0, 0]
+                        )
+                        uv = (
+                            generic_mesh.uvs[v.uv_id] if v.uv_id is not None else [0, 0]
+                        )
+                        luv = (
+                            generic_mesh.luvs[v.luv_id]
+                            if v.luv_id is not None
+                            else [0, 0]
+                        )
                         material_vertices.append((pos, norm, uv, luv))
                     tri.append(vertex_map[key])
                 material_tris.append(tri)
@@ -379,7 +398,7 @@ class MeshV1_291_03_06_PC:
                 layout = []
                 for pos, norm, uv, luv in material_vertices[vb_start:vb_end]:
                     layout.append(
-                        LayoutNoBlendElement(
+                        LayoutNoBlend(
                             position=pos,
                             normal=norm,
                             normal_w=0,
@@ -399,7 +418,7 @@ class MeshV1_291_03_06_PC:
                     layout_unknown=None,
                 )
 
-                vertex_buffers.append(Schema9(flags=34, vertices=vertices))
+                vertex_buffers.append(VertexBuffer(flags=34, vertices=vertices))
 
                 # collect tris fully inside this VB
                 local_tris = []
@@ -412,16 +431,16 @@ class MeshV1_291_03_06_PC:
                 # --------------------------------------------------------
                 tri_cursor = 0
                 while tri_cursor < len(local_tris):
-                    chunk = local_tris[tri_cursor: tri_cursor + MAX_TRIS]
+                    chunk = local_tris[tri_cursor : tri_cursor + MAX_TRIS]
                     ib_index = len(index_buffers)
 
-                    index_buffers.append(Schema7(flags=34, tris=chunk))
+                    index_buffers.append(IndexBuffer(flags=34, tris=chunk))
 
                     vertex_groups.append(
-                        Schema10(
-                            len(chunk),                       # face_count
+                        VertexGroup(
+                            len(chunk),  # face_count
                             VertexGroupFlags(1, 0, 0, 0, 0, 0, 0),
-                            0,                                # index_buffer_index_begin (local)
+                            0,  # index_buffer_index_begin (local)
                             (vb_end - vb_start) - 1,
                             mat_id,
                             global_vertex_offset,
@@ -444,28 +463,41 @@ class MeshV1_291_03_06_PC:
         dependencies = [m for m in generic_mesh.materials if m is not None]
         material_names = save_dependencies(generic_mesh.file_path, dependencies)
 
-        mesh_buffers = FluffyMeshBuffers(
+        mesh_buffers = MeshBuffers2(
             index_buffers=index_buffers,
             vertex_buffers=vertex_buffers,
             vertex_groups=vertex_groups,
-            morpher=FluffyMorpher([], []),
+            morpher=Morpher2([], []),
             unknowns=[],
         )
 
-        body = MeshV1291_03_06PCBody(
-            box_cols=list(generic_mesh.col_boxes),
+        body = MeshBodyV1291_03_06PC(
+            box_cols=[
+                BoxCol2(col_box=col.col_box, flag=col.flag, name=col.name)
+                for col in generic_mesh.col_boxes
+            ],
             collision_aabb_tris=[],
             collision_aabbs=[],
-            cylindre_cols=list(generic_mesh.col_cylindres),
+            cylindre_cols=[
+                CylindreCol4(
+                    col_cylindre=col.col_cylindre,
+                    flag=col.flag,
+                    name=col.name,
+                )
+                for col in generic_mesh.col_cylindres
+            ],
             drawing_cutoff_distance=0.0,
             drawing_start_distance=0.0,
             material_names=material_names,
             mesh_buffers=mesh_buffers,
             normals=[],
-            points=FluffyPoints([], [], []),
+            points=Points2([], [], []),
             related_to_counts=[0, 0, 0],
             shadow_related=0,
-            sphere_cols=list(generic_mesh.col_spheres),
+            sphere_cols=[
+                SphereCol2(col_sph=col.col_sph, flag=col.flag, name=col.name)
+                for col in generic_mesh.col_spheres
+            ],
             strips=[],
             texcoords=[],
             unknown4_s=None,
@@ -475,7 +507,7 @@ class MeshV1_291_03_06_PC:
             vertices=[],
         )
 
-        link_header = CameraZoneV106_63_02PCLinkHeader(
+        link_header = ObjectLinkHeaderV106_63_02PC(
             b_box=generic_mesh.b_box,
             b_sphere=generic_mesh.b_sphere,
             data_name=generic_mesh.data_name,
@@ -483,17 +515,19 @@ class MeshV1_291_03_06_PC:
             flags=generic_mesh.flags,
             link_name=safe_int(generic_mesh.name),
             names=material_names,
-            type=TypeEnum.MESH,
+            type=ObjectType.MESH,
         )
 
         wrapper = MeshV1_291_03_06_PC()
         wrapper.file_path = generic_mesh.file_path
-        wrapper.mesh = MeshV1291_03_06_PC(
-            body=body,
-            class_name="Mesh_Z",
-            link_header=link_header,
-            link_name=safe_int(generic_mesh.name),
-            name=safe_int(generic_mesh.file_name),
+        wrapper.mesh = (
+            TrivialClassForObjectLinkHeaderV106_63_02PCAndMeshBodyV1291_03_06PC(
+                body=body,
+                class_name="Mesh_Z",
+                link_header=link_header,
+                link_name=safe_int(generic_mesh.name),
+                name=safe_int(generic_mesh.file_name),
+            )
         )
         return wrapper
 
@@ -514,7 +548,9 @@ class MeshV1_291_03_06_PC:
         generic_mesh.fade_out_dist = self.mesh.link_header.fade_out_dist
         generic_mesh.flags = self.mesh.link_header.flags
 
-        generic_mesh.materials = load_dependencies(self.file_path, list(body.material_names))
+        generic_mesh.materials = load_dependencies(
+            self.file_path, list(body.material_names)
+        )
         generic_mesh.col_spheres = list(body.sphere_cols)
         generic_mesh.col_boxes = list(body.box_cols)
         generic_mesh.col_cylindres = list(body.cylindre_cols)

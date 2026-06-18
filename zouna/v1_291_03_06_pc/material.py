@@ -1,7 +1,7 @@
 from ..bff.io import (
-    MaterialV1291_03_06PCBody,
-    MaterialV1291_03_06_PC,
-    AnimationV1291_03_06PCLinkHeader,
+    MaterialBodyV1291_03_06PC,
+    ResourceObjectLinkHeaderV106_63_02PC,
+    TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV1291_03_06PC,
 )
 from ..common.resource import load_dependencies, save_dependencies
 from ..generic.material import Material
@@ -32,9 +32,14 @@ def f32_to_u32_pun(f: float) -> int:
 
 class MaterialV1_291_03_06_PC:
     file_path: str
-    material: MaterialV1291_03_06_PC
+    material: (
+        TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV1291_03_06PC
+    )
 
-    def __init__(self, material: MaterialV1291_03_06_PC = None):
+    def __init__(
+        self,
+        material: TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV1291_03_06PC = None,
+    ):
         if material is not None:
             self.material = material.material_v1_291_03_06_pc
             self.file_path = material.file_path
@@ -52,7 +57,7 @@ class MaterialV1_291_03_06_PC:
         # ------------------------------------------------------------
         # Body defaults
         # ------------------------------------------------------------
-        body = MaterialV1291_03_06PCBody(
+        body = MaterialBodyV1291_03_06PC(
             cdcdcdcd=0xCDCDCDCD,
             diffuse=[1.0, 1.0, 1.0, 1.0],
             diffuse_rotation=0.0,
@@ -75,7 +80,7 @@ class MaterialV1_291_03_06_PC:
         # ------------------------------------------------------------
         # Link header
         # ------------------------------------------------------------
-        link_header = AnimationV1291_03_06PCLinkHeader(
+        link_header = ResourceObjectLinkHeaderV106_63_02PC(
             link_name=safe_int(generic_material.name),
             links=[],
             names=[],
@@ -83,7 +88,7 @@ class MaterialV1_291_03_06_PC:
 
         material_pc = MaterialV1_291_03_06_PC()
         material_pc.file_path = generic_material.file_path
-        material_pc.material = MaterialV1291_03_06_PC(
+        material_pc.material = TrivialClassForResourceObjectLinkHeaderV106_63_02PCAndMaterialBodyV1291_03_06PC(
             body=body,
             class_name="Material_Z",
             link_header=link_header,
@@ -188,7 +193,7 @@ class MaterialV1_291_03_06_PC:
     # ======================================================================
 
     def to_generic(self) -> Material:
-        body: MaterialV1291_03_06PCBody = self.material.body
+        body: MaterialBodyV1291_03_06PC = self.material.body
         generic_material = Material()
 
         generic_material.file_path = self.file_path
